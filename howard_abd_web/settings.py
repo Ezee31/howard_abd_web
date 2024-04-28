@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # howard apps
+    'howard_web.apps.HowardWebConfig'
+    
 ]
 
 MIDDLEWARE = [
