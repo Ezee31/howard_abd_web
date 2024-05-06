@@ -1,0 +1,98 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú lateral</title>
+
+    <link rel="stylesheet" href="{% static "dashboard.css" %}">
+
+    <script src="https://kit.fontawesome.com/41bcea2ae3.js" crossorigin="anonymous"></script>
+</head>
+<body id="body">
+    
+    <header>
+        <div class="icon__menu">
+            <i class="fas fa-bars" id="btn_open"></i>
+        </div>
+    </header>
+
+    <div class="menu__side" id="menu_side">
+
+        <div class="name__page">
+            <i class="fa-solid fa-school"></i>
+            <h4>Howard Bilingual School</h4>
+        </div>
+
+        <div class="options__menu">	
+
+            <a href="#" class="selected">
+                <div class="option">
+                    <i class="fas fa-home" title="Inicio"></i>
+                    <h4>Inicio</h4>
+                </div>
+            </a>
+
+            <a href="#">
+                <div class="option">
+                    <i class="fa-solid fa-user-group" title="Curso"></i>
+                    <h4>Curso</h4>
+                </div>
+            </a>
+            
+            <a href="#">
+                <div class="option">
+                    <i class="fa-regular fa-user" title="Alumnos"></i>
+                    <h4>Alumnos</h4>
+                </div>
+            </a>
+
+            <a href="#">
+                <div class="option">
+                    <i class="fa-solid fa-person-chalkboard" title="Profesor"></i>
+                    <h4>Profesor</h4>
+                </div>
+            </a>
+
+            <a href="#">
+                <div class="option">
+                    <i class="fa-regular fa-clock" title="Horario"></i>
+                    <h4>Horario</h4>
+                </div>
+            </a>
+
+            <a href="#">
+                <div class="option">
+                    <i class="fa-regular fa-calendar-days" title="Tipo turno"></i>
+                    <h4>Tipo turno</h4>
+                </div>
+            </a>
+
+            <a href="#">
+                <div class="option">
+                    <i class="fa-solid fa-money-bill-1" title="Pago"></i>
+                    <h4>Pago</h4>
+                </div>
+            </a>
+
+            <a href="#">
+                <div class="option">
+                    <i class="fa-solid fa-dollar-sign" title="Tipo pago"></i>
+                    <h4>Tipo pago</h4>
+                </div>
+            </a>
+
+        </div>
+
+    </div>
+
+    <main>
+       
+    </main>
+
+    <script src="{% static "dashboard.js" %}"></script>
+</body>
+</html>

@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.locale.LocaleMiddleware', #sirve para que detecte la preferencia de idioma del usuario
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -76,11 +77,25 @@ WSGI_APPLICATION = 'howard_abd_web.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": {
+        "ENGINE": "mssql",
+        "NAME": "HowardBSWeb",
+        "USER": "sa",
+        "PASSWORD": "123",
+        "HOST": "DESKTOP-EL230QB\\SQLEXPRESS",
+        "PORT": "",
+         "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server", 
+         },
+    },
 }
 
 
@@ -106,8 +121,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'es'
 
+LANGUAGES = [
+    ('es', 'Español'),
+    ('en', 'Inglés'),
+]
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
