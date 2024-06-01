@@ -36,7 +36,8 @@
                         <p class="text-secondary">Incie sesion con su cuenta asignada.</p>
                     </div>
                     <!--Form-->
-                    <form action="#">
+                    <form method="post">
+                        {% csrf_token %}
                         <div class="input-group mb-3">
                             <span class="input-group-text">
                                 <i class='bx bx-user'></i>
@@ -49,7 +50,8 @@
                             </span>
                             <input type="password" class="form-control form-control-lg fs-6" placeholder="Contraseña">
                         </div>
-                        <button class="btn btn-primary btn-lg w-100 mb-4">Iniciar Sesion</button>
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-4">Iniciar Sesion</button>
                     </form>
                 </div>
             </div>
