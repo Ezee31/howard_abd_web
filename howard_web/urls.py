@@ -7,4 +7,10 @@ urlpatterns = [
   path("tipo_turno", views.tipo_turno, name="tipo_turno"),
   path("tipo_turno/<int:id>", views.tipo_turno, name="tipo_turno_edit"),
   path("tipo_turno_delete/<int:id>", views.tipo_turno_delete, name="tipo_turno_delete"),
+  path("horario", views.horario, name="horario"),
+  path("horario/<int:id>", views.horario, name="horario_edit"),
+  path("horario_delete/<int:id>", views.horario_delete, name="horario_delete"),
+ # path("horario", views.horario, name="horario"),
+ # path("horario/<int:id>", views.horario, name="horario_edit"),
+ # path("horario_delete/<int:id>", views.horario_delete, name="horario_delete"),
 ]

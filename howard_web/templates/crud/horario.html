@@ -1,33 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crud</title>
-    <script src="https://kit.fontawesome.com/41308cef7f.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="styles/styles.css">
-</head>
-<body>
-    
-<!--Para filtar los resultados-->
-<div class="container">
-    <header>
-        
-      <!--Campos a rellenar-->
-    <div class="formFields">
-        <label for="name">Nombre:</label>
-        <input type="text" id="name" name="name" required>
-        <label for="tID">Tipo Turno ID:</label>
-        <input type="number" id="tID" name="tID"  required>
-    </div>
+{% extends "dashboard/index.html" %}
 
-     <!--Añadir estudiante-->
-    <div class="addMenberbtn">
-        
-        <button>Añadir Horario</button>
-    </div>
-        
-    </header>
+{% block content %}
+
+    <!--Para filtar los resultados-->
+    <div class="container">
+        <div class ="header-content">  
+            <!--Campos a rellenar-->
+            <form method="post">
+                {% csrf_token %}
+                <div class="formFields">
+                    <label for="name">Nombre:</label>
+                    {{ form.nombre }}
+                    <label for="tID">Tipo Turno:</label>
+                    {{ form.tipo_turno }}
+                </div>
+                <!--Añadir estudiante-->
+                <div class="addMenberbtn">
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    
 
      <!--Filtrar la cantidad seleccionada-->
      <div class="filterEntries">
@@ -52,7 +45,6 @@
         <thead>
             <!--Titulos de las tablas-->
             <tr class="heading">
-                <th>ID</th>
                 <th>Nombre:</th>
                 <th>Tipo Turno ID</th>
                 <th>Acciones</th>
@@ -60,20 +52,16 @@
         </thead>
 
         <tbody>
-            
-
-            <tr>
-                <td>1</td>
-                <td>De 8 a 10</td>
-                <td>1</td>
-                <td>
-                    <button><i class="fa-regular fa-eye"></i></button>
-                    <button><i class="fa-regular fa-pen-to-square"></i></button>
-                    <button><i class="fa-regular fa-trash-can"></i></button>
-                </td>
-            </tr>
-            
-            
+            {% for horario in horarios %}
+                <tr>
+                    <td>{{ horario.nombre }}</td>
+                    <td>{{ horario.tipo_turno }}</td>
+                    <td>
+                        <a href="/horario/{{horario.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                        <a href="/horario_delete/{{horario.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                    </td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
     <!--Botones para ver mas registros-->
@@ -91,8 +79,4 @@
     </footer>
 </div>
 
-
-
-
-</body>
-</html>
+{% endblock %}

@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import LoginForm, TipoTurnoForm
+from .forms import LoginForm, TipoTurnoForm, HorarioForm
 from django.contrib.auth import authenticate, login
-from .models import TipoTurno
+from .models import TipoTurno, Horario, TipoPago
 
 # Create your views here.
 # login endpoint
@@ -73,3 +73,53 @@ def tipo_turno_delete(request,id):
     return redirect("tipo_turno")
 
 #def tipo_turno_buscar(request):
+
+
+
+# horario endpoint
+
+@login_required(login_url='signin')
+def horario(request, id=None):
+    # obteniendo tipos turnos
+    tipos_turnos = TipoTurno.objects.all().values_list('id', 'dias')
+
+    if request.method == 'GET':
+        #obteniendo todos los horarios de la base de datos
+        horarios =  Horario.objects.all()
+        if id: 
+            horario = Horario.objects.get(id=id)
+            edit_horario_form = HorarioForm(initial={'nombre': horario.nombre,
+                                                     'tipo_turno': horario.tipo_turno})
+            return render(request, "crud/horario.html", {'horarios': horarios,
+                                                         'form': edit_horario_form})
+        else:
+            new_horario_form = HorarioForm(tipos_turnos=tipos_turnos)
+            return render(request, "crud/horario.html", {'horarios': horarios,
+                                                         'form': new_horario_form})
+    if request.method == 'POST':
+        horario_form = HorarioForm(request.POST, tipos_turnos=tipos_turnos)
+        is_valid = horario_form.is_valid()
+        if is_valid:
+            nombre = horario_form.cleaned_data["nombre"]
+            tipo_turno_id = horario_form.cleaned_data["tipo_turno"]
+            tipo_turno = TipoTurno.objects.get(id=int(tipo_turno_id))
+            if id:
+                horario = get_object_or_404(Horario, id=id)
+                horario.nombre = nombre
+                horario.tipo_turno = tipo_turno
+                horario.save()
+            else:
+                new_horario = Horario(nombre=nombre, tipo_turno=tipo_turno)
+                new_horario.save()
+            return redirect("horario")
+
+@login_required(login_url='signin')
+def horario_delete(request,id):
+    horario = Horario.objects.get(id=id)
+    horario.delete()
+    return redirect("horario")
+
+#def horario_buscar(request)
+
+
+#
