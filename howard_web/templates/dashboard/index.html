@@ -9,11 +9,9 @@
     <title>Menú lateral</title>
 
     <link rel="stylesheet" href="{% static "dashboard.css" %}">
-
-    <script src="https://kit.fontawesome.com/41bcea2ae3.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{% static "crud-styles.css" %}">
 </head>
 <body id="body">
-    
     <header>
         <div class="icon__menu">
             <i class="fas fa-bars" id="btn_open"></i>
@@ -27,29 +25,25 @@
             <h4>Howard Bilingual School</h4>
         </div>
 
-        <div class="options__menu">	
-
-            <a href="#" class="selected">
+        <div class="options__menu">
+            <a href="/" class="selected">
                 <div class="option">
                     <i class="fas fa-home" title="Inicio"></i>
                     <h4>Inicio</h4>
                 </div>
             </a>
-
             <a href="#">
                 <div class="option">
                     <i class="fa-solid fa-user-group" title="Curso"></i>
                     <h4>Curso</h4>
                 </div>
             </a>
-            
             <a href="#">
                 <div class="option">
                     <i class="fa-regular fa-user" title="Alumnos"></i>
                     <h4>Alumnos</h4>
                 </div>
             </a>
-
             <a href="#">
                 <div class="option">
                     <i class="fa-solid fa-person-chalkboard" title="Profesor"></i>
@@ -63,36 +57,41 @@
                     <h4>Horario</h4>
                 </div>
             </a>
-
-            <a href="#">
+            <a href="tipo_turno">
                 <div class="option">
                     <i class="fa-regular fa-calendar-days" title="Tipo turno"></i>
                     <h4>Tipo turno</h4>
                 </div>
             </a>
-
             <a href="#">
                 <div class="option">
                     <i class="fa-solid fa-money-bill-1" title="Pago"></i>
                     <h4>Pago</h4>
                 </div>
             </a>
-
             <a href="#">
                 <div class="option">
                     <i class="fa-solid fa-dollar-sign" title="Tipo pago"></i>
                     <h4>Tipo pago</h4>
                 </div>
             </a>
-
         </div>
-
     </div>
 
     <main>
-       
+        {% block content %}
+        {% comment %} renderizando vistas parciales {% endcomment %}
+        {% endblock %}
     </main>
 
+    <script
+        src="https://kit.fontawesome.com/41308cef7f.js"
+        crossorigin="anonymous">
+    </script>
+    <script
+        src="https://kit.fontawesome.com/41bcea2ae3.js"
+        crossorigin="anonymous">
+    </script>
     <script src="{% static "dashboard.js" %}"></script>
 </body>
 </html>

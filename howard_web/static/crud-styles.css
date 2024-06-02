@@ -1,17 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 
-*{
+main {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: "Nunito", sans-serif;
-}
-
-body{
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    min-height: 100vh;
+    min-height: 91.4vh;
     background-color: #17202A;
 }
 
@@ -23,6 +20,10 @@ body{
     margin: 10px;
     margin-top: 50px;
 
+}
+
+.container .header-content {
+    margin-top: 100px;
 }
 
 .formFields {
@@ -123,7 +124,7 @@ table tr th{
 }
 
 table tr td:nth-child(1), table tr tdn:nth-child(2){
-    text-align: center;
+    text-align: left;
 }
 
 

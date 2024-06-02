@@ -1,106 +1,85 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crud</title>
-    <script src="https://kit.fontawesome.com/41308cef7f.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="styles/styles.css">
-</head>
-<body>
-    
-<!--Para filtar los resultados-->
-<div class="container">
-    <header>
-        
-      <!--Campos a rellenar-->
-    <div class="formFields">
-        <label for="days">Dias:</label>
-        <input type="text" id="name" name="name" required>
-        <label for="hE">Hora Entrada:</label>
-        <input type="time" id="hE" name="hE"  required>
-        <label for="hS">Hora Salida:</label>
-        <input type="time" id="hS" name="hS"  required>
-        <label for="hS">Formato:</label>
-        <input type="datetime" id="hS" name="hS"  required>
-        
-    </div>
+{% extends "dashboard/index.html" %}
 
-     <!--Añadir estudiante-->
-    <div class="addMenberbtn">
-        
-        <button>Añadir Tipo Turno</button>
-    </div>
-        
-    </header>
-
-     <!--Filtrar la cantidad seleccionada-->
-     <div class="filterEntries">
-        <div class="entries">
-            Enseñar <select name="" id="table_size">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-            </select> entradas
+{% block content %}
+    <!--Para filtar los resultados-->
+    <div class="container">
+        <div class="header-content">
+            <!--Campos a rellenar-->
+            <form method="post"> 
+                {% csrf_token %}
+                <div class="formFields">
+                    <label for="days">Dias:</label>
+                    {{ form.dias }}
+                    <label for="hE">Hora Entrada:</label>
+                    {{ form.hora_entrada }}
+                    <label for="hS">Hora Salida:</label>
+                    {{ form.hora_salida }}
+                    <label for="hS">Formato:</label>
+                    {{ form.formato }}                    
+                </div>
+                <!--Añadir estudiante-->
+                <div class="addMenberbtn">
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
         </div>
-        <!--Filtrar por busqueda-->
-        <div class="filter">
-            <label for="search">Buscar</label>
-            <input type="search" name="" id="search" placeholder="Ingrese un nombre">
+
+        <!--Filtrar la cantidad seleccionada-->
+        <div class="filterEntries">
+            <div class="entries">
+                Enseñar <select name="" id="table_size">
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select> entradas
+            </div>
+            <!--Filtrar por busqueda-->
+            <div class="filter">
+                <label for="search">Buscar</label>
+                <input type="search" name="" id="search" placeholder="Ingrese un nombre">
+            </div>
         </div>
+
+        <!--Tabla-->
+        <table>
+            <thead>
+                <!--Titulos de las tablas-->
+                <tr class="heading">
+                    <th>Dias</th>
+                    <th>Hora Entrada</th>
+                    <th>Hora Salida</th>
+                    <th>Formato</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo_turno in tipos_turnos %}
+                    <tr>
+                        <td>{{ tipo_turno.dias }}</td>
+                        <td>{{ tipo_turno.hora_entrada }}</td>
+                        <td>{{ tipo_turno.hora_salida }}</td>
+                        <td>{{ tipo_turno.formato }}</td>
+                        <td>
+                            <a href="/tipo_turno/{{tipo_turno.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/tipo_turno_delete/{{tipo_turno.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <!--Botones para ver mas registros-->
+        <footer>
+            <span>Mostrar del 1 al 10 o 50</span>
+            <div class="pagination">
+                <button>prev</button>
+                <button class="active">1</button>
+                <button>2</button>
+                <button>3</button>
+                <button>4</button>
+                <button>5</button>
+                <button>next</button>
+            </div>
+        </footer>
     </div>
-    
-
-    <!--Tabla-->
-    <table>
-        <thead>
-            <!--Titulos de las tablas-->
-            <tr class="heading">
-                <th>ID</th>
-                <th>Dias</th>
-                <th>Hora Entrada</th>
-                <th>Hora Salida</th>
-                <th>Formato</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            
-
-            <tr>
-                <td>1</td>
-                <td>7:00</td>
-                <td>8:00</td>
-                <td>AM</td>
-                <td>
-                    <button><i class="fa-regular fa-eye"></i></button>
-                    <button><i class="fa-regular fa-pen-to-square"></i></button>
-                    <button><i class="fa-regular fa-trash-can"></i></button>
-                </td>
-            </tr>
-            
-            
-        </tbody>
-    </table>
-    <!--Botones para ver mas registros-->
-    <footer>
-        <span>Mostrar del 1 al 10 o 50</span>
-        <div class="pagination">
-            <button>prev</button>
-            <button class="active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button>4</button>
-            <button>5</button>
-            <button>next</button>
-        </div>
-    </footer>
-</div>
-
-
-
-
-</body>
-</html>
+{% endblock %}

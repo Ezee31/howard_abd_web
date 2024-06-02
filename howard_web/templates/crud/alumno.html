@@ -1,14 +1,15 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crud</title>
-    <script src="https://kit.fontawesome.com/41308cef7f.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="stylesheet" href="{% static "crud-styles.css" %}">
 </head>
 <body>
-    
+
 <!--Para filtar los resultados-->
 <div class="container">
     <header>
@@ -139,6 +140,9 @@
 
 
 
-
+    <script
+        src="https://kit.fontawesome.com/41308cef7f.js"
+        crossorigin="anonymous">
+    </script>
 </body>
 </html>

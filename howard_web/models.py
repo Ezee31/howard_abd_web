@@ -1,13 +1,12 @@
 from django.db import models
 
 # Create your models here.
-
 class TipoTurno(models.Model):
     dias = models.CharField(max_length=50)
     hora_entrada = models.CharField(max_length=10)
     hora_salida = models.CharField(max_length=10)
     formato = models.CharField(max_length=20)
-    
+
     class Meta:
         db_table = "TipoTurno"
         verbose_name = "Tipo de turno"
@@ -15,20 +14,21 @@ class TipoTurno(models.Model):
 
     def __str__(self):
         return self.dias
+
 class Profesor(models.Model):
     nombres = models.CharField(max_length=100)
     apellidos = models.CharField(max_length=100)
     estudios = models.CharField(max_length=100)
     experiencia = models.IntegerField()
-    
+
     class Meta:
         db_table = "Profesor"
         verbose_name = "Profesor"
         verbose_name_plural = "Profesores"
-        
+
     def __str__(self):
         return self.nombres
- 
+
 class Horario(models.Model):
     tipo_turno = models.ForeignKey(TipoTurno, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=100)
