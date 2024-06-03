@@ -1,37 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crud</title>
-    <script src="https://kit.fontawesome.com/41308cef7f.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="styles/styles.css">
-</head>
-<body>
-    
+{% extends "dashboard/index.html" %}
+
+{% block content %}  
 <!--Para filtar los resultados-->
 <div class="container">
-    <header>
-        
+    <div class="header-content">
       <!--Campos a rellenar-->
-    <div class="formFields">
-        <label for="name">Nombres:</label>
-        <input type="text" id="name" name="name" required>
-        <label for="Lname">Apellidos:</label>
-        <input type="text" id="Lname" name="Lname" required>
-        <label for="estd">Estudios:</label>
-        <input type="text" id="estd" name="estd" required>
-        <label for="exp">Experiencia:</label>
-        <input type="number" id="exp" name="exp"  required>
-    </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="formFields">
+            <label for="nombres">Nombres:</label>
+            {{ form.nombres }}
+            <label for="apellidos">Apellidos:</label>
+            {{ form.apellidos }}
+            <label for="estudios">Estudios:</label>
+            {{ form.estudios }}
+            <label for="experiencia">Experiencia (en años):</label>
+            {{ form.experiencia }}
+        </div>
 
      <!--Añadir estudiante-->
-    <div class="addMenberbtn">
-        
-        <button>Añadir Profesor</button>
-    </div>
-        
-    </header>
+        <div class="addMenberbtn">   
+        <button type="submit">Guardar</button>
+        </div>
+    </form>
 
      <!--Filtrar la cantidad seleccionada-->
      <div class="filterEntries">
@@ -56,7 +47,6 @@
         <thead>
             <!--Titulos de las tablas-->
             <tr class="heading">
-                <th>ID</th>
                 <th>Nombres</th>
                 <th>Apellidos</th>
                 <th>Estudios</th>
@@ -67,20 +57,18 @@
 
         <tbody>
             
-
+            {% for profesor in profesores %}
             <tr>
-                <td>1</td>
-                <td>Hector jose</td>
-                <td>Montoya</td>
-                <td>De todo un poco</td>
-                <td>20</td>
+                <td>{{ profesor.nombres }}</td>
+                <td>{{ profesor.apellidos }}</td>
+                <td>{{ profesor.estudios }}</td>
+                <td>{{ profesor.experiencia }}</td>
                 <td>
-                    <button><i class="fa-regular fa-eye"></i></button>
-                    <button><i class="fa-regular fa-pen-to-square"></i></button>
-                    <button><i class="fa-regular fa-trash-can"></i></button>
+                    <a href="{% url 'profesor_edit' id=profesor.id %}"><i class="fa-regular fa-pen-to-square"></i></a>
+                    <a href="{% url 'profesor_delete' id=profesor.id %}"><i class="fa-regular fa-trash-can"></i></a>
                 </td>
             </tr>
-            
+        {% endfor %}
             
         </tbody>
     </table>
@@ -98,9 +86,4 @@
         </div>
     </footer>
 </div>
-
-
-
-
-</body>
-</html>
+{% endblock %}

@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import LoginForm, TipoTurnoForm, HorarioForm
+from .forms import LoginForm, TipoTurnoForm, HorarioForm, ProfesorForm, TipoPagoForm
 from django.contrib.auth import authenticate, login
-from .models import TipoTurno, Horario, TipoPago
+from .models import TipoTurno, Horario, TipoPago, Profesor
 
 # Create your views here.
 # login endpoint
@@ -72,12 +72,7 @@ def tipo_turno_delete(request,id):
     tipo_turno.delete()
     return redirect("tipo_turno")
 
-#def tipo_turno_buscar(request):
-
-
-
 # horario endpoint
-
 @login_required(login_url='signin')
 def horario(request, id=None):
     # obteniendo tipos turnos
@@ -119,7 +114,72 @@ def horario_delete(request,id):
     horario.delete()
     return redirect("horario")
 
-#def horario_buscar(request)
+# profesor endpoints
+@login_required(login_url='signin')
+def profesor(request, id=None):
+    if request.method == 'GET':
+        profesores = Profesor.objects.all()
+        if id:
+            profesor = Profesor.objects.get(id=id)
+            edit_profesor_form = ProfesorForm(initial={'nombres': profesor.nombres, 'apellidos': profesor.apellidos, 'estudios': profesor.estudios, 'experiencia': profesor.experiencia})
+            return render(request, "crud/profesor.html", {'profesores': profesores, 'form': edit_profesor_form})
+        else:
+            new_profesor_form = ProfesorForm()
+            return render(request, "crud/profesor.html", {'profesores': profesores, 'form': new_profesor_form})
+        
+    if request.method == 'POST':
+        profesor_form = ProfesorForm(request.POST)
+        if profesor_form.is_valid():
+            nombres = profesor_form.cleaned_data["nombres"]
+            apellidos = profesor_form.cleaned_data["apellidos"]
+            estudios = profesor_form.cleaned_data["estudios"]
+            experiencia = profesor_form.cleaned_data["experiencia"]
+            if id:
+                profesor = get_object_or_404(Profesor, id=id)
+                profesor.nombres = nombres
+                profesor.apellidos = apellidos
+                profesor.estudios = estudios
+                profesor.experiencia = experiencia
+                profesor.save()
+            else:
+                new_profesor = Profesor(nombres= nombres, apellidos= apellidos, estudios= estudios, experiencia= experiencia)
+                new_profesor.save()
+            return redirect("profesor")
+  
+@login_required(login_url='signin')      
+def profesor_delete(request, id):
+    profesor = get_object_or_404(Profesor, id=id)
+    profesor.delete()
+    return redirect("profesor")
 
-
-#
+# tipopago endpoints
+@login_required(login_url='signin')
+def tipo_pago(request, id=None):
+    if request.method == 'GET':
+        tipos_pago = TipoPago.objects.all()
+        if id:
+            tipo_pago = TipoPago.objects.get(id=id)
+            edit_tipo_pago_form = TipoPagoForm(initial={'nombre': tipo_pago.nombre})
+            return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago, 'form': edit_tipo_pago_form})
+        else:
+            new_tipo_pago_form = TipoPagoForm()
+            return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago, 'form': new_tipo_pago_form})
+        
+    if request.method == 'POST':
+        tipo_pago_form = TipoPagoForm(request.POST)
+        if tipo_pago_form.is_valid():
+            nombre = tipo_pago_form.cleaned_data["nombre"]
+            if id:
+                tipo_pago = get_object_or_404(TipoPago, id=id)
+                tipo_pago.nombre = nombre
+                tipo_pago.save()
+            else:
+                new_tipo_pago = TipoPago(nombre=nombre)
+                new_tipo_pago.save()
+            return redirect("tipo_pago")
+        
+@login_required(login_url='signin')
+def tipo_pago_delete(request, id):
+    tipo_pago = get_object_or_404(TipoPago, id=id)
+    tipo_pago.delete()
+    return redirect("tipo_pago")

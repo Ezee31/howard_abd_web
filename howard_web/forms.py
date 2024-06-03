@@ -4,9 +4,6 @@ class LoginForm(forms.Form):
     username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-lg fs-6', 'placeholder': 'Nombre de Usuario'}), max_length=150)
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control form-control-lg fs-6', 'placeholder': 'Contraseña'}), max_length=128)
 
-class AlumnoForm(forms.Form):
-    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
-
 class TipoTurnoForm(forms.Form):
     dias = forms.CharField(widget=forms.TextInput())
     hora_entrada = forms.CharField(widget=forms.TimeInput())
@@ -46,3 +43,11 @@ class PagoForm(forms.Form):
     tipo_pago =  forms.CharField(widget=forms.TextInput())
     solvencia_mes =  forms.CharField(widget=forms.TextInput())
 
+class ProfesorForm(forms.Form):
+    nombres = forms.CharField(widget=forms.TextInput())
+    apellidos = forms.CharField(widget=forms.TextInput())
+    estudios = forms.CharField(widget=forms.TextInput())
+    experiencia = forms.IntegerField(widget=forms.NumberInput())
+    
+class TipoPagoForm(forms.Form):
+    nombre = forms.CharField(widget=forms.TextInput())
