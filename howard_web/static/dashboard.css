@@ -41,7 +41,7 @@ header{
 }
 
 .menu__side{
-    width: 80px;
+    width: 85px;
     height: 100%;
     background: #17202A;
     position: fixed;
@@ -78,6 +78,7 @@ header{
 .name__page i{
     width: 20px;
     margin-right: 20px;
+    margin-left: 12px;
 }
 
 .options__menu{
