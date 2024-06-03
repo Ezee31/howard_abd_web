@@ -15,5 +15,8 @@ urlpatterns = [
   path("profesor_delete/<int:id>", views.profesor_delete, name="profesor_delete"),
   path("tipo_pago", views.tipo_pago, name="tipo_pago"),  
   path("tipo_pago/<int:id>", views.tipo_pago, name="tipo_pago_edit"), 
-  path("tipo_pago_delete/<int:id>", views.tipo_pago_delete, name="tipo_pago_delete"),  
+  path("tipo_pago_delete/<int:id>", views.tipo_pago_delete, name="tipo_pago_delete"),
+  path("grupo", views.grupo, name="grupo"),  
+  path("grupo/<int:id>", views.grupo, name="grupo_edit"), 
+  path("grupo_delete/<int:id>", views.grupo_delete, name="grupo_delete"),
 ]

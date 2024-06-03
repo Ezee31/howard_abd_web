@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import LoginForm, TipoTurnoForm, HorarioForm, ProfesorForm, TipoPagoForm
-from django.contrib.auth import authenticate, login
-from .models import TipoTurno, Horario, TipoPago, Profesor
+from .forms import LoginForm, TipoTurnoForm, HorarioForm, ProfesorForm, TipoPagoForm, GrupoForm
+from django.contrib.auth import authenticate, login, logout
+from .models import TipoTurno, Horario, TipoPago, Profesor, Grupo
 
 # Create your views here.
 # login endpoint
@@ -183,3 +183,53 @@ def tipo_pago_delete(request, id):
     tipo_pago = get_object_or_404(TipoPago, id=id)
     tipo_pago.delete()
     return redirect("tipo_pago")
+
+# grupo endpoint 
+@login_required(login_url='signin')
+def grupo(request, id=None):
+    # obteniendo horario
+    horarios = Horario.objects.all().values_list('id','nombre')
+    # obteniendo profesores
+    profesores = Profesor.objects.all().values_list('id','nombres')
+    
+    if request.method == 'GET':
+        # obteniendo todos los tipos turnos de la base de datos
+        grupos = Grupo.objects.all()
+        if id:
+            grupo = Grupo.objects.get(id=id)
+            edit_grupo_form = GrupoForm(initial={'nombre': grupo.nombre, 'nivel': grupo.nivel,
+                                                 'cupo_maximo': grupo.cupo_maximo , 'horario': grupo.horario,
+                                                 'profesor': grupo.profesor})
+            return render(request, "crud/grupo.html", {'grupos': grupos, 'form': edit_grupo_form})
+        else:
+            new_grupo_form =  GrupoForm(horarios = horarios, profesores = profesores)
+            return render(request, "crud/grupo.html", {'grupos': grupos, 'form': new_grupo_form})
+    if request.method == 'POST':
+        grupo_form = GrupoForm(request.POST, horarios = horarios, profesores = profesores)
+        is_valid = grupo_form.is_valid()
+        if is_valid:
+            nombre = grupo_form.cleaned_data["nombre"]
+            nivel = grupo_form.cleaned_data["nivel"]
+            cupo_maximo = grupo_form.cleaned_data["cupo_maximo"]
+            horario_id  = grupo_form.cleaned_data["horario"]
+            horario = Horario.objects.get(id=int(horario_id))
+            profesor_id = grupo_form.cleaned_data["profesor"]
+            profesor = Profesor.objects.get(id=int(profesor_id))
+            if id:
+                grupo = get_object_or_404(Grupo, id=id)
+                grupo.nombre = nombre
+                grupo.nivel = nivel
+                grupo.cupo_maximo = cupo_maximo
+                grupo.horario = horario
+                grupo.profesor = profesor
+                grupo.save()
+            else:
+                new_grupo = Grupo(nombre=nombre, nivel = nivel, cupo_maximo =cupo_maximo,
+                                  horario = horario, profesor = profesor)
+                new_grupo.save()
+            return redirect("grupo")
+@login_required(login_url='signin')
+def grupo_delete(request,id):
+    grupo = Grupo.objects.get(id=id)
+    grupo.delete()
+    return redirect("grupo")

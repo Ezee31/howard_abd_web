@@ -1,0 +1,91 @@
+{% extends "dashboard/index.html" %}
+
+{% block content %}
+    <!--Para filtar los resultados-->
+    <div class="container">
+        <div class="header-content">
+            <!--Campos a rellenar-->
+            <form method='post'>
+                {% csrf_token %}
+                <div class="formFields">
+                    <label for="name">Nombre:</label>
+                    {{ form.nombre }}
+                    <label for="level">Nivel:</label>
+                    {{ form.nivel }}
+                    <label for="capacidad">Cupo Maximo:</label>
+                    {{ form.cupo_maximo }}
+                    <label for="hID">Horario ID:</label>
+                    {{ form.horario }}
+                    <label for="pID">Profesor ID:</label>
+                    {{ form.profesor }}
+                </div>
+                <!--Añadir estudiante-->
+                <div class="addMenberbtn"> 
+                    <button type="submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+     <!--Filtrar la cantidad seleccionada-->
+     <div class="filterEntries">
+        <div class="entries">
+            Enseñar <select name="" id="table_size">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select> entradas
+        </div>
+        <!--Filtrar por busqueda-->
+        <div class="filter">
+            <label for="search">Buscar</label>
+            <input type="search" name="" id="search" placeholder="Ingrese un nombre">
+        </div>
+    </div>
+    
+
+    <!--Tabla-->
+    <table>
+        <thead>
+            <!--Titulos de las tablas-->
+            <tr class="heading">
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Nivel</th>
+                <th>Cupo Maximo</th>
+                <th>Horario ID</th>
+                <th>Profesor ID</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for grupo in grupos %}
+                <tr>
+                    <td>{{ grupo.nombre }}</td>
+                    <td>{{ grupo.nivel }}</td>
+                    <td>{{ grupo.cupo_maximo }}</td>
+                    <td>{{ grupo.horario }}</td>
+                    <td>{{ grupo.profesor }}</td>
+                    <td>
+                        <a href="/grupo/{{grupo.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                        <a href="/grupo_delete/{{grupo.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                    </td>
+                </tr>
+            {% endfor %}            
+        </tbody>
+    </table>
+    <!--Botones para ver mas registros-->
+    <footer>
+        <span>Mostrar del 1 al 10 o 50</span>
+        <div class="pagination">
+            <button>prev</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>4</button>
+            <button>5</button>
+            <button>next</button>
+        </div>
+    </footer>
+</div>
+{% endblock %}

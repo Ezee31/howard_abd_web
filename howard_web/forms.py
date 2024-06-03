@@ -24,9 +24,18 @@ class HorarioForm(forms.Form):
 class GrupoForm(forms.Form):
     nombre =  forms.CharField(widget=forms.TextInput())
     nivel =  forms.CharField(widget=forms.TextInput())
-    cupo_maximo =  forms.CharField(widget=forms.TextInput())
-    horario =  forms.CharField(widget=forms.TextInput())
-    profesor =  forms.CharField(widget=forms.TextInput())
+    cupo_maximo =  forms.CharField(widget=forms.NumberInput())
+    horario =  forms.ChoiceField(widget=forms.Select(), choices=[])
+    profesor =  forms.ChoiceField(widget=forms.Select(), choices=[])
+    
+    def __init__(self, *args, **kwargs):
+        if len(kwargs) > 0:
+            horarios = kwargs.pop('horarios')
+            profesores = kwargs.pop('profesores')
+            super(GrupoForm, self).__init__(*args, **kwargs)
+            self.fields['horario'].choices = horarios
+            self.fields['profesor'].choices = profesores
+        
 
 class AlumnoForm(forms.Form):
     email =  forms.CharField(widget=forms.TextInput())
