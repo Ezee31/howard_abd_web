@@ -8,6 +8,7 @@
     font-family: 'Open Sans', sans-serif;
 }
 
+
 body{
     margin-left: 80px;
     margin-top: 80px;
@@ -139,6 +140,20 @@ a.selected{
 
 .menu__side_move{
     width: 250px;
+}
+
+
+.btn_dashboard{
+    
+    margin-left: 10px;
+    position: absolute;
+    color: #ffffffb2;
+    background-color: transparent;
+    cursor: default;
+    display: block;
+    position: relative;
+    transition: color 300ms;
+    border: none;
 }
 
 

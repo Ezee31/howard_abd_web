@@ -75,9 +75,9 @@
                     <h4>Tipo pago</h4>
                 </div>
             </a>
-           <form method="post" action="{% url 'logout' %}">
+           <form class="form_dashboard" method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
-                <button type="submit" style="background:none; border:none; padding:0; color:inherit; cursor:pointer;">
+                <button class="btn_dashboard" type="submit" >
                     <div class="option">
                         <i class="fa-solid fa-right-from-bracket" title="Cerrar sesión"></i>
                         <h4>Cerrar sesión</h4>
