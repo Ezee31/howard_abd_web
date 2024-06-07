@@ -1,44 +1,32 @@
-{% load static %}
+{% extends "dashboard/index.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crud</title>
-    <link rel="stylesheet" href="{% static "crud-styles.css" %}">
-</head>
-<body>
-
+{% block content %}
 <!--Para filtar los resultados-->
 <div class="container">
-    <header>
-        
-      <!--Campos a rellenar-->
-    <div class="formFields">
-       
-        <label for="name">Nombres:</label>
-        <input type="text" id="name" name="name" required>
-        <label for="lastname">Apellidos:</label>
-        <input type="text" id="lastname" name="lastname" required>
-        <label for="phone">Telefono:</label>
-        <input type="tel" id="phone" name="phone" pattern="[0-9]{8}" required>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <label for="active">Activo:</label>
-        <input type="checkbox" id="active" name="active">
-        <label for="group_id">Grupo ID:</label>
-        <input type="text" id="group_id" name="group_id">
+    <div class="header-content">    
+        <!--Campos a rellenar-->
+        <form method='post'>
+            {% csrf_token %}
+            <div class="formFields">
+                <label for="nombre">Nombres:</label>
+                {{ form.nombres }}
+                <label for="apellido">Apellidos:</label>
+                {{ form.apellidos }}
+                <label for="telefono">Telefono:</label>
+                {{ form.telefono }}
+                <label for="email">Email:</label>
+                {{ form.email }}
+                <label for="activo">Activo:</label>
+                {{ form.activo }}
+                <label for="group_id">Grupo ID:</label>
+                {{ form.grupo }}
+            </div>
+            <!--Añadir estudiante-->
+            <div class="addMenberbtn">
+                <button type="submit">Guardar</button>
+            </div>
+        </form> 
     </div>
-
-     <!--Añadir estudiante-->
-    <div class="addMenberbtn">
-        
-        <button>Guardar</button>
-    </div>
-        
-    </header>
-
      <!--Filtrar la cantidad seleccionada-->
      <div class="filterEntries">
         <div class="entries">
@@ -62,65 +50,31 @@
         <thead>
             <!--Titulos de las tablas-->
             <tr class="heading">
-                <th>ID</th>
                 <th>Nombres</th>
                 <th>Apellidos</th>
                 <th>Telefono</th>
                 <th>Email</th>
                 <th>Activo</th>
-                <th>Grupo ID</th>
+                <th>Grupo</th>
                 <th>Acciones</th>
             </tr>
         </thead>
 
         <tbody>
-            
-
-            <tr>
-                <td>1</td>
-                <td>Juan Pablo</td>
-                <td>Munguia Gutierrez</td>
-                <td>12345678</td>
-                <td>juan.munguia@gmail.com</td>
-                <td><input type="checkbox" checked></td> 
-                <td>1</td>
-                <td>
-                    <button><i class="fa-regular fa-eye"></i></button>
-                    <button><i class="fa-regular fa-pen-to-square"></i></button>
-                    <button><i class="fa-regular fa-trash-can"></i></button>
-                </td>
-            </tr>
-            
-
-            <tr>
-                <td>2</td>
-                <td>Juan Pablo</td>
-                <td>Munguia Gutierrez</td>
-                <td>12345678</td>
-                <td>juan.munguia@gmail.com</td>
-                <td><input type="checkbox" checked></td> 
-                <td>1</td>
-                <td>
-                    <button><i class="fa-regular fa-eye"></i></button>
-                    <button><i class="fa-regular fa-pen-to-square"></i></button>
-                    <button><i class="fa-regular fa-trash-can"></i></button>
-                </td>
+            {% for alumno in alumnos %}
                 <tr>
-                    <td>3</td>
-                    <td>Juan Pablo</td>
-                    <td>Munguia Gutierrez</td>
-                    <td>12345678</td>
-                    <td>juan.munguia@gmail.com</td>
-                    <td><input type="checkbox" checked></td> <!-- Cambio a un checkbox -->
-                    <td>1</td>
+                    <td>{{ alumno.nombres }}</td>
+                    <td>{{ alumno.apellidos }}</td>
+                    <td>{{ alumno.telefono }}</td>
+                    <td>{{ alumno.email }}</td>
+                    <td>{{ alumno.activo }}</td> 
+                    <td>{{ alumno.grupo }}</td>
                     <td>
-                        <button><i class="fa-regular fa-eye"></i></button>
-                        <button><i class="fa-regular fa-pen-to-square"></i></button>
-                        <button><i class="fa-regular fa-trash-can"></i></button>
+                        <a href="/alumno/{{alumno.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                        <a href="/alumno_delete/{{alumno.id}}"><i class="fa-regular fa-trash-can"></i></a>
                     </td>
                 </tr>
-            
-            
+            {% endfor %} 
         </tbody>
     </table>
     <!--Botones para ver mas registros-->
@@ -137,12 +91,4 @@
         </div>
     </footer>
 </div>
-
-
-
-    <script
-        src="https://kit.fontawesome.com/41308cef7f.js"
-        crossorigin="anonymous">
-    </script>
-</body>
-</html>
+{% endblock %}

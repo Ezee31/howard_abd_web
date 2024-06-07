@@ -1,9 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import LoginForm, TipoTurnoForm, HorarioForm, ProfesorForm, TipoPagoForm, GrupoForm
-from django.contrib.auth import authenticate, login, logout
-from .models import TipoTurno, Horario, TipoPago, Profesor, Grupo
+from .forms import LoginForm, TipoTurnoForm, HorarioForm, ProfesorForm, TipoPagoForm, GrupoForm, AlumnoForm, PagoForm
+from django.contrib.auth import authenticate, login
+from .models import TipoTurno, Horario, TipoPago, Profesor, Grupo, Alumno, Pago
 
 # Create your views here.
 # login endpoint
@@ -84,7 +84,7 @@ def horario(request, id=None):
         if id: 
             horario = Horario.objects.get(id=id)
             edit_horario_form = HorarioForm(initial={'nombre': horario.nombre,
-                                                     'tipo_turno': horario.tipo_turno})
+                                                     'tipo_turno': horario.tipo_turno}, tipos_turnos=tipos_turnos)
             return render(request, "crud/horario.html", {'horarios': horarios,
                                                          'form': edit_horario_form})
         else:
@@ -199,7 +199,7 @@ def grupo(request, id=None):
             grupo = Grupo.objects.get(id=id)
             edit_grupo_form = GrupoForm(initial={'nombre': grupo.nombre, 'nivel': grupo.nivel,
                                                  'cupo_maximo': grupo.cupo_maximo , 'horario': grupo.horario,
-                                                 'profesor': grupo.profesor})
+                                                 'profesor': grupo.profesor}, profesores=profesores, horarios=horarios)
             return render(request, "crud/grupo.html", {'grupos': grupos, 'form': edit_grupo_form})
         else:
             new_grupo_form =  GrupoForm(horarios = horarios, profesores = profesores)
@@ -233,3 +233,104 @@ def grupo_delete(request,id):
     grupo = Grupo.objects.get(id=id)
     grupo.delete()
     return redirect("grupo")
+
+# alumno endpoints
+@login_required(login_url='signin')
+def alumno(request, id=None):
+    #obteniendo los datos de grupos
+    grupos = Grupo.objects.all().values_list('id', 'nombre')
+    
+    if request.method == 'GET':
+        #obteniendo todos los horarios de la base de datos
+        alumnos = Alumno.objects.all()
+        if id:
+            alumno = Alumno.objects.get(id=id)
+            edit_alumno_form = AlumnoForm(initial={'nombres': alumno.nombres, 
+                                                   'email': alumno.email,'apellidos': alumno.apellidos,
+                                                   'activo': alumno.activo, 'telefono': alumno.telefono,
+                                                   'grupo': alumno.grupo}, grupos=grupos)
+            return render(request, "crud/alumno.html", {'alumnos': alumnos, 'form': edit_alumno_form})
+        else:
+            new_alumno_form = AlumnoForm(grupos = grupos)
+            return render(request, "crud/alumno.html", {'alumnos': alumnos, 'form': new_alumno_form})
+    if request.method == 'POST':
+        alumno_form = AlumnoForm(request.POST, grupos=grupos)
+        is_valid = alumno_form.is_valid()
+        if is_valid:
+            nombres = alumno_form.cleaned_data["nombres"]
+            email = alumno_form.cleaned_data["email"]
+            apellidos = alumno_form.cleaned_data["apellidos"]
+            activo = alumno_form.cleaned_data["activo"]
+            telefono = alumno_form.cleaned_data["telefono"]
+            grupo_id = alumno_form.cleaned_data["grupo"]
+            grupo = Grupo.objects.get(id=int(grupo_id))
+            if id:
+                alumno = get_object_or_404(Alumno, id=id)
+                alumno.nombres = nombres
+                alumno.email = email
+                alumno.apellidos = apellidos
+                alumno.activo = activo
+                alumno.telefono = telefono
+                alumno.grupo = grupo
+                alumno.save()
+            else:
+                new_alumno = Alumno(nombres=nombres, email=email,apellidos=apellidos,
+                                    activo=activo,telefono=telefono, grupo=grupo)
+                new_alumno.save()
+            return redirect("alumno")
+#alumno delete
+@login_required(login_url='signin')
+def alumno_delete(request,id):
+    alumno = Alumno.objects.get(id=id)
+    alumno.delete()
+    return redirect('alumno')
+
+#pago endpoints
+@login_required(login_url='signin')
+def pago(request, id=None):
+    #obteniendo tipos pagos, alumnos
+    tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
+    alumnos = Alumno.objects.all().values_list('id', 'nombres')
+    
+    if request.method == 'GET':
+        #obteniendo todos los pagos de la base de datos
+        pagos = Pago.objects.all()
+        if id:
+            pago = Pago.objects.get(id=id)
+            edit_pago_form = PagoForm(initial={'fecha': pago.fecha, 'monto': pago.monto, 'alumno': pago.alumno, 
+                                               'tipo_pago': pago.tipo_pago, 'solvencia_mes': pago.solvencia_mes}
+                                               ,tipos_pagos=tipos_pagos, alumnos = alumnos)
+            return render(request, "crud/pago.html",{'pagos': pagos, 'form': edit_pago_form})
+        else:
+            new_pago_form = PagoForm(tipos_pagos = tipos_pagos, alumnos = alumnos)
+            return render(request, "crud/pago.html", {'pagos': pagos, 'form': new_pago_form})
+    if request.method == 'POST':
+        pago_form = PagoForm(request.POST, tipos_pagos = tipos_pagos, alumnos = alumnos)
+        is_valid = pago_form.is_valid()
+        if is_valid:
+            fecha = pago_form.cleaned_data["fecha"]
+            monto = pago_form.cleaned_data["monto"]
+            tipo_pago_id = pago_form.cleaned_data["tipo_pago"]
+            tipo_pago = TipoPago.objects.get(id=int(tipo_pago_id))
+            alumno_id = pago_form.cleaned_data["alumno"]
+            alumno = Alumno.objects.get(id=int(alumno_id))
+            solvencia_mes = pago_form.cleaned_data["solvencia_mes"]
+        if id:
+            pago = get_object_or_404(Pago, id=id)
+            pago.fecha = fecha
+            pago.monto = monto
+            pago.alumno = alumno
+            pago.solvencia_mes = solvencia_mes
+            pago.save()
+        else:
+            new_pago = Pago(fecha=fecha, monto=monto,tipo_pago=tipo_pago,
+                            alumno=alumno,solvencia_mes=solvencia_mes)
+            new_pago.save()
+        return redirect("pago")
+
+#alumno delete
+@login_required(login_url='signin')
+def pago_delete(request,id):
+    pago = Pago.objects.get(id=id)
+    pago.delete()
+    return redirect("pago")

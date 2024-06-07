@@ -1,4 +1,5 @@
 from django import forms
+from datetime import date
 
 class LoginForm(forms.Form):
     username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control form-control-lg fs-6', 'placeholder': 'Nombre de Usuario'}), max_length=150)
@@ -20,10 +21,9 @@ class HorarioForm(forms.Form):
             super(HorarioForm, self).__init__(*args, **kwargs)
             self.fields['tipo_turno'].choices = tipos_turnos
 
-## Forms agregados necesitan verificacion
 class GrupoForm(forms.Form):
     nombre =  forms.CharField(widget=forms.TextInput())
-    nivel =  forms.CharField(widget=forms.TextInput())
+    nivel =  forms.ChoiceField(widget=forms.Select(), choices=[(str(i), str(i)) for i in range(1, 13)])
     cupo_maximo =  forms.CharField(widget=forms.NumberInput())
     horario =  forms.ChoiceField(widget=forms.Select(), choices=[])
     profesor =  forms.ChoiceField(widget=forms.Select(), choices=[])
@@ -39,19 +39,34 @@ class GrupoForm(forms.Form):
 
 class AlumnoForm(forms.Form):
     email =  forms.CharField(widget=forms.TextInput())
-    nombre =  forms.CharField(widget=forms.TextInput())
+    nombres =  forms.CharField(widget=forms.TextInput())
     apellidos = forms.CharField(widget=forms.TextInput())
-    activo =  forms.CharField(widget=forms.TextInput())
+    activo =  forms.CharField(widget=forms.CheckboxInput())
     telefono =  forms.CharField(widget=forms.TextInput())
-    grupo =  forms.CharField(widget=forms.TextInput())
+    grupo =  forms.ChoiceField(widget=forms.Select(), choices=[])
 
-class PagoForm(forms.Form):
-    fecha =  forms.CharField(widget=forms.TextInput())
-    monto =  forms.CharField(widget=forms.TextInput())
-    alumno =  forms.CharField(widget=forms.TextInput())
-    tipo_pago =  forms.CharField(widget=forms.TextInput())
-    solvencia_mes =  forms.CharField(widget=forms.TextInput())
+    def __init__(self, *args, **kwargs):
+        if len(kwargs) > 0:
+            grupos = kwargs.pop('grupos')
+            super(AlumnoForm, self).__init__(*args, **kwargs)
+            self.fields['grupo'].choices = grupos
 
+
+class PagoForm(forms.Form):     
+    fecha = forms.DateField(initial=date.today(), widget=forms.TextInput(attrs={'class': 'form-control', 'type':'date'}))
+    monto =  forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Cordobas'}))    
+    alumno =  forms.ChoiceField(widget=forms.Select(), choices=[])     
+    tipo_pago = forms.ChoiceField(widget=forms.Select(), choices=[])     
+    solvencia_mes = forms.BooleanField(required=False, widget=forms.CheckboxInput())          
+
+    def __init__(self, *args, **kwargs):        
+        if len(kwargs) > 0:             
+            tipos_pagos = kwargs.pop('tipos_pagos')             
+            alumnos = kwargs.pop('alumnos')             
+            super(PagoForm, self).__init__(*args, **kwargs)         
+            self.fields['tipo_pago'].choices = tipos_pagos             
+            self.fields['alumno'].choices = alumnos
+            
 class ProfesorForm(forms.Form):
     nombres = forms.CharField(widget=forms.TextInput())
     apellidos = forms.CharField(widget=forms.TextInput())
