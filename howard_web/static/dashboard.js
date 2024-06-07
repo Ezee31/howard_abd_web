@@ -1,4 +1,11 @@
 (function () {
+  // verificando ultima interacción del usuario con el botón del menu
+  if (localStorage.getItem('menu') === 'abierto') {
+    document.querySelector('body').classList.add('body_move');
+    document.querySelector('#menu_side').classList.add('menu__side_move');
+  }
+
+  // verificando ultima opción del menu presionada
   const currentPath = window.location.pathname;
 
   switch (currentPath) {
@@ -47,8 +54,13 @@ var body = document.getElementById("body");
 
 //Evento para mostrar y ocultar menú
 function open_close_menu(){
-    body.classList.toggle("body_move");
-    side_menu.classList.toggle("menu__side_move");
+  // comprobando si el menu tiene la clase menu__side_move de css
+  const claseMenuSideMove = side_menu.classList[1];
+  // guardando en local storage esa interaccion con el control
+  localStorage.setItem('menu', claseMenuSideMove ? 'cerrado' : 'abierto')
+
+  body.classList.toggle("body_move");
+  side_menu.classList.toggle("menu__side_move");
 }
 
 //Si el ancho de la página es menor a 760px, ocultará el menú al recargar la página
