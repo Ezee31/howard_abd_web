@@ -1,3 +1,17 @@
-.home{
-    background-color: blue;
+.container_home {
+    display: flex; /* or inline-flex */
+    flex-direction:  column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+  }
+
+.home_img{
+    width: 520px;
+    align-items: center;
+}
+.home_h1{
+    text-align: center;
+    color: #f5f5f5;
+    
 }

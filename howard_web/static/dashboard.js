@@ -38,25 +38,36 @@ window.addEventListener("resize", function(){
 
 });
 
-// Obtener las opciones del menú
-const options = document.querySelectorAll(".options__menu .option");
+document.addEventListener("DOMContentLoaded", () => {
+    // Obtener las opciones del menú
+    const options = document.querySelectorAll(".options__menu a");
 
-// Recorrer cada opción y agregar un listener de evento de clic
-options.forEach(option => {
-    option.addEventListener("click", function () {
-        // Remover la clase "selected" de la opción previamente seleccionada
-        const prevSelected = document.querySelector(".selected");
-        if (prevSelected) {
-            prevSelected.classList.remove("selected");
-        }
+    // Recorrer cada opción y agregar un listener de evento de clic
+    options.forEach(option => {
+        option.addEventListener("click", function (event) {
+            event.preventDefault(); // Prevenir la acción predeterminada del enlace
+            
+            // Remover la clase "selected" de la opción previamente seleccionada
+            const prevSelected = document.querySelector(".options__menu .selected");
+            if (prevSelected) {
+                prevSelected.classList.remove("selected");
+            }
 
-        // Agregar la clase "selected" a la opción actualmente seleccionada
-        option.classList.add("selected");
+            // Agregar la clase "selected" a la opción actualmente seleccionada
+            option.classList.add("selected");
 
-        // Mover la barra seleccionada a la opción actualmente seleccionada
-        const selectedBar = document.querySelector(".selected-bar");
-        selectedBar.style.top = `${option.offsetTop}px`; // Ajustar la posición de la barra
+            // Mover la barra seleccionada a la opción actualmente seleccionada
+            // Ajustar la posición de la barra si existe
+            const selectedBar = document.querySelector(".selected-bar");
+            if (selectedBar) {
+                selectedBar.style.top = `${option.offsetTop}px`; // Ajustar la posición de la barra
+            }
+
+            // Redirigir a la URL del enlace después de aplicar la selección
+            window.location.href = option.href;
+        });
     });
 });
+
 
 

@@ -30,7 +30,7 @@ def signin(request):
 # dashboard endpoint
 @login_required(login_url='signin')
 def dashboard(request):
-    return render(request, "dashboard/index.html")
+    return render(request, "home.html")
 
 # tipo turno endpoints
 @login_required(login_url='signin')
