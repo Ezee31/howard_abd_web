@@ -44,5 +44,7 @@ urlpatterns = [
 
   # Logout view
   path("logout/", LogoutView.as_view(next_page='signin'), name="logout"),
-
+  
+  # Reportes view
+ path("reportes", views.reportes, name="reportes"),
 ]

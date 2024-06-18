@@ -1,36 +1,65 @@
 {% extends "dashboard/index.html" %}
 
 {% block content %}
-<!-- Para filtrar los resultados -->
 <div class="container">
+    <h2 class="my-4 text-primary">Gestión de Alumnos</h2>
+    
     <div class="header-content">    
-        <!-- Campos a rellenar -->
         <form method='post'>
             {% csrf_token %}
             <div class="formFields">
-                <label for="nombre">Nombres:</label>
-                {{ form.nombres }}
-                <label for="apellido">Apellidos:</label>
-                {{ form.apellidos }}
-                <label for="telefono">Telefono:</label>
-                {{ form.telefono }}
-                <label for="email">Email:</label>
-                {{ form.email }}
-                <label for="activo">Activo:</label>
-                {{ form.activo }}
-                <label for="group_id">Grupo ID:</label>
-                {{ form.grupo }}
+                <div class="form-group">
+                    <label for="nombres">Nombres:</label>
+                    {{ form.nombres }}
+                    {% if form.nombres.errors %}
+                        <div class="alert alert-danger">{{ form.nombres.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="apellidos">Apellidos:</label>
+                    {{ form.apellidos }}
+                    {% if form.apellidos.errors %}
+                        <div class="alert alert-danger">{{ form.apellidos.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Telefono:</label>
+                    {{ form.telefono }}
+                    {% if form.telefono.errors %}
+                        <div class="alert alert-danger">{{ form.telefono.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="alert alert-danger">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="activo">Activo:</label>
+                    {{ form.activo }}
+                    {% if form.activo.errors %}
+                        <div class="alert alert-danger">{{ form.activo.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="grupo">Grupo:</label>
+                    {{ form.grupo }}
+                    {% if form.grupo.errors %}
+                        <div class="alert alert-danger">{{ form.grupo.errors }}</div>
+                    {% endif %}
+                </div>
             </div>
-            <!-- Añadir estudiante -->
             <div class="addMenberbtn">
-                <button type="submit">Guardar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
             </div>
         </form> 
     </div>
     <!-- Filtrar la cantidad seleccionada -->
     <div class="filterEntries">
         <div class="entries">
-            Enseñar <select name="" id="table_size">
+            Enseñar <select name="" id="table_size" class="form-control">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
@@ -41,15 +70,15 @@
         <div class="filter">
             <form id="search-form" method="get" action="/alumno">
                 <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, apellido, email o nombre de grupo" value="{{ request.GET.search }}">
+                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, apellido, email o nombre de grupo" value="{{ request.GET.search }}" class="form-control">
             </form>
         </div>
     </div>
 
     <!-- Tabla -->
     <div id="alumno-table">
-        <table>
-            <thead>
+        <table class="table table-striped">
+            <thead class="thead-dark">
                 <!-- Titulos de las tablas -->
                 <tr class="heading">
                     <th>Nombres</th>
@@ -70,10 +99,12 @@
                         <td>{{ alumno.email }}</td>
                         <td>{{ alumno.activo }}</td> 
                         <td>{{ alumno.grupo }}</td>
+                        <!-- Dentro del tbody -->
                         <td>
-                            <a href="/alumno/{{alumno.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
-                            <a href="/alumno_delete/{{alumno.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                            <a href="/alumno/{{alumno.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/alumno_delete/{{alumno.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
+                                
                     </tr>
                 {% endfor %} 
             </tbody>
@@ -83,17 +114,16 @@
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
-            <button>prev</button>
-            <button class="active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button>4</button>
-            <button>5</button>
-            <button>next</button>
+            <button class="btn btn-custom">Prev</button>
+            <button class="btn btn-custom active">1</button>
+            <button class="btn btn-custom">2</button>
+            <button class="btn btn-custom">3</button>
+            <button class="btn btn-custom">4</button>
+            <button class="btn btn-custom">5</button>
+            <button class="btn btn-custom">Next</button>
         </div>
     </footer>
 </div>
-
 {% endblock %}
 
 <script>

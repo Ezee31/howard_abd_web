@@ -1,60 +1,85 @@
 {% extends "dashboard/index.html" %}
 
 {% block content %}
-<!-- Para filtrar los resultados -->
 <div class="container">
-    <div class="header-content">    
-        <!-- Campos a rellenar -->
+    <h2 class="my-4 text-primary">Gestión de Pagos</h2>
+
+    <div class="header-content">
         <form method='post'>
             {% csrf_token %}
             <div class="formFields">
-                <label for="fecha">Fecha:</label>
-                {{ form.fecha }}
-                <label for="monto">Monto:</label>
-                {{ form.monto }}
-                <label for="alumno">Alumno:</label>
-                {{ form.alumno }}
-                <label for="tipo_pago">Tipo de Pago:</label>
-                {{ form.tipo_pago }}
-                <label for="solvencia_mes">Solvencia del Mes:</label>
-                {{ form.solvencia_mes }}
+                <div class="form-group">
+                    <label for="fecha">Fecha:</label>
+                    {{ form.fecha }}
+                    {% if form.fecha.errors %}
+                        <div class="alert alert-danger">{{ form.fecha.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="monto">Monto:</label>
+                    {{ form.monto }}
+                    {% if form.monto.errors %}
+                        <div class="alert alert-danger">{{ form.monto.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="alumno">Alumno:</label>
+                    {{ form.alumno }}
+                    {% if form.alumno.errors %}
+                        <div class="alert alert-danger">{{ form.alumno.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="tipo_pago">Tipo de Pago:</label>
+                    {{ form.tipo_pago }}
+                    {% if form.tipo_pago.errors %}
+                        <div class="alert alert-danger">{{ form.tipo_pago.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group form-check">
+                    <label for="solvencia_mes">Solvencia Mes:</label>
+                    {{ form.solvencia_mes }}
+                    {% if form.solvencia_mes.errors %}
+                        <div class="alert alert-danger">{{ form.solvencia_mes.errors }}</div>
+                    {% endif %}
+                </div>
             </div>
-            <!-- Añadir Pago -->
             <div class="addMenberbtn">
-                <button type="submit">Guardar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
             </div>
-        </form> 
+        </form>
     </div>
+
     <!-- Filtrar la cantidad seleccionada -->
     <div class="filterEntries">
         <div class="entries">
-            Enseñar <select name="" id="table_size">
+            Enseñar <select name="" id="table_size" class="form-control">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select> entradas
         </div>
-        <!-- Filtrar por búsqueda -->
+        <!-- Filtrar por busqueda -->
         <div class="filter">
             <form id="search-form" method="get" action="/pago">
                 <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese fecha, monto, nombre de alumno o tipo de pago" value="{{ request.GET.search }}">
+                <input type="search" name="search" id="search" placeholder="Ingrese fecha, monto, alumno o tipo de pago" value="{{ request.GET.search }}" class="form-control">
             </form>
         </div>
     </div>
 
     <!-- Tabla -->
     <div id="pago-table">
-        <table>
-            <thead>
-                <!-- Títulos de las tablas -->
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <!-- Titulos de las tablas -->
                 <tr class="heading">
                     <th>Fecha</th>
                     <th>Monto</th>
                     <th>Alumno</th>
                     <th>Tipo de Pago</th>
-                    <th>Solvencia del Mes</th>
+                    <th>Solvencia Mes</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -67,8 +92,8 @@
                         <td>{{ pago.tipo_pago }}</td>
                         <td>{{ pago.solvencia_mes }}</td>
                         <td>
-                            <a href="/pago/{{ pago.id }}"><i class="fa-regular fa-pen-to-square"></i></a>
-                            <a href="/pago_delete/{{ pago.id }}"><i class="fa-regular fa-trash-can"></i></a>
+                          <a href="/pago/{{pago.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
+                          <a href="/pago_delete/{{pago.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>
                 {% endfor %} 
@@ -79,17 +104,16 @@
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
-            <button>prev</button>
-            <button class="active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button>4</button>
-            <button>5</button>
-            <button>next</button>
+            <button class="btn btn-custom">Prev</button>
+            <button class="btn btn-custom active">1</button>
+            <button class="btn btn-custom">2</button>
+            <button class="btn btn-custom">3</button>
+            <button class="btn btn-custom">4</button>
+            <button class="btn btn-custom">5</button>
+            <button class="btn btn-custom">Next</button>
         </div>
     </footer>
 </div>
-
 {% endblock %}
 
 <script>

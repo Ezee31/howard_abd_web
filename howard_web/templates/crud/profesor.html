@@ -1,54 +1,72 @@
 {% extends "dashboard/index.html" %}
 
-{% block content %}  
-<!--Para filtar los resultados-->
+{% block content %}
 <div class="container">
+    <h2 class="my-4 text-primary">Gestión de Profesores</h2>
+
     <div class="header-content">
-      <!--Campos a rellenar-->
-      <form method="post">
-        {% csrf_token %}
-        <div class="formFields">
-            <label for="nombres">Nombres:</label>
-            {{ form.nombres }}
-            <label for="apellidos">Apellidos:</label>
-            {{ form.apellidos }}
-            <label for="estudios">Estudios:</label>
-            {{ form.estudios }}
-            <label for="experiencia">Experiencia (en años):</label>
-            {{ form.experiencia }}
-        </div>
+        <form method='post'>
+            {% csrf_token %}
+            <div class="formFields">
+                <div class="form-group">
+                    <label for="nombres">Nombres:</label>
+                    {{ form.nombres }}
+                    {% if form.nombres.errors %}
+                        <div class="alert alert-danger">{{ form.nombres.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="apellidos">Apellidos:</label>
+                    {{ form.apellidos }}
+                    {% if form.apellidos.errors %}
+                        <div class="alert alert-danger">{{ form.apellidos.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="estudios">Estudios:</label>
+                    {{ form.estudios }}
+                    {% if form.estudios.errors %}
+                        <div class="alert alert-danger">{{ form.estudios.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="experiencia">Experiencia:</label>
+                    {{ form.experiencia }}
+                    {% if form.experiencia.errors %}
+                        <div class="alert alert-danger">{{ form.experiencia.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="addMenberbtn">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
 
-     <!--Añadir estudiante-->
-        <div class="addMenberbtn">   
-        <button type="submit">Guardar</button>
-        </div>
-    </form>
-
-     <!--Filtrar la cantidad seleccionada-->
-     <div class="filterEntries">
+    <!-- Filtrar la cantidad seleccionada -->
+    <div class="filterEntries">
         <div class="entries">
-            Enseñar <select name="" id="table_size">
+            Enseñar <select name="" id="table_size" class="form-control">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select> entradas
         </div>
-        <!--Filtrar por busqueda-->
+        <!-- Filtrar por busqueda -->
         <div class="filter">
-            <form id="search-form" method="get" action="/profesor">    
+            <form id="search-form" method="get" action="/profesor">
                 <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un nombre" value="{{ request.GET.search }}">
+                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, apellido, estudios o experiencia" value="{{ request.GET.search }}" class="form-control">
             </form>
         </div>
     </div>
-    
 
-    <!--Tabla-->
+    <!-- Tabla -->
     <div id="profesor-table">
-        <table>
-            <thead>
-                <!--Titulos de las tablas-->
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <!-- Titulos de las tablas -->
                 <tr class="heading">
                     <th>Nombres</th>
                     <th>Apellidos</th>
@@ -57,40 +75,40 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="alumno-table-body">
+            <tbody id="profesor-table-body">
                 {% for profesor in profesores %}
-                <tr>
-                    <td>{{ profesor.nombres }}</td>
-                    <td>{{ profesor.apellidos }}</td>
-                    <td>{{ profesor.estudios }}</td>
-                    <td>{{ profesor.experiencia }}</td>
-                    <td>
-                        <a href="{% url 'profesor_edit' id=profesor.id %}"><i class="fa-regular fa-pen-to-square"></i></a>
-                        <a href="{% url 'profesor_delete' id=profesor.id %}"><i class="fa-regular fa-trash-can"></i></a>
-                    </td>
-                </tr>
-                {% endfor %}
+                    <tr>
+                        <td>{{ profesor.nombres }}</td>
+                        <td>{{ profesor.apellidos }}</td>
+                        <td>{{ profesor.estudios }}</td>
+                        <td>{{ profesor.experiencia }}</td>
+                        <td>
+                            <a href="/profesor/{{profesor.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/profesor_delete/{{profesor.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %} 
             </tbody>
         </table>
     </div>
-    <!--Botones para ver mas registros-->
+    <!-- Botones para ver más registros -->
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
-            <button>prev</button>
-            <button class="active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button>4</button>
-            <button>5</button>
-            <button>next</button>
+            <button class="btn btn-custom">Prev</button>
+            <button class="btn btn-custom active">1</button>
+            <button class="btn btn-custom">2</button>
+            <button class="btn btn-custom">3</button>
+            <button class="btn btn-custom">4</button>
+            <button class="btn btn-custom">5</button>
+            <button class="btn btn-custom">Next</button>
         </div>
     </footer>
 </div>
 {% endblock %}
 
 <script>
-    // Función para actualizar la tabla de profesors
+    // Función para actualizar la tabla de profesores
     function updateTable(searchValue) {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', `/profesor?search=${searchValue}`, true);

@@ -1,90 +1,93 @@
 {% extends "dashboard/index.html" %}
 
 {% block content %}
+<div class="container">
+    <h2 class="my-4 text-primary">Gestión de Horarios</h2>
 
-    <!--Para filtar los resultados-->
-    <div class="container">
-        <div class ="header-content">  
-            <!--Campos a rellenar-->
-            <form method="post">
-                {% csrf_token %}
-                <div class="formFields">
-                    <label for="name">Nombre:</label>
-                    {{ form.nombre }}
-                    <label for="tID">Tipo Turno:</label>
+    <div class="header-content">
+        <form method='post'>
+            {% csrf_token %}
+            <div class="formFields">
+                <div class="form-group">
+                    <label for="tipo_turno">Tipo de Turno:</label>
                     {{ form.tipo_turno }}
+                    {% if form.tipo_turno.errors %}
+                        <div class="alert alert-danger">{{ form.tipo_turno.errors }}</div>
+                    {% endif %}
                 </div>
-                <!--Añadir estudiante-->
-                <div class="addMenberbtn">
-                    <button type="submit">Guardar</button>
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <div class="alert alert-danger">{{ form.nombre.errors }}</div>
+                    {% endif %}
                 </div>
-            </form>
-        </div>
-    
+            </div>
+            <div class="addMenberbtn">
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
 
-     <!--Filtrar la cantidad seleccionada-->
-     <div class="filterEntries">
+    <!-- Filtrar la cantidad seleccionada -->
+    <div class="filterEntries">
         <div class="entries">
-            Enseñar <select name="" id="table_size">
+            Enseñar <select name="" id="table_size" class="form-control">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select> entradas
         </div>
-        <!--Filtrar por busqueda-->
+        <!-- Filtrar por busqueda -->
         <div class="filter">
-            <form id="search-form" method="get" action="/horario">    
+            <form id="search-form" method="get" action="/horario">
                 <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un nombre" value="{{ request.GET.search }}">
+                <input type="search" name="search" id="search" placeholder="Ingrese un nombre o tipo de turno" value="{{ request.GET.search }}" class="form-control">
             </form>
         </div>
     </div>
-    
 
-    <!--Tabla-->
+    <!-- Tabla -->
     <div id="horario-table">
-        <table>
-            <thead>
-                <!--Titulos de las tablas-->
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <!-- Titulos de las tablas -->
                 <tr class="heading">
-                    <th>Nombre:</th>
-                    <th>Tipo Turno</th>
+                    <th>Tipo de Turno</th>
+                    <th>Nombre</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-
             <tbody id="horario-table-body">
                 {% for horario in horarios %}
                     <tr>
-                        <td>{{ horario.nombre }}</td>
                         <td>{{ horario.tipo_turno }}</td>
+                        <td>{{ horario.nombre }}</td>
                         <td>
-                            <a href="/horario/{{horario.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
-                            <a href="/horario_delete/{{horario.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                            <a href="/horario/{{horario.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/horario_delete/{{horario.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>
-                {% endfor %}
+                {% endfor %} 
             </tbody>
         </table>
     </div>
-    <!--Botones para ver mas registros-->
+    <!-- Botones para ver más registros -->
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
-            <button>prev</button>
-            <button class="active">1</button>
-            <button>2</button>
-            <button>3</button>
-            <button>4</button>
-            <button>5</button>
-            <button>next</button>
+            <button class="btn btn-custom">Prev</button>
+            <button class="btn btn-custom active">1</button>
+            <button class="btn btn-custom">2</button>
+            <button class="btn btn-custom">3</button>
+            <button class="btn btn-custom">4</button>
+            <button class="btn btn-custom">5</button>
+            <button class="btn btn-custom">Next</button>
         </div>
     </footer>
 </div>
-
 {% endblock %}
-
 
 <script>
     // Función para actualizar la tabla de horarios

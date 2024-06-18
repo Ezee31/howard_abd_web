@@ -1,0 +1,109 @@
+{% extends "dashboard/index.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4 text-primary">Reportes</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card card-custom mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Alumnos</h5>
+                    <p class="card-text">{{ total_alumnos }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Profesores</h5>
+                    <p class="card-text">{{ total_profesores }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Grupos</h5>
+                    <p class="card-text">{{ total_grupos }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-custom mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Pagos</h5>
+                    <p class="card-text">{{ total_pagos }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="my-4 text-primary">Pagos por Mes</h3>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Mes</th>
+                    <th>Total Pagos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago in pagos_por_mes %}
+                    <tr>
+                        <td>{{ pago.fecha__month }}</td>
+                        <td>{{ pago.total }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="my-4 text-primary">Registro de Cambios</h3>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Usuario</th>
+                    <th>Acción</th>
+                    <th>Modelo</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ log.action_time }}</td>
+                        <td>{{ log.user }}</td>
+                        <td>
+                            {% if log.action_flag == ADDITION %}
+                                Creación
+                            {% elif log.action_flag == CHANGE %}
+                                Modificación
+                            {% elif log.action_flag == DELETION %}
+                                Eliminación
+                            {% endif %}
+                        </td>
+                        <td>{{ log.content_type }}</td>
+                        <td>{{ log.object_repr }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Botones para ver más registros -->
+    <footer>
+        <span>Mostrar del 1 al 10 o 50</span>
+        <div class="pagination">
+            <button class="btn btn-custom">Prev</button>
+            <button class="btn btn-custom active">1</button>
+            <button class="btn btn-custom">2</button>
+            <button class="btn btn-custom">3</button>
+            <button class="btn btn-custom">4</button>
+            <button class="btn btn-custom">5</button>
+            <button class="btn btn-custom">Next</button>
+        </div>
+    </footer>
+</div>
+{% endblock %}

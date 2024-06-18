@@ -1,5 +1,87 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap');
 
+/* dashboard.css */
+.btn-custom-modify {
+    background-color: #17202A; /* Cambia esto al color que prefieras */
+    color: white;
+}
+
+.btn-custom-modify:hover {
+    background-color: #17202A; /* Cambia esto al color que prefieras */
+    color: white;
+}
+
+
+/* Cambiar el color de fondo de las tarjetas y el color del texto */
+.card-custom {
+    background-color: #17202A !important; /* Cambiar el color de fondo */
+    color: #ffffff !important;            /* Cambiar el color del texto */
+}
+
+.card-custom .card-title {
+    color: #ffffff !important;            /* Cambiar el color del título de la tarjeta */
+}
+
+.card-custom .card-text {
+    color: #ffffff !important;            /* Cambiar el color del texto de la tarjeta */
+}
+
+/* Cambiar el color de los botones */
+.btn-custom {
+    background-color: #17202A; /* Cambiar el color de fondo */
+    border-color: #17202A;     /* Cambiar el color del borde */
+    color: #ffffff;            /* Cambiar el color del texto */
+}
+
+.btn-custom:hover {
+    background-color: #17202A; /* Color de fondo al pasar el mouse */
+    border-color: #000000;     /* Color del borde al pasar el mouse */
+}
+
+.btn-custom.active {
+    background-color: #17202A; /* Color de fondo cuando está activo */
+    border-color: #17202A;     /* Color del borde cuando está activo */
+}
+
+.btn-custom:focus {
+    box-shadow: 0 0 0 0.2rem rgba(3, 7, 10, 0.5); /* Sombra al enfocar */
+}
+
+.text-primary {
+    color: #17202A !important;
+}
+
+.btn-primary {
+    background-color: #17202A;
+    border-color: #17202A;
+}
+
+
+.table thead.thead-dark th {
+    background-color: #17202A;
+    border-color: #17202A;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(33, 87, 140, 0.05); /* Aplicar un fondo claro */
+}
+
+/* dashboard.css */
+.text-primary {
+    color: #000000 !important;
+}
+
+
+.btn-primary:hover {
+    background-color: #17202A;
+    border-color: #17202A;
+}
+
+.table thead.thead-dark th {
+    background-color: #17202A;
+    border-color: #17202A;
+}
+
 *{
     margin: 0;
     padding: 0;

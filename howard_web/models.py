@@ -13,7 +13,7 @@ class TipoTurno(models.Model):
         verbose_name_plural = "Tipos de turnos"
 
     def __str__(self):
-        return self.dias
+        return f"{self.dias} ({self.hora_entrada} - {self.hora_salida})"
 
 class Profesor(models.Model):
     nombres = models.CharField(max_length=100)
@@ -27,7 +27,7 @@ class Profesor(models.Model):
         verbose_name_plural = "Profesores"
 
     def __str__(self):
-        return self.nombres
+        return f"{self.nombres} {self.apellidos}"
 
 class Horario(models.Model):
     tipo_turno = models.ForeignKey(TipoTurno, on_delete=models.CASCADE)
@@ -54,7 +54,7 @@ class Grupo(models.Model):
         verbose_name_plural = "Grupos"
         
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} - Nivel {self.nivel}"
 
 class Alumno(models.Model):
     email = models.EmailField()
@@ -70,7 +70,7 @@ class Alumno(models.Model):
         verbose_name_plural = "Alumnos"
         
     def __str__(self):
-        return self.nombres
+        return f"{self.nombres} {self.apellidos}"
 
 class TipoPago(models.Model): 
     nombre = models.CharField(max_length=100)
@@ -86,7 +86,7 @@ class TipoPago(models.Model):
 class Pago(models.Model):
     fecha = models.DateField()
     monto = models.IntegerField()
-    alumno= models.ForeignKey(Alumno, on_delete=models.CASCADE)
+    alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
     tipo_pago = models.ForeignKey(TipoPago, on_delete=models.CASCADE)
     solvencia_mes = models.BooleanField()
     
@@ -95,4 +95,5 @@ class Pago(models.Model):
         verbose_name = "Pago"
         verbose_name_plural = "Pagos"
 
-
+    def __str__(self):
+        return f"Pago de {self.monto} de {self.alumno} el {self.fecha}"
