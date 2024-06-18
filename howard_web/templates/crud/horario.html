@@ -34,36 +34,40 @@
         </div>
         <!--Filtrar por busqueda-->
         <div class="filter">
-            <label for="search">Buscar</label>
-            <input type="search" name="" id="search" placeholder="Ingrese un nombre">
+            <form id="search-form" method="get" action="/horario">    
+                <label for="search">Buscar</label>
+                <input type="search" name="search" id="search" placeholder="Ingrese un nombre" value="{{ request.GET.search }}">
+            </form>
         </div>
     </div>
     
 
     <!--Tabla-->
-    <table>
-        <thead>
-            <!--Titulos de las tablas-->
-            <tr class="heading">
-                <th>Nombre:</th>
-                <th>Tipo Turno</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for horario in horarios %}
-                <tr>
-                    <td>{{ horario.nombre }}</td>
-                    <td>{{ horario.tipo_turno }}</td>
-                    <td>
-                        <a href="/horario/{{horario.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
-                        <a href="/horario_delete/{{horario.id}}"><i class="fa-regular fa-trash-can"></i></a>
-                    </td>
+    <div id="horario-table">
+        <table>
+            <thead>
+                <!--Titulos de las tablas-->
+                <tr class="heading">
+                    <th>Nombre:</th>
+                    <th>Tipo Turno</th>
+                    <th>Acciones</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+
+            <tbody id="horario-table-body">
+                {% for horario in horarios %}
+                    <tr>
+                        <td>{{ horario.nombre }}</td>
+                        <td>{{ horario.tipo_turno }}</td>
+                        <td>
+                            <a href="/horario/{{horario.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/horario_delete/{{horario.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     <!--Botones para ver mas registros-->
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
@@ -80,3 +84,32 @@
 </div>
 
 {% endblock %}
+
+
+<script>
+    // Función para actualizar la tabla de horarios
+    function updateTable(searchValue) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/horario?search=${searchValue}`, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const newTableBody = doc.getElementById('horario-table-body').innerHTML;
+                document.getElementById('horario-table-body').innerHTML = newTableBody;
+            }
+        };
+        xhr.send();
+    }
+
+    // Escuchar el evento de entrada en el campo de búsqueda
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    // Escuchar el evento de envío del formulario
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
+        updateTable(document.getElementById('search').value);
+    });
+</script>

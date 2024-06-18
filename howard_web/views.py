@@ -36,12 +36,21 @@ def dashboard(request):
 # tipo turno endpoints
 @login_required(login_url='signin')
 def tipo_turno(request,id=None):
-    if request.method == 'GET':
-        # obteniendo todos los tipos turnos de la base de datos
+    search_query = request.GET.get('search', '')
+    if search_query:
+        tipos_turnos = TipoTurno.objects.filter(
+            models.Q(dias__icontains=search_query) |
+            models.Q(hora_entrada__icontains=search_query) |
+            models.Q(hora_salida__icontains=search_query) |
+            models.Q(formato__icontains=search_query)
+        )
+    else:
         tipos_turnos = TipoTurno.objects.all()
+
+    if request.method == 'GET':
         if id:
             tipo_turno = TipoTurno.objects.get(id=id)
-            edit_tipo_turno_form = TipoTurnoForm(initial={'dias': tipo_turno.dias, 'hora_entrada': tipo_turno.hora_entrada,'hora_salida': tipo_turno.hora_salida,
+            edit_tipo_turno_form = TipoTurnoForm(initial={'dias': tipo_turno.dias, 'hora_entrada': tipo_turno.hora_entrada, 'hora_salida': tipo_turno.hora_salida,
                                                           'formato': tipo_turno.formato})
             return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos, 'form': edit_tipo_turno_form})
         else:
@@ -80,8 +89,16 @@ def horario(request, id=None):
     tipos_turnos = TipoTurno.objects.all().values_list('id', 'dias')
 
     if request.method == 'GET':
-        #obteniendo todos los horarios de la base de datos
-        horarios =  Horario.objects.all()
+        search_query = request.GET.get('search', '')
+        if search_query:
+            horarios = Horario.objects.filter(
+                models.Q(nombre__icontains=search_query) |
+                models.Q(tipo_turno__dias__icontains=search_query)
+            )
+        else:
+            #obteniendo todos los horarios de la base de datos
+            horarios =  Horario.objects.all()
+        
         if id: 
             horario = Horario.objects.get(id=id)
             edit_horario_form = HorarioForm(initial={'nombre': horario.nombre,
@@ -119,7 +136,17 @@ def horario_delete(request,id):
 @login_required(login_url='signin')
 def profesor(request, id=None):
     if request.method == 'GET':
-        profesores = Profesor.objects.all()
+        search_query = request.GET.get('search','')
+        if search_query:
+            profesores = Profesor.objects.filter(
+                models.Q(nombres__icontains=search_query ) |
+                models.Q(apellidos__icontains=search_query) |
+                models.Q(estudios__icontains=search_query) |
+                models.Q(experiencia__icontains=search_query)
+            )
+        else:
+            profesores = Profesor.objects.all()
+
         if id:
             profesor = Profesor.objects.get(id=id)
             edit_profesor_form = ProfesorForm(initial={'nombres': profesor.nombres, 'apellidos': profesor.apellidos, 'estudios': profesor.estudios, 'experiencia': profesor.experiencia})
@@ -156,8 +183,15 @@ def profesor_delete(request, id):
 # tipopago endpoints
 @login_required(login_url='signin')
 def tipo_pago(request, id=None):
-    if request.method == 'GET':
+    search_query = request.GET.get('search', '')
+    if search_query:
+        tipos_pago = TipoPago.objects.filter(
+            models.Q(nombre__icontains=search_query)
+        )
+    else:
         tipos_pago = TipoPago.objects.all()
+
+    if request.method == 'GET':
         if id:
             tipo_pago = TipoPago.objects.get(id=id)
             edit_tipo_pago_form = TipoPagoForm(initial={'nombre': tipo_pago.nombre})
@@ -319,26 +353,38 @@ def alumno_delete(request,id):
 #pago endpoints
 @login_required(login_url='signin')
 def pago(request, id=None):
-    #obteniendo tipos pagos, alumnos
+    search_query = request.GET.get('search', '')
+    if search_query:
+        pagos = Pago.objects.filter(
+            models.Q(fecha__icontains=search_query) |
+            models.Q(monto__icontains=search_query) |
+            models.Q(alumno__nombres__icontains=search_query) |
+            models.Q(tipo_pago__nombre__icontains=search_query)
+        )
+    else:
+        pagos = Pago.objects.all()
+
+    # Obteniendo tipos pagos y alumnos
     tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
     alumnos = Alumno.objects.all().values_list('id', 'nombres')
     
     if request.method == 'GET':
-        #obteniendo todos los pagos de la base de datos
-        pagos = Pago.objects.all()
         if id:
             pago = Pago.objects.get(id=id)
-            edit_pago_form = PagoForm(initial={'fecha': pago.fecha, 'monto': pago.monto, 'alumno': pago.alumno, 
-                                               'tipo_pago': pago.tipo_pago, 'solvencia_mes': pago.solvencia_mes}
-                                               ,tipos_pagos=tipos_pagos, alumnos = alumnos)
-            return render(request, "crud/pago.html",{'pagos': pagos, 'form': edit_pago_form})
+            edit_pago_form = PagoForm(initial={
+                'fecha': pago.fecha, 
+                'monto': pago.monto, 
+                'alumno': pago.alumno, 
+                'tipo_pago': pago.tipo_pago, 
+                'solvencia_mes': pago.solvencia_mes
+            }, tipos_pagos=tipos_pagos, alumnos=alumnos)
+            return render(request, "crud/pago.html", {'pagos': pagos, 'form': edit_pago_form})
         else:
-            new_pago_form = PagoForm(tipos_pagos = tipos_pagos, alumnos = alumnos)
+            new_pago_form = PagoForm(tipos_pagos=tipos_pagos, alumnos=alumnos)
             return render(request, "crud/pago.html", {'pagos': pagos, 'form': new_pago_form})
     if request.method == 'POST':
-        pago_form = PagoForm(request.POST, tipos_pagos = tipos_pagos, alumnos = alumnos)
-        is_valid = pago_form.is_valid()
-        if is_valid:
+        pago_form = PagoForm(request.POST, tipos_pagos=tipos_pagos, alumnos=alumnos)
+        if pago_form.is_valid():
             fecha = pago_form.cleaned_data["fecha"]
             monto = pago_form.cleaned_data["monto"]
             tipo_pago_id = pago_form.cleaned_data["tipo_pago"]
@@ -346,18 +392,24 @@ def pago(request, id=None):
             alumno_id = pago_form.cleaned_data["alumno"]
             alumno = Alumno.objects.get(id=int(alumno_id))
             solvencia_mes = pago_form.cleaned_data["solvencia_mes"]
-        if id:
-            pago = get_object_or_404(Pago, id=id)
-            pago.fecha = fecha
-            pago.monto = monto
-            pago.alumno = alumno
-            pago.solvencia_mes = solvencia_mes
-            pago.save()
-        else:
-            new_pago = Pago(fecha=fecha, monto=monto,tipo_pago=tipo_pago,
-                            alumno=alumno,solvencia_mes=solvencia_mes)
-            new_pago.save()
-        return redirect("pago")
+            if id:
+                pago = get_object_or_404(Pago, id=id)
+                pago.fecha = fecha
+                pago.monto = monto
+                pago.tipo_pago = tipo_pago
+                pago.alumno = alumno
+                pago.solvencia_mes = solvencia_mes
+                pago.save()
+            else:
+                new_pago = Pago(
+                    fecha=fecha, 
+                    monto=monto, 
+                    tipo_pago=tipo_pago,
+                    alumno=alumno,
+                    solvencia_mes=solvencia_mes
+                )
+                new_pago.save()
+            return redirect("pago")
 
 #alumno delete
 @login_required(login_url='signin')

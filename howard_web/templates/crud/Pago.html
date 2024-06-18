@@ -1,99 +1,121 @@
-{% extends "dashboard/index.html" %} {% block content %}
-<!--Para filtar los resultados-->
+{% extends "dashboard/index.html" %}
+
+{% block content %}
+<!-- Para filtrar los resultados -->
 <div class="container">
-  <div class="header-content">
-    <!--Campos a rellenar-->
-    <form method="post">
-      {% csrf_token %}
-      <div class="formFields">
-        <label for="fetc">Fecha:</label>
-        {{ form.fecha }}
-        <label for="mont">Monto:</label>
-        {{ form.monto }}
-        <label for="alID">Alumno:</label>
-        {{ form.alumno }}
-        <label for="tpID">Tipo Pago:</label>
-        {{ form.tipo_pago }}
-        <label for="solMes">Solvencia Mes:</label>
-        {{ form.solvencia_mes }}
-      </div>
-      <!--Añadir estudiante-->
-      <div class="addMenberbtn">
-        <button type="submit">Guardar</button>
-      </div>
-    </form>
-  </div>
-
-  <!--Filtrar la cantidad seleccionada-->
-  <div class="filterEntries">
-    <div class="entries">
-      Enseñar
-      <select name="" id="table_size">
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
-      entradas
+    <div class="header-content">    
+        <!-- Campos a rellenar -->
+        <form method='post'>
+            {% csrf_token %}
+            <div class="formFields">
+                <label for="fecha">Fecha:</label>
+                {{ form.fecha }}
+                <label for="monto">Monto:</label>
+                {{ form.monto }}
+                <label for="alumno">Alumno:</label>
+                {{ form.alumno }}
+                <label for="tipo_pago">Tipo de Pago:</label>
+                {{ form.tipo_pago }}
+                <label for="solvencia_mes">Solvencia del Mes:</label>
+                {{ form.solvencia_mes }}
+            </div>
+            <!-- Añadir Pago -->
+            <div class="addMenberbtn">
+                <button type="submit">Guardar</button>
+            </div>
+        </form> 
     </div>
-    <!--Filtrar por busqueda-->
-    <div class="filter">
-      <label for="search">Buscar</label>
-      <input
-        type="search"
-        name=""
-        id="search"
-        placeholder="Ingrese un nombre"
-      />
+    <!-- Filtrar la cantidad seleccionada -->
+    <div class="filterEntries">
+        <div class="entries">
+            Enseñar <select name="" id="table_size">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select> entradas
+        </div>
+        <!-- Filtrar por búsqueda -->
+        <div class="filter">
+            <form id="search-form" method="get" action="/pago">
+                <label for="search">Buscar</label>
+                <input type="search" name="search" id="search" placeholder="Ingrese fecha, monto, nombre de alumno o tipo de pago" value="{{ request.GET.search }}">
+            </form>
+        </div>
     </div>
-  </div>
 
-  <!--Tabla-->
-  <table>
-    <thead>
-      <!--Titulos de las tablas-->
-      <tr class="heading">
-        <th>Fecha</th>
-        <th>Monto C$</th>
-        <th>Alumno</th>
-        <th>Tipo Pago</th>
-        <th>Solvencia Mes</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      {% for pago in pagos %}
-      <tr>
-        <td>{{ pago.fecha }}</td>
-        <td>{{ pago.monto }}</td>
-        <td>{{ pago.alumno }}</td>
-        <td>{{ pago.tipo_pago }}</td>
-        <td>{{ pago.solvencia_mes }}</td>
-        <td>
-          <a href="/pago/{{pago.id}}"
-            ><i class="fa-regular fa-pen-to-square"></i
-          ></a>
-          <a href="/pago_delete/{{pago.id}}"
-            ><i class="fa-regular fa-trash-can"></i
-          ></a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <!--Botones para ver mas registros-->
-  <footer>
-    <span>Mostrar del 1 al 10 o 50</span>
-    <div class="pagination">
-      <button>prev</button>
-      <button class="active">1</button>
-      <button>2</button>
-      <button>3</button>
-      <button>4</button>
-      <button>5</button>
-      <button>next</button>
+    <!-- Tabla -->
+    <div id="pago-table">
+        <table>
+            <thead>
+                <!-- Títulos de las tablas -->
+                <tr class="heading">
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>Alumno</th>
+                    <th>Tipo de Pago</th>
+                    <th>Solvencia del Mes</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="pago-table-body">
+                {% for pago in pagos %}
+                    <tr>
+                        <td>{{ pago.fecha }}</td>
+                        <td>{{ pago.monto }}</td>
+                        <td>{{ pago.alumno }}</td>
+                        <td>{{ pago.tipo_pago }}</td>
+                        <td>{{ pago.solvencia_mes }}</td>
+                        <td>
+                            <a href="/pago/{{ pago.id }}"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/pago_delete/{{ pago.id }}"><i class="fa-regular fa-trash-can"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %} 
+            </tbody>
+        </table>
     </div>
-  </footer>
+    <!-- Botones para ver más registros -->
+    <footer>
+        <span>Mostrar del 1 al 10 o 50</span>
+        <div class="pagination">
+            <button>prev</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>4</button>
+            <button>5</button>
+            <button>next</button>
+        </div>
+    </footer>
 </div>
+
 {% endblock %}
+
+<script>
+    // Función para actualizar la tabla de pagos
+    function updateTable(searchValue) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/pago?search=${searchValue}`, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const newTableBody = doc.getElementById('pago-table-body').innerHTML;
+                document.getElementById('pago-table-body').innerHTML = newTableBody;
+            }
+        };
+        xhr.send();
+    }
+
+    // Escuchar el evento de entrada en el campo de búsqueda
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    // Escuchar el evento de envío del formulario
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
+        updateTable(document.getElementById('search').value);
+    });
+</script>

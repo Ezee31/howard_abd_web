@@ -36,42 +36,43 @@
         </div>
         <!--Filtrar por busqueda-->
         <div class="filter">
-            <label for="search">Buscar</label>
-            <input type="search" name="" id="search" placeholder="Ingrese un nombre">
+            <form id="search-form" method="get" action="/profesor">    
+                <label for="search">Buscar</label>
+                <input type="search" name="search" id="search" placeholder="Ingrese un nombre" value="{{ request.GET.search }}">
+            </form>
         </div>
     </div>
     
 
     <!--Tabla-->
-    <table>
-        <thead>
-            <!--Titulos de las tablas-->
-            <tr class="heading">
-                <th>Nombres</th>
-                <th>Apellidos</th>
-                <th>Estudios</th>
-                <th>Experiencia</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            
-            {% for profesor in profesores %}
-            <tr>
-                <td>{{ profesor.nombres }}</td>
-                <td>{{ profesor.apellidos }}</td>
-                <td>{{ profesor.estudios }}</td>
-                <td>{{ profesor.experiencia }}</td>
-                <td>
-                    <a href="{% url 'profesor_edit' id=profesor.id %}"><i class="fa-regular fa-pen-to-square"></i></a>
-                    <a href="{% url 'profesor_delete' id=profesor.id %}"><i class="fa-regular fa-trash-can"></i></a>
-                </td>
-            </tr>
-        {% endfor %}
-            
-        </tbody>
-    </table>
+    <div id="profesor-table">
+        <table>
+            <thead>
+                <!--Titulos de las tablas-->
+                <tr class="heading">
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>Estudios</th>
+                    <th>Experiencia</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="alumno-table-body">
+                {% for profesor in profesores %}
+                <tr>
+                    <td>{{ profesor.nombres }}</td>
+                    <td>{{ profesor.apellidos }}</td>
+                    <td>{{ profesor.estudios }}</td>
+                    <td>{{ profesor.experiencia }}</td>
+                    <td>
+                        <a href="{% url 'profesor_edit' id=profesor.id %}"><i class="fa-regular fa-pen-to-square"></i></a>
+                        <a href="{% url 'profesor_delete' id=profesor.id %}"><i class="fa-regular fa-trash-can"></i></a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     <!--Botones para ver mas registros-->
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
@@ -87,3 +88,31 @@
     </footer>
 </div>
 {% endblock %}
+
+<script>
+    // Función para actualizar la tabla de profesors
+    function updateTable(searchValue) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/profesor?search=${searchValue}`, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const newTableBody = doc.getElementById('profesor-table-body').innerHTML;
+                document.getElementById('profesor-table-body').innerHTML = newTableBody;
+            }
+        };
+        xhr.send();
+    }
+
+    // Escuchar el evento de entrada en el campo de búsqueda
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    // Escuchar el evento de envío del formulario
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
+        updateTable(document.getElementById('search').value);
+    });
+</script>

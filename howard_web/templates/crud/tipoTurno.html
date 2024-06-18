@@ -1,59 +1,61 @@
 {% extends "dashboard/index.html" %}
 
 {% block content %}
-    <!--Para filtar los resultados-->
-    <div class="container">
-        <div class="header-content">
-            <!--Campos a rellenar-->
-            <form method="post"> 
-                {% csrf_token %}
-                <div class="formFields">
-                    <label for="days">Dias:</label>
-                    {{ form.dias }}
-                    <label for="hE">Hora Entrada:</label>
-                    {{ form.hora_entrada }}
-                    <label for="hS">Hora Salida:</label>
-                    {{ form.hora_salida }}
-                    <label for="hS">Formato:</label>
-                    {{ form.formato }}                    
-                </div>
-                <!--Añadir estudiante-->
-                <div class="addMenberbtn">
-                    <button type="submit">Guardar</button>
-                </div>
+<!-- Para filtrar los resultados -->
+<div class="container">
+    <div class="header-content">    
+        <!-- Campos a rellenar -->
+        <form method='post'>
+            {% csrf_token %}
+            <div class="formFields">
+                <label for="dias">Días:</label>
+                {{ form.dias }}
+                <label for="hora_entrada">Hora de Entrada:</label>
+                {{ form.hora_entrada }}
+                <label for="hora_salida">Hora de Salida:</label>
+                {{ form.hora_salida }}
+                <label for="formato">Formato:</label>
+                {{ form.formato }}
+            </div>
+            <!-- Añadir Tipo Turno -->
+            <div class="addMenberbtn">
+                <button type="submit">Guardar</button>
+            </div>
+        </form> 
+    </div>
+    <!-- Filtrar la cantidad seleccionada -->
+    <div class="filterEntries">
+        <div class="entries">
+            Enseñar <select name="" id="table_size">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select> entradas
+        </div>
+        <!-- Filtrar por búsqueda -->
+        <div class="filter">
+            <form id="search-form" method="get" action="/tipo_turno">
+                <label for="search">Buscar</label>
+                <input type="search" name="search" id="search" placeholder="Ingrese días, hora de entrada, hora de salida o formato" value="{{ request.GET.search }}">
             </form>
         </div>
+    </div>
 
-        <!--Filtrar la cantidad seleccionada-->
-        <div class="filterEntries">
-            <div class="entries">
-                Enseñar <select name="" id="table_size">
-                    <option value="10">10</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select> entradas
-            </div>
-            <!--Filtrar por busqueda-->
-            <div class="filter">
-                <label for="search">Buscar</label>
-                <input type="search" name="" id="search" placeholder="Ingrese un nombre">
-            </div>
-        </div>
-
-        <!--Tabla-->
+    <!-- Tabla -->
+    <div id="tipo_turno-table">
         <table>
             <thead>
-                <!--Titulos de las tablas-->
+                <!-- Títulos de las tablas -->
                 <tr class="heading">
-                    <th>Dias</th>
-                    <th>Hora Entrada</th>
-                    <th>Hora Salida</th>
+                    <th>Días</th>
+                    <th>Hora de Entrada</th>
+                    <th>Hora de Salida</th>
                     <th>Formato</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="tipo_turno-table-body">
                 {% for tipo_turno in tipos_turnos %}
                     <tr>
                         <td>{{ tipo_turno.dias }}</td>
@@ -61,25 +63,55 @@
                         <td>{{ tipo_turno.hora_salida }}</td>
                         <td>{{ tipo_turno.formato }}</td>
                         <td>
-                            <a href="/tipo_turno/{{tipo_turno.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
-                            <a href="/tipo_turno_delete/{{tipo_turno.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                            <a href="/tipo_turno/{{ tipo_turno.id }}"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/tipo_turno_delete/{{ tipo_turno.id }}"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>
-                {% endfor %}
+                {% endfor %} 
             </tbody>
         </table>
-        <!--Botones para ver mas registros-->
-        <footer>
-            <span>Mostrar del 1 al 10 o 50</span>
-            <div class="pagination">
-                <button>prev</button>
-                <button class="active">1</button>
-                <button>2</button>
-                <button>3</button>
-                <button>4</button>
-                <button>5</button>
-                <button>next</button>
-            </div>
-        </footer>
     </div>
+    <!-- Botones para ver más registros -->
+    <footer>
+        <span>Mostrar del 1 al 10 o 50</span>
+        <div class="pagination">
+            <button>prev</button>
+            <button class="active">1</button>
+            <button>2</button>
+            <button>3</button>
+            <button>4</button>
+            <button>5</button>
+            <button>next</button>
+        </div>
+    </footer>
+</div>
+
 {% endblock %}
+
+<script>
+    // Función para actualizar la tabla de tipos de turno
+    function updateTable(searchValue) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/tipo_turno?search=${searchValue}`, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const newTableBody = doc.getElementById('tipo_turno-table-body').innerHTML;
+                document.getElementById('tipo_turno-table-body').innerHTML = newTableBody;
+            }
+        };
+        xhr.send();
+    }
+
+    // Escuchar el evento de entrada en el campo de búsqueda
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    // Escuchar el evento de envío del formulario
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
+        updateTable(document.getElementById('search').value);
+    });
+</script>
