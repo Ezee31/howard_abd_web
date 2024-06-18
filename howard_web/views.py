@@ -40,11 +40,21 @@ def dashboard(request):
 @login_required(login_url='signin')
 def tipo_turno(request, id=None):
     if request.method == 'GET':
-        tipos_turnos = TipoTurno.objects.all()
+        search_query = request.GET.get('search', '')
+        if search_query:
+            tipos_turnos = TipoTurno.objects.filter(
+                models.Q(dias__icontains=search_query) |
+                models.Q(hora_entrada__icontains=search_query) |
+                models.Q(hora_salida__icontains=search_query) |
+                models.Q(formato__icontains=search_query)
+            )
+        else:
+            tipos_turnos = TipoTurno.objects.all()
+        
         if id:
             tipo_turno = TipoTurno.objects.get(id=id)
             edit_tipo_turno_form = TipoTurnoForm(initial={
-                'dias': tipo_turno.dias,
+                'dias': tipo_turno.dias, 
                 'hora_entrada': tipo_turno.hora_entrada,
                 'hora_salida': tipo_turno.hora_salida,
                 'formato': tipo_turno.formato
@@ -53,6 +63,7 @@ def tipo_turno(request, id=None):
         else:
             new_tipo_turno_form = TipoTurnoForm()
             return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos, 'form': new_tipo_turno_form})
+
     if request.method == 'POST':
         tipo_turno_form = TipoTurnoForm(request.POST)
         if tipo_turno_form.is_valid():
@@ -67,6 +78,7 @@ def tipo_turno(request, id=None):
                 tipo_turno.hora_salida = hora_salida
                 tipo_turno.formato = formato
                 tipo_turno.save()
+                # Registrar la actualización
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(TipoTurno).pk,
@@ -76,8 +88,14 @@ def tipo_turno(request, id=None):
                     change_message=f'Updated {tipo_turno}'
                 )
             else:
-                new_tipo_turno = TipoTurno(dias=dias, hora_entrada=hora_entrada, hora_salida=hora_salida, formato=formato)
+                new_tipo_turno = TipoTurno(
+                    dias=dias, 
+                    hora_entrada=hora_entrada,
+                    hora_salida=hora_salida, 
+                    formato=formato
+                )
                 new_tipo_turno.save()
+                # Registrar la creación
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(TipoTurno).pk,
@@ -110,17 +128,26 @@ def horario(request, id=None):
     tipos_turnos = TipoTurno.objects.all().values_list('id', 'dias')
 
     if request.method == 'GET':
-        horarios =  Horario.objects.all()
+        search_query = request.GET.get('search', '')
+        if search_query:
+            horarios = Horario.objects.filter(
+                models.Q(nombre__icontains=search_query) |
+                models.Q(tipo_turno__dias__icontains=search_query)
+            )
+        else:
+            horarios = Horario.objects.all()
+        
         if id: 
             horario = Horario.objects.get(id=id)
             edit_horario_form = HorarioForm(initial={
                 'nombre': horario.nombre,
-                'tipo_turno': horario.tipo_turno
+                'tipo_turno': horario.tipo_turno.id
             }, tipos_turnos=tipos_turnos)
             return render(request, "crud/horario.html", {'horarios': horarios, 'form': edit_horario_form})
         else:
             new_horario_form = HorarioForm(tipos_turnos=tipos_turnos)
             return render(request, "crud/horario.html", {'horarios': horarios, 'form': new_horario_form})
+
     if request.method == 'POST':
         horario_form = HorarioForm(request.POST, tipos_turnos=tipos_turnos)
         if horario_form.is_valid():
@@ -132,6 +159,7 @@ def horario(request, id=None):
                 horario.nombre = nombre
                 horario.tipo_turno = tipo_turno
                 horario.save()
+                # Registrar la actualización
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Horario).pk,
@@ -141,8 +169,12 @@ def horario(request, id=None):
                     change_message=f'Updated {horario}'
                 )
             else:
-                new_horario = Horario(nombre=nombre, tipo_turno=tipo_turno)
+                new_horario = Horario(
+                    nombre=nombre, 
+                    tipo_turno=tipo_turno
+                )
                 new_horario.save()
+                # Registrar la creación
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Horario).pk,
@@ -172,7 +204,16 @@ def horario_delete(request, id):
 @login_required(login_url='signin')
 def profesor(request, id=None):
     if request.method == 'GET':
-        profesores = Profesor.objects.all()
+        search_query = request.GET.get('search', '')
+        if search_query:
+            profesores = Profesor.objects.filter(
+                models.Q(nombres__icontains=search_query) |
+                models.Q(apellidos__icontains=search_query) |
+                models.Q(estudios__icontains=search_query)
+            )
+        else:
+            profesores = Profesor.objects.all()
+        
         if id:
             profesor = Profesor.objects.get(id=id)
             edit_profesor_form = ProfesorForm(initial={
@@ -185,7 +226,7 @@ def profesor(request, id=None):
         else:
             new_profesor_form = ProfesorForm()
             return render(request, "crud/profesor.html", {'profesores': profesores, 'form': new_profesor_form})
-        
+
     if request.method == 'POST':
         profesor_form = ProfesorForm(request.POST)
         if profesor_form.is_valid():
@@ -200,6 +241,7 @@ def profesor(request, id=None):
                 profesor.estudios = estudios
                 profesor.experiencia = experiencia
                 profesor.save()
+                # Registrar la actualización
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Profesor).pk,
@@ -209,8 +251,14 @@ def profesor(request, id=None):
                     change_message=f'Updated {profesor}'
                 )
             else:
-                new_profesor = Profesor(nombres=nombres, apellidos=apellidos, estudios=estudios, experiencia=experiencia)
+                new_profesor = Profesor(
+                    nombres=nombres, 
+                    apellidos=apellidos,
+                    estudios=estudios, 
+                    experiencia=experiencia
+                )
                 new_profesor.save()
+                # Registrar la creación
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Profesor).pk,
@@ -220,7 +268,7 @@ def profesor(request, id=None):
                     change_message=f'Added {new_profesor}'
                 )
             return redirect("profesor")
-  
+        
 @login_required(login_url='signin')      
 def profesor_delete(request, id):
     profesor = get_object_or_404(Profesor, id=id)
@@ -240,7 +288,14 @@ def profesor_delete(request, id):
 @login_required(login_url='signin')
 def tipo_pago(request, id=None):
     if request.method == 'GET':
-        tipos_pago = TipoPago.objects.all()
+        search_query = request.GET.get('search', '')
+        if search_query:
+            tipos_pago = TipoPago.objects.filter(
+                models.Q(nombre__icontains=search_query)
+            )
+        else:
+            tipos_pago = TipoPago.objects.all()
+        
         if id:
             tipo_pago = TipoPago.objects.get(id=id)
             edit_tipo_pago_form = TipoPagoForm(initial={'nombre': tipo_pago.nombre})
@@ -248,7 +303,7 @@ def tipo_pago(request, id=None):
         else:
             new_tipo_pago_form = TipoPagoForm()
             return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago, 'form': new_tipo_pago_form})
-        
+
     if request.method == 'POST':
         tipo_pago_form = TipoPagoForm(request.POST)
         if tipo_pago_form.is_valid():
@@ -303,20 +358,31 @@ def grupo(request, id=None):
     profesores = Profesor.objects.all().values_list('id', 'nombres')
     
     if request.method == 'GET':
-        grupos = Grupo.objects.all()
+        search_query = request.GET.get('search', '')
+        if search_query:
+            grupos = Grupo.objects.filter(
+                models.Q(nombre__icontains=search_query) |
+                models.Q(nivel__icontains=search_query) |
+                models.Q(horario__nombre__icontains=search_query) |
+                models.Q(profesor__nombres__icontains=search_query)
+            )
+        else:
+            grupos = Grupo.objects.all()
+        
         if id:
             grupo = Grupo.objects.get(id=id)
             edit_grupo_form = GrupoForm(initial={
-                'nombre': grupo.nombre,
+                'nombre': grupo.nombre, 
                 'nivel': grupo.nivel,
                 'cupo_maximo': grupo.cupo_maximo,
-                'horario': grupo.horario,
-                'profesor': grupo.profesor
-            }, profesores=profesores, horarios=horarios)
+                'horario': grupo.horario.id,
+                'profesor': grupo.profesor.id
+            }, horarios=horarios, profesores=profesores)
             return render(request, "crud/grupo.html", {'grupos': grupos, 'form': edit_grupo_form})
         else:
             new_grupo_form = GrupoForm(horarios=horarios, profesores=profesores)
             return render(request, "crud/grupo.html", {'grupos': grupos, 'form': new_grupo_form})
+
     if request.method == 'POST':
         grupo_form = GrupoForm(request.POST, horarios=horarios, profesores=profesores)
         if grupo_form.is_valid():
@@ -335,6 +401,7 @@ def grupo(request, id=None):
                 grupo.horario = horario
                 grupo.profesor = profesor
                 grupo.save()
+                # Registrar la actualización
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Grupo).pk,
@@ -344,8 +411,15 @@ def grupo(request, id=None):
                     change_message=f'Updated {grupo}'
                 )
             else:
-                new_grupo = Grupo(nombre=nombre, nivel=nivel, cupo_maximo=cupo_maximo, horario=horario, profesor=profesor)
+                new_grupo = Grupo(
+                    nombre=nombre, 
+                    nivel=nivel, 
+                    cupo_maximo=cupo_maximo,
+                    horario=horario, 
+                    profesor=profesor
+                )
                 new_grupo.save()
+                # Registrar la creación
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Grupo).pk,
@@ -355,7 +429,6 @@ def grupo(request, id=None):
                     change_message=f'Added {new_grupo}'
                 )
             return redirect("grupo")
-
 @login_required(login_url='signin')
 def grupo_delete(request, id):
     grupo = Grupo.objects.get(id=id)
@@ -395,7 +468,7 @@ def alumno(request, id=None):
                 'apellidos': alumno.apellidos,
                 'activo': alumno.activo, 
                 'telefono': alumno.telefono,
-                'grupo': alumno.grupo
+                'grupo': alumno.grupo.id
             }, grupos=grupos)
             return render(request, "crud/alumno.html", {'alumnos': alumnos, 'form': edit_alumno_form})
         else:
@@ -473,20 +546,31 @@ def pago(request, id=None):
     alumnos = Alumno.objects.all().values_list('id', 'nombres')
     
     if request.method == 'GET':
-        pagos = Pago.objects.all()
+        search_query = request.GET.get('search', '')
+        if search_query:
+            pagos = Pago.objects.filter(
+                models.Q(alumno__nombres__icontains=search_query) |
+                models.Q(alumno__apellidos__icontains=search_query) |
+                models.Q(tipo_pago__nombre__icontains=search_query) |
+                models.Q(monto__icontains=search_query)
+            )
+        else:
+            pagos = Pago.objects.all()
+        
         if id:
             pago = Pago.objects.get(id=id)
             edit_pago_form = PagoForm(initial={
-                'fecha': pago.fecha,
-                'monto': pago.monto,
-                'alumno': pago.alumno,
-                'tipo_pago': pago.tipo_pago,
+                'fecha': pago.fecha, 
+                'monto': pago.monto, 
+                'alumno': pago.alumno.id, 
+                'tipo_pago': pago.tipo_pago.id, 
                 'solvencia_mes': pago.solvencia_mes
             }, tipos_pagos=tipos_pagos, alumnos=alumnos)
             return render(request, "crud/pago.html", {'pagos': pagos, 'form': edit_pago_form})
         else:
             new_pago_form = PagoForm(tipos_pagos=tipos_pagos, alumnos=alumnos)
             return render(request, "crud/pago.html", {'pagos': pagos, 'form': new_pago_form})
+
     if request.method == 'POST':
         pago_form = PagoForm(request.POST, tipos_pagos=tipos_pagos, alumnos=alumnos)
         if pago_form.is_valid():
@@ -505,6 +589,7 @@ def pago(request, id=None):
                 pago.tipo_pago = tipo_pago
                 pago.solvencia_mes = solvencia_mes
                 pago.save()
+                # Registrar la actualización
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Pago).pk,
@@ -514,8 +599,15 @@ def pago(request, id=None):
                     change_message=f'Updated {pago}'
                 )
             else:
-                new_pago = Pago(fecha=fecha, monto=monto, tipo_pago=tipo_pago, alumno=alumno, solvencia_mes=solvencia_mes)
+                new_pago = Pago(
+                    fecha=fecha, 
+                    monto=monto, 
+                    tipo_pago=tipo_pago,
+                    alumno=alumno, 
+                    solvencia_mes=solvencia_mes
+                )
                 new_pago.save()
+                # Registrar la creación
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Pago).pk,
