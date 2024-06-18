@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.db import models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import LoginForm, TipoTurnoForm, HorarioForm, ProfesorForm, TipoPagoForm, GrupoForm, AlumnoForm, PagoForm
@@ -193,8 +194,17 @@ def grupo(request, id=None):
     profesores = Profesor.objects.all().values_list('id','nombres')
     
     if request.method == 'GET':
-        # obteniendo todos los tipos turnos de la base de datos
-        grupos = Grupo.objects.all()
+        search_query = request.GET.get('search','')
+        if search_query:
+            grupos = Grupo.objects.filter(
+                models.Q(nombre__icontains=search_query) |
+                models.Q(nivel__icontains=search_query) |
+                models.Q(horario__nombre__icontains=search_query) |
+                models.Q(profesor__nombres__icontains=search_query)
+            )
+        else: 
+            grupos = Grupo.objects.all()    
+
         if id:
             grupo = Grupo.objects.get(id=id)
             edit_grupo_form = GrupoForm(initial={'nombre': grupo.nombre, 'nivel': grupo.nivel,
@@ -237,26 +247,40 @@ def grupo_delete(request,id):
 # alumno endpoints
 @login_required(login_url='signin')
 def alumno(request, id=None):
-    #obteniendo los datos de grupos
+    # Obteniendo los datos de grupos
     grupos = Grupo.objects.all().values_list('id', 'nombre')
-    
+
     if request.method == 'GET':
-        #obteniendo todos los horarios de la base de datos
-        alumnos = Alumno.objects.all()
+        # Obteniendo todos los alumnos de la base de datos
+        search_query = request.GET.get('search', '')
+        if search_query:
+            alumnos = Alumno.objects.filter(
+                models.Q(nombres__icontains=search_query) |
+                models.Q(apellidos__icontains=search_query) |
+                models.Q(email__icontains=search_query) |
+                models.Q(grupo__nombre__icontains=search_query)
+            )
+        else:
+            alumnos = Alumno.objects.all()
+
         if id:
             alumno = Alumno.objects.get(id=id)
-            edit_alumno_form = AlumnoForm(initial={'nombres': alumno.nombres, 
-                                                   'email': alumno.email,'apellidos': alumno.apellidos,
-                                                   'activo': alumno.activo, 'telefono': alumno.telefono,
-                                                   'grupo': alumno.grupo}, grupos=grupos)
+            edit_alumno_form = AlumnoForm(initial={
+                'nombres': alumno.nombres,
+                'email': alumno.email,
+                'apellidos': alumno.apellidos,
+                'activo': alumno.activo,
+                'telefono': alumno.telefono,
+                'grupo': alumno.grupo
+            }, grupos=grupos)
             return render(request, "crud/alumno.html", {'alumnos': alumnos, 'form': edit_alumno_form})
         else:
-            new_alumno_form = AlumnoForm(grupos = grupos)
+            new_alumno_form = AlumnoForm(grupos=grupos)
             return render(request, "crud/alumno.html", {'alumnos': alumnos, 'form': new_alumno_form})
+
     if request.method == 'POST':
         alumno_form = AlumnoForm(request.POST, grupos=grupos)
-        is_valid = alumno_form.is_valid()
-        if is_valid:
+        if alumno_form.is_valid():
             nombres = alumno_form.cleaned_data["nombres"]
             email = alumno_form.cleaned_data["email"]
             apellidos = alumno_form.cleaned_data["apellidos"]
@@ -274,10 +298,17 @@ def alumno(request, id=None):
                 alumno.grupo = grupo
                 alumno.save()
             else:
-                new_alumno = Alumno(nombres=nombres, email=email,apellidos=apellidos,
-                                    activo=activo,telefono=telefono, grupo=grupo)
+                new_alumno = Alumno(
+                    nombres=nombres,
+                    email=email,
+                    apellidos=apellidos,
+                    activo=activo,
+                    telefono=telefono,
+                    grupo=grupo
+                )
                 new_alumno.save()
             return redirect("alumno")
+
 #alumno delete
 @login_required(login_url='signin')
 def alumno_delete(request,id):

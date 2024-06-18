@@ -1,10 +1,10 @@
 {% extends "dashboard/index.html" %}
 
 {% block content %}
-<!--Para filtar los resultados-->
+<!-- Para filtrar los resultados -->
 <div class="container">
     <div class="header-content">    
-        <!--Campos a rellenar-->
+        <!-- Campos a rellenar -->
         <form method='post'>
             {% csrf_token %}
             <div class="formFields">
@@ -21,14 +21,14 @@
                 <label for="group_id">Grupo ID:</label>
                 {{ form.grupo }}
             </div>
-            <!--Añadir estudiante-->
+            <!-- Añadir estudiante -->
             <div class="addMenberbtn">
                 <button type="submit">Guardar</button>
             </div>
         </form> 
     </div>
-     <!--Filtrar la cantidad seleccionada-->
-     <div class="filterEntries">
+    <!-- Filtrar la cantidad seleccionada -->
+    <div class="filterEntries">
         <div class="entries">
             Enseñar <select name="" id="table_size">
                 <option value="10">10</option>
@@ -37,47 +37,49 @@
                 <option value="100">100</option>
             </select> entradas
         </div>
-        <!--Filtrar por busqueda-->
+        <!-- Filtrar por busqueda -->
         <div class="filter">
-            <label for="search">Buscar</label>
-            <input type="search" name="" id="search" placeholder="Ingrese un nombre">
+            <form id="search-form" method="get" action="/alumno">
+                <label for="search">Buscar</label>
+                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, apellido, email o nombre de grupo" value="{{ request.GET.search }}">
+            </form>
         </div>
     </div>
-    
 
-    <!--Tabla-->
-    <table>
-        <thead>
-            <!--Titulos de las tablas-->
-            <tr class="heading">
-                <th>Nombres</th>
-                <th>Apellidos</th>
-                <th>Telefono</th>
-                <th>Email</th>
-                <th>Activo</th>
-                <th>Grupo</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for alumno in alumnos %}
-                <tr>
-                    <td>{{ alumno.nombres }}</td>
-                    <td>{{ alumno.apellidos }}</td>
-                    <td>{{ alumno.telefono }}</td>
-                    <td>{{ alumno.email }}</td>
-                    <td>{{ alumno.activo }}</td> 
-                    <td>{{ alumno.grupo }}</td>
-                    <td>
-                        <a href="/alumno/{{alumno.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
-                        <a href="/alumno_delete/{{alumno.id}}"><i class="fa-regular fa-trash-can"></i></a>
-                    </td>
+    <!-- Tabla -->
+    <div id="alumno-table">
+        <table>
+            <thead>
+                <!-- Titulos de las tablas -->
+                <tr class="heading">
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>Telefono</th>
+                    <th>Email</th>
+                    <th>Activo</th>
+                    <th>Grupo</th>
+                    <th>Acciones</th>
                 </tr>
-            {% endfor %} 
-        </tbody>
-    </table>
-    <!--Botones para ver mas registros-->
+            </thead>
+            <tbody id="alumno-table-body">
+                {% for alumno in alumnos %}
+                    <tr>
+                        <td>{{ alumno.nombres }}</td>
+                        <td>{{ alumno.apellidos }}</td>
+                        <td>{{ alumno.telefono }}</td>
+                        <td>{{ alumno.email }}</td>
+                        <td>{{ alumno.activo }}</td> 
+                        <td>{{ alumno.grupo }}</td>
+                        <td>
+                            <a href="/alumno/{{alumno.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/alumno_delete/{{alumno.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %} 
+            </tbody>
+        </table>
+    </div>
+    <!-- Botones para ver más registros -->
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
@@ -93,3 +95,31 @@
 </div>
 
 {% endblock %}
+
+<script>
+    // Función para actualizar la tabla de alumnos
+    function updateTable(searchValue) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/alumno?search=${searchValue}`, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const newTableBody = doc.getElementById('alumno-table-body').innerHTML;
+                document.getElementById('alumno-table-body').innerHTML = newTableBody;
+            }
+        };
+        xhr.send();
+    }
+
+    // Escuchar el evento de entrada en el campo de búsqueda
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    // Escuchar el evento de envío del formulario
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
+        updateTable(document.getElementById('search').value);
+    });
+</script>

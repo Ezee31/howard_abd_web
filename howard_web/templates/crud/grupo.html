@@ -1,32 +1,32 @@
 {% extends "dashboard/index.html" %}
 
 {% block content %}
-    <!--Para filtar los resultados-->
-    <div class="container">
-        <div class="header-content">
-            <!--Campos a rellenar-->
-            <form method='post'>
-                {% csrf_token %}
-                <div class="formFields">
-                    <label for="name">Nombre:</label>
-                    {{ form.nombre }}
-                    <label for="level">Nivel:</label>
-                    {{ form.nivel }}
-                    <label for="capacidad">Cupo Maximo:</label>
-                    {{ form.cupo_maximo }}
-                    <label for="hID">Horario:</label>
-                    {{ form.horario }}
-                    <label for="pID">Profesor:</label>
-                    {{ form.profesor }}
-                </div>
-                <!--Añadir estudiante-->
-                <div class="addMenberbtn"> 
-                    <button type="submit">Guardar</button>
-                </div>
-            </form>
-        </div>
-     <!--Filtrar la cantidad seleccionada-->
-     <div class="filterEntries">
+<!-- Para filtrar los resultados -->
+<div class="container">
+    <div class="header-content">    
+        <!-- Campos a rellenar -->
+        <form method='post'>
+            {% csrf_token %}
+            <div class="formFields">
+                <label for="nombre">Nombre:</label>
+                {{ form.nombre }}
+                <label for="nivel">Nivel:</label>
+                {{ form.nivel }}
+                <label for="cupo_maximo">Cupo máximo:</label>
+                {{ form.cupo_maximo }}
+                <label for="horario">Horario:</label>
+                {{ form.horario }}
+                <label for="profesor">Profesor:</label>
+                {{ form.profesor }}
+            </div>
+            <!-- Añadir grupo -->
+            <div class="addMenberbtn">
+                <button type="submit">Guardar</button>
+            </div>
+        </form> 
+    </div>
+    <!-- Filtrar la cantidad seleccionada -->
+    <div class="filterEntries">
         <div class="entries">
             Enseñar <select name="" id="table_size">
                 <option value="10">10</option>
@@ -35,45 +35,47 @@
                 <option value="100">100</option>
             </select> entradas
         </div>
-        <!--Filtrar por busqueda-->
+        <!-- Filtrar por búsqueda -->
         <div class="filter">
-            <label for="search">Buscar</label>
-            <input type="search" name="" id="search" placeholder="Ingrese un nombre">
+            <form id="search-form" method="get" action="/grupo">
+                <label for="search">Buscar</label>
+                <input type="search" name="search" id="search" placeholder="Ingrese nombre, nivel, horario o profesor" value="{{ request.GET.search }}">
+            </form>
         </div>
     </div>
-    
 
-    <!--Tabla-->
-    <table>
-        <thead>
-            <!--Titulos de las tablas-->
-            <tr class="heading">
-                <th>Nombre</th>
-                <th>Nivel</th>
-                <th>Cupo Maximo</th>
-                <th>Horario</th>
-                <th>Profesor</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for grupo in grupos %}
-                <tr>
-                    <td>{{ grupo.nombre }}</td>
-                    <td>{{ grupo.nivel }}</td>
-                    <td>{{ grupo.cupo_maximo }}</td>
-                    <td>{{ grupo.horario }}</td>
-                    <td>{{ grupo.profesor }}</td>
-                    <td>
-                        <a href="/grupo/{{grupo.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
-                        <a href="/grupo_delete/{{grupo.id}}"><i class="fa-regular fa-trash-can"></i></a>
-                    </td>
+    <!-- Tabla -->
+    <div id="grupo-table">
+        <table>
+            <thead>
+                <!-- Títulos de las tablas -->
+                <tr class="heading">
+                    <th>Nombre</th>
+                    <th>Nivel</th>
+                    <th>Cupo máximo</th>
+                    <th>Horario</th>
+                    <th>Profesor</th>
+                    <th>Acciones</th>
                 </tr>
-            {% endfor %}            
-        </tbody>
-    </table>
-    <!--Botones para ver mas registros-->
+            </thead>
+            <tbody id="grupo-table-body">
+                {% for grupo in grupos %}
+                    <tr>
+                        <td>{{ grupo.nombre }}</td>
+                        <td>{{ grupo.nivel }}</td>
+                        <td>{{ grupo.cupo_maximo }}</td>
+                        <td>{{ grupo.horario }}</td>
+                        <td>{{ grupo.profesor }}</td>
+                        <td>
+                            <a href="/grupo/{{grupo.id}}"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/grupo_delete/{{grupo.id}}"><i class="fa-regular fa-trash-can"></i></a>
+                        </td>
+                    </tr>
+                {% endfor %} 
+            </tbody>
+        </table>
+    </div>
+    <!-- Botones para ver más registros -->
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
@@ -87,4 +89,33 @@
         </div>
     </footer>
 </div>
+
 {% endblock %}
+
+<script>
+    // Función para actualizar la tabla de grupos
+    function updateTable(searchValue) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/grupo?search=${searchValue}`, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const newTableBody = doc.getElementById('grupo-table-body').innerHTML;
+                document.getElementById('grupo-table-body').innerHTML = newTableBody;
+            }
+        };
+        xhr.send();
+    }
+
+    // Escuchar el evento de entrada en el campo de búsqueda
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    // Escuchar el evento de envío del formulario
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
+        updateTable(document.getElementById('search').value);
+    });
+</script>
