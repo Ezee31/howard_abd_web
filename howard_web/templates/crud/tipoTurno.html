@@ -46,14 +46,14 @@
     <!-- Filtrar la cantidad seleccionada -->
     <div class="filterEntries">
         <div class="entries">
-            Enseñar <select name="" id="table_size" class="form-control">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
+            Enseñar <select name="page_size" id="table_size" class="form-control">
+                <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
+                <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
+                <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
+                <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
             </select> entradas
         </div>
-        <!-- Filtrar por busqueda -->
+        <!-- Filtrar por búsqueda -->
         <div class="filter">
             <form id="search-form" method="get" action="/tipo_turno">
                 <label for="search">Buscar</label>
@@ -63,10 +63,10 @@
     </div>
 
     <!-- Tabla -->
-    <div id="tipo_turno-table">
+    <div id="tipo-turno-table">
         <table class="table table-striped">
             <thead class="thead-dark">
-                <!-- Titulos de las tablas -->
+                <!-- Títulos de las tablas -->
                 <tr class="heading">
                     <th>Días</th>
                     <th>Hora de Entrada</th>
@@ -75,7 +75,7 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="tipo_turno-table-body">
+            <tbody id="tipo-turno-table-body">
                 {% for tipo_turno in tipos_turnos %}
                     <tr>
                         <td>{{ tipo_turno.dias }}</td>
@@ -83,12 +83,8 @@
                         <td>{{ tipo_turno.hora_salida }}</td>
                         <td>{{ tipo_turno.formato }}</td>
                         <td>
-                            <!-- Dentro del tbody -->
-                        <td>
                             <a href="/tipo_turno/{{tipo_turno.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
                             <a href="/tipo_turno_delete/{{tipo_turno.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
-                        </td>
-
                         </td>
                     </tr>
                 {% endfor %} 
@@ -99,13 +95,21 @@
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
-            <button class="btn btn-custom">Prev</button>
-            <button class="btn btn-custom active">1</button>
-            <button class="btn btn-custom">2</button>
-            <button class="btn btn-custom">3</button>
-            <button class="btn btn-custom">4</button>
-            <button class="btn btn-custom">5</button>
-            <button class="btn btn-custom">Next</button>
+            {% if tipos_turnos.has_previous %}
+                <a href="?page={{ tipos_turnos.previous_page_number }}" class="btn btn-custom">Prev</a>
+            {% endif %}
+
+            {% for num in tipos_turnos.paginator.page_range %}
+                {% if tipos_turnos.number == num %}
+                    <span class="btn btn-custom active">{{ num }}</span>
+                {% elif num > tipos_turnos.number|add:'-3' and num < tipos_turnos.number|add:'3' %}
+                    <a href="?page={{ num }}" class="btn btn-custom">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if tipos_turnos.has_next %}
+                <a href="?page={{ tipos_turnos.next_page_number }}" class="btn btn-custom">Next</a>
+            {% endif %}
         </div>
     </footer>
 </div>
@@ -120,8 +124,8 @@
             if (xhr.readyState === 4 && xhr.status === 200) {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const newTableBody = doc.getElementById('tipo_turno-table-body').innerHTML;
-                document.getElementById('tipo_turno-table-body').innerHTML = newTableBody;
+                const newTableBody = doc.getElementById('tipo-turno-table-body').innerHTML;
+                document.getElementById('tipo-turno-table-body').innerHTML = newTableBody;
             }
         };
         xhr.send();
@@ -136,5 +140,13 @@
     document.getElementById('search-form').addEventListener('submit', function(event) {
         event.preventDefault(); // Evitar el envío del formulario de manera tradicional
         updateTable(document.getElementById('search').value);
+    });
+
+    // Cambiar el número de entradas mostradas
+    document.getElementById('table_size').addEventListener('change', function() {
+        const pageSize = this.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('page_size', pageSize);
+        window.location.search = urlParams.toString();
     });
 </script>

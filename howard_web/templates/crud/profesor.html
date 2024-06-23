@@ -3,8 +3,8 @@
 {% block content %}
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Profesores</h2>
-
-    <div class="header-content">
+    
+    <div class="header-content">    
         <form method='post'>
             {% csrf_token %}
             <div class="formFields">
@@ -40,24 +40,23 @@
             <div class="addMenberbtn">
                 <button type="submit" class="btn btn-primary">Guardar</button>
             </div>
-        </form>
+        </form> 
     </div>
-
     <!-- Filtrar la cantidad seleccionada -->
     <div class="filterEntries">
         <div class="entries">
-            Enseñar <select name="" id="table_size" class="form-control">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
+            Enseñar <select name="page_size" id="table_size" class="form-control">
+                <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
+                <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
+                <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
+                <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
             </select> entradas
         </div>
-        <!-- Filtrar por busqueda -->
+        <!-- Filtrar por búsqueda -->
         <div class="filter">
             <form id="search-form" method="get" action="/profesor">
                 <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, apellido, estudios o experiencia" value="{{ request.GET.search }}" class="form-control">
+                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, apellido o estudios" value="{{ request.GET.search }}" class="form-control">
             </form>
         </div>
     </div>
@@ -66,7 +65,7 @@
     <div id="profesor-table">
         <table class="table table-striped">
             <thead class="thead-dark">
-                <!-- Titulos de las tablas -->
+                <!-- Títulos de las tablas -->
                 <tr class="heading">
                     <th>Nombres</th>
                     <th>Apellidos</th>
@@ -94,14 +93,22 @@
     <!-- Botones para ver más registros -->
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
-        <div class="pagination">
-            <button class="btn btn-custom">Prev</button>
-            <button class="btn btn-custom active">1</button>
-            <button class="btn btn-custom">2</button>
-            <button class="btn btn-custom">3</button>
-            <button class="btn btn-custom">4</button>
-            <button class="btn btn-custom">5</button>
-            <button class="btn btn-custom">Next</button>
+        <div class="pagination d-flex justify-content-end">
+            {% if profesores.has_previous %}
+                <a href="?page={{ profesores.previous_page_number }}" class="btn btn-custom">Prev</a>
+            {% endif %}
+
+            {% for num in profesores.paginator.page_range %}
+                {% if profesores.number == num %}
+                    <span class="btn btn-custom active">{{ num }}</span>
+                {% elif num > profesores.number|add:'-3' and num < profesores.number|add:'3' %}
+                    <a href="?page={{ num }}" class="btn btn-custom">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if profesores.has_next %}
+                <a href="?page={{ profesores.next_page_number }}" class="btn btn-custom">Next</a>
+            {% endif %}
         </div>
     </footer>
 </div>
@@ -132,5 +139,13 @@
     document.getElementById('search-form').addEventListener('submit', function(event) {
         event.preventDefault(); // Evitar el envío del formulario de manera tradicional
         updateTable(document.getElementById('search').value);
+    });
+
+    // Cambiar el número de entradas mostradas
+    document.getElementById('table_size').addEventListener('change', function() {
+        const pageSize = this.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('page_size', pageSize);
+        window.location.search = urlParams.toString();
     });
 </script>

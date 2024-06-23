@@ -8,6 +8,8 @@ from django.contrib.auth import authenticate, login
 from .models import TipoTurno, Horario, TipoPago, Profesor, Grupo, Alumno, Pago
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 # Create your views here.
 # login endpoint
@@ -41,6 +43,8 @@ def dashboard(request):
 def tipo_turno(request, id=None):
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
+        page = request.GET.get('page', 1)  # captura la pagina en la que se encuentra
+        
         if search_query:
             tipos_turnos = TipoTurno.objects.filter(
                 models.Q(dias__icontains=search_query) |
@@ -51,6 +55,9 @@ def tipo_turno(request, id=None):
         else:
             tipos_turnos = TipoTurno.objects.all()
         
+        paginator = Paginator(tipos_turnos, 10)  # Mostrar 10 tipos de turnos por página
+        tipos_turnos_page = paginator.get_page(page)
+        
         if id:
             tipo_turno = TipoTurno.objects.get(id=id)
             edit_tipo_turno_form = TipoTurnoForm(initial={
@@ -59,10 +66,10 @@ def tipo_turno(request, id=None):
                 'hora_salida': tipo_turno.hora_salida,
                 'formato': tipo_turno.formato
             })
-            return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos, 'form': edit_tipo_turno_form})
+            return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos_page, 'form': edit_tipo_turno_form})
         else:
             new_tipo_turno_form = TipoTurnoForm()
-            return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos, 'form': new_tipo_turno_form})
+            return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos_page, 'form': new_tipo_turno_form})
 
     if request.method == 'POST':
         tipo_turno_form = TipoTurnoForm(request.POST)
@@ -91,7 +98,7 @@ def tipo_turno(request, id=None):
                 new_tipo_turno = TipoTurno(
                     dias=dias, 
                     hora_entrada=hora_entrada,
-                    hora_salida=hora_salida, 
+                    hora_salida=hora_salida,
                     formato=formato
                 )
                 new_tipo_turno.save()
@@ -105,6 +112,7 @@ def tipo_turno(request, id=None):
                     change_message=f'Added {new_tipo_turno}'
                 )
             return redirect("tipo_turno")
+
 
 @login_required(login_url='signin')
 def tipo_turno_delete(request, id):
@@ -126,9 +134,11 @@ def tipo_turno_delete(request, id):
 @login_required(login_url='signin')
 def horario(request, id=None):
     tipos_turnos = TipoTurno.objects.all().values_list('id', 'dias')
-
+    
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
+        page = request.GET.get('page', 1)  # captura la pagina en la que se encuentra
+        
         if search_query:
             horarios = Horario.objects.filter(
                 models.Q(nombre__icontains=search_query) |
@@ -137,16 +147,19 @@ def horario(request, id=None):
         else:
             horarios = Horario.objects.all()
         
-        if id: 
+        paginator = Paginator(horarios, 10)  # Mostrar 10 horarios por página
+        horarios_page = paginator.get_page(page)
+        
+        if id:
             horario = Horario.objects.get(id=id)
             edit_horario_form = HorarioForm(initial={
                 'nombre': horario.nombre,
                 'tipo_turno': horario.tipo_turno.id
             }, tipos_turnos=tipos_turnos)
-            return render(request, "crud/horario.html", {'horarios': horarios, 'form': edit_horario_form})
+            return render(request, "crud/horario.html", {'horarios': horarios_page, 'form': edit_horario_form})
         else:
             new_horario_form = HorarioForm(tipos_turnos=tipos_turnos)
-            return render(request, "crud/horario.html", {'horarios': horarios, 'form': new_horario_form})
+            return render(request, "crud/horario.html", {'horarios': horarios_page, 'form': new_horario_form})
 
     if request.method == 'POST':
         horario_form = HorarioForm(request.POST, tipos_turnos=tipos_turnos)
@@ -170,7 +183,7 @@ def horario(request, id=None):
                 )
             else:
                 new_horario = Horario(
-                    nombre=nombre, 
+                    nombre=nombre,
                     tipo_turno=tipo_turno
                 )
                 new_horario.save()
@@ -214,18 +227,23 @@ def profesor(request, id=None):
         else:
             profesores = Profesor.objects.all()
         
+        # Paginación
+        paginator = Paginator(profesores, 10)  # Mostrar 10 profesores por página
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
         if id:
             profesor = Profesor.objects.get(id=id)
             edit_profesor_form = ProfesorForm(initial={
-                'nombres': profesor.nombres,
+                'nombres': profesor.nombres, 
                 'apellidos': profesor.apellidos,
                 'estudios': profesor.estudios,
                 'experiencia': profesor.experiencia
             })
-            return render(request, "crud/profesor.html", {'profesores': profesores, 'form': edit_profesor_form})
+            return render(request, "crud/profesor.html", {'profesores': page_obj, 'form': edit_profesor_form, 'page_obj': page_obj})
         else:
             new_profesor_form = ProfesorForm()
-            return render(request, "crud/profesor.html", {'profesores': profesores, 'form': new_profesor_form})
+            return render(request, "crud/profesor.html", {'profesores': page_obj, 'form': new_profesor_form, 'page_obj': page_obj})
 
     if request.method == 'POST':
         profesor_form = ProfesorForm(request.POST)
@@ -254,7 +272,7 @@ def profesor(request, id=None):
                 new_profesor = Profesor(
                     nombres=nombres, 
                     apellidos=apellidos,
-                    estudios=estudios, 
+                    estudios=estudios,
                     experiencia=experiencia
                 )
                 new_profesor.save()
@@ -285,24 +303,30 @@ def profesor_delete(request, id):
 
 
 # tipopago endpoints
-@login_required(login_url='signin')
+login_required(login_url='signin')
 def tipo_pago(request, id=None):
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
+        page = request.GET.get('page', 1) # captura la pagina en la que se encuentra
+        page_size = request.GET.get('page_size', 10)
+
         if search_query:
             tipos_pago = TipoPago.objects.filter(
                 models.Q(nombre__icontains=search_query)
             )
         else:
             tipos_pago = TipoPago.objects.all()
-        
+
+        paginator = Paginator(tipos_pago, page_size)  # Mostrar `page_size` tipos de pago por página
+        tipos_pago_page = paginator.get_page(page)
+
         if id:
             tipo_pago = TipoPago.objects.get(id=id)
             edit_tipo_pago_form = TipoPagoForm(initial={'nombre': tipo_pago.nombre})
-            return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago, 'form': edit_tipo_pago_form})
+            return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago_page, 'form': edit_tipo_pago_form})
         else:
             new_tipo_pago_form = TipoPagoForm()
-            return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago, 'form': new_tipo_pago_form})
+            return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago_page, 'form': new_tipo_pago_form})
 
     if request.method == 'POST':
         tipo_pago_form = TipoPagoForm(request.POST)
@@ -312,27 +336,9 @@ def tipo_pago(request, id=None):
                 tipo_pago = get_object_or_404(TipoPago, id=id)
                 tipo_pago.nombre = nombre
                 tipo_pago.save()
-                # Registrar la actualización
-                LogEntry.objects.log_action(
-                    user_id=request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(TipoPago).pk,
-                    object_id=tipo_pago.pk,
-                    object_repr=str(tipo_pago),
-                    action_flag=CHANGE,
-                    change_message=f'Updated {tipo_pago}'
-                )
             else:
                 new_tipo_pago = TipoPago(nombre=nombre)
                 new_tipo_pago.save()
-                # Registrar la creación
-                LogEntry.objects.log_action(
-                    user_id=request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(TipoPago).pk,
-                    object_id=new_tipo_pago.pk,
-                    object_repr=str(new_tipo_pago),
-                    action_flag=ADDITION,
-                    change_message=f'Added {new_tipo_pago}'
-                )
             return redirect("tipo_pago")
         
 @login_required(login_url='signin')
@@ -354,20 +360,25 @@ def tipo_pago_delete(request, id):
 # grupo endpoint 
 @login_required(login_url='signin')
 def grupo(request, id=None):
-    horarios = Horario.objects.all().values_list('id', 'nombre')
-    profesores = Profesor.objects.all().values_list('id', 'nombres')
+    horarios = Horario.objects.all().values_list('id','nombre')
+    profesores = Profesor.objects.all().values_list('id','nombres')
     
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
+        page = request.GET.get('page', 1)
+        
         if search_query:
             grupos = Grupo.objects.filter(
                 models.Q(nombre__icontains=search_query) |
                 models.Q(nivel__icontains=search_query) |
-                models.Q(horario__nombre__icontains=search_query) |
-                models.Q(profesor__nombres__icontains=search_query)
+                models.Q(profesor__nombres__icontains=search_query) |
+                models.Q(horario__nombre__icontains=search_query)
             )
         else:
             grupos = Grupo.objects.all()
+        
+        paginator = Paginator(grupos, 10)  # Mostrar 10 grupos por página
+        grupos_page = paginator.get_page(page)
         
         if id:
             grupo = Grupo.objects.get(id=id)
@@ -378,10 +389,10 @@ def grupo(request, id=None):
                 'horario': grupo.horario.id,
                 'profesor': grupo.profesor.id
             }, horarios=horarios, profesores=profesores)
-            return render(request, "crud/grupo.html", {'grupos': grupos, 'form': edit_grupo_form})
+            return render(request, "crud/grupo.html", {'grupos': grupos_page, 'form': edit_grupo_form})
         else:
             new_grupo_form = GrupoForm(horarios=horarios, profesores=profesores)
-            return render(request, "crud/grupo.html", {'grupos': grupos, 'form': new_grupo_form})
+            return render(request, "crud/grupo.html", {'grupos': grupos_page, 'form': new_grupo_form})
 
     if request.method == 'POST':
         grupo_form = GrupoForm(request.POST, horarios=horarios, profesores=profesores)
@@ -413,9 +424,9 @@ def grupo(request, id=None):
             else:
                 new_grupo = Grupo(
                     nombre=nombre, 
-                    nivel=nivel, 
+                    nivel=nivel,
                     cupo_maximo=cupo_maximo,
-                    horario=horario, 
+                    horario=horario,
                     profesor=profesor
                 )
                 new_grupo.save()
@@ -429,6 +440,7 @@ def grupo(request, id=None):
                     change_message=f'Added {new_grupo}'
                 )
             return redirect("grupo")
+
 @login_required(login_url='signin')
 def grupo_delete(request, id):
     grupo = Grupo.objects.get(id=id)
@@ -450,6 +462,8 @@ def alumno(request, id=None):
     
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
+        page = request.GET.get('page', 1) #captura la pagina en la que se encuentra
+        
         if search_query:
             alumnos = Alumno.objects.filter(
                 models.Q(nombres__icontains=search_query) |
@@ -459,6 +473,9 @@ def alumno(request, id=None):
             )
         else:
             alumnos = Alumno.objects.all()
+        
+        paginator = Paginator(alumnos, 10)  # Mostrar 10 alumnos por página
+        alumnos_page = paginator.get_page(page)
         
         if id:
             alumno = Alumno.objects.get(id=id)
@@ -470,10 +487,10 @@ def alumno(request, id=None):
                 'telefono': alumno.telefono,
                 'grupo': alumno.grupo.id
             }, grupos=grupos)
-            return render(request, "crud/alumno.html", {'alumnos': alumnos, 'form': edit_alumno_form})
+            return render(request, "crud/alumno.html", {'alumnos': alumnos_page, 'form': edit_alumno_form})
         else:
             new_alumno_form = AlumnoForm(grupos=grupos)
-            return render(request, "crud/alumno.html", {'alumnos': alumnos, 'form': new_alumno_form})
+            return render(request, "crud/alumno.html", {'alumnos': alumnos_page, 'form': new_alumno_form})
 
     if request.method == 'POST':
         alumno_form = AlumnoForm(request.POST, grupos=grupos)
@@ -544,43 +561,48 @@ def alumno_delete(request,id):
 def pago(request, id=None):
     tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
     alumnos = Alumno.objects.all().values_list('id', 'nombres')
-    
+
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
+        page = request.GET.get('page', 1)  # Captura la página en la que se encuentra
+
         if search_query:
             pagos = Pago.objects.filter(
+                models.Q(fecha__icontains=search_query) |
+                models.Q(monto__icontains=search_query) |
                 models.Q(alumno__nombres__icontains=search_query) |
-                models.Q(alumno__apellidos__icontains=search_query) |
-                models.Q(tipo_pago__nombre__icontains=search_query) |
-                models.Q(monto__icontains=search_query)
+                models.Q(tipo_pago__nombre__icontains=search_query)
             )
         else:
             pagos = Pago.objects.all()
-        
+
+        paginator = Paginator(pagos, 10)  # Mostrar 10 pagos por página
+        pagos_page = paginator.get_page(page)
+
         if id:
             pago = Pago.objects.get(id=id)
             edit_pago_form = PagoForm(initial={
-                'fecha': pago.fecha, 
-                'monto': pago.monto, 
-                'alumno': pago.alumno.id, 
-                'tipo_pago': pago.tipo_pago.id, 
+                'fecha': pago.fecha,
+                'monto': pago.monto,
+                'alumno': pago.alumno.id,
+                'tipo_pago': pago.tipo_pago.id,
                 'solvencia_mes': pago.solvencia_mes
             }, tipos_pagos=tipos_pagos, alumnos=alumnos)
-            return render(request, "crud/pago.html", {'pagos': pagos, 'form': edit_pago_form})
+            return render(request, "crud/pago.html", {'pagos': pagos_page, 'form': edit_pago_form})
         else:
             new_pago_form = PagoForm(tipos_pagos=tipos_pagos, alumnos=alumnos)
-            return render(request, "crud/pago.html", {'pagos': pagos, 'form': new_pago_form})
+            return render(request, "crud/pago.html", {'pagos': pagos_page, 'form': new_pago_form})
 
     if request.method == 'POST':
         pago_form = PagoForm(request.POST, tipos_pagos=tipos_pagos, alumnos=alumnos)
         if pago_form.is_valid():
             fecha = pago_form.cleaned_data["fecha"]
             monto = pago_form.cleaned_data["monto"]
-            tipo_pago_id = pago_form.cleaned_data["tipo_pago"]
-            tipo_pago = TipoPago.objects.get(id=int(tipo_pago_id))
             alumno_id = pago_form.cleaned_data["alumno"]
-            alumno = Alumno.objects.get(id=int(alumno_id))
+            tipo_pago_id = pago_form.cleaned_data["tipo_pago"]
             solvencia_mes = pago_form.cleaned_data["solvencia_mes"]
+            alumno = Alumno.objects.get(id=int(alumno_id))
+            tipo_pago = TipoPago.objects.get(id=int(tipo_pago_id))
             if id:
                 pago = get_object_or_404(Pago, id=id)
                 pago.fecha = fecha
@@ -600,10 +622,10 @@ def pago(request, id=None):
                 )
             else:
                 new_pago = Pago(
-                    fecha=fecha, 
-                    monto=monto, 
+                    fecha=fecha,
+                    monto=monto,
+                    alumno=alumno,
                     tipo_pago=tipo_pago,
-                    alumno=alumno, 
                     solvencia_mes=solvencia_mes
                 )
                 new_pago.save()
@@ -635,6 +657,20 @@ def pago_delete(request, id):
 # reportes endpoints
 @login_required(login_url='signin')
 def reportes(request):
+    search_query = request.GET.get('search', '')
+    page = request.GET.get('page', 1) # Captura la página en la que se encuentra
+    page_size = request.GET.get('page_size', 10)
+
+    try:
+        page = int(page)
+    except ValueError:
+        page = 1
+
+    try:
+        page_size = int(page_size)
+    except ValueError:
+        page_size = 10
+
     logs = LogEntry.objects.select_related('content_type', 'user').all().order_by('-action_time')
     total_alumnos = Alumno.objects.count()
     total_profesores = Profesor.objects.count()
@@ -642,8 +678,23 @@ def reportes(request):
     total_pagos = Pago.objects.count()
     pagos_por_mes = Pago.objects.values('fecha__month').annotate(total=models.Sum('monto')).order_by('fecha__month')
 
+    if search_query:
+        logs = logs.filter(
+            models.Q(user__username__icontains=search_query) |
+            models.Q(content_type__model__icontains=search_query) |
+            models.Q(object_repr__icontains=search_query)
+        )
+
+    paginator = Paginator(logs, page_size)  # Mostrar `page_size` logs por página
+    try:
+        logs_page = paginator.page(page)
+    except PageNotAnInteger:
+        logs_page = paginator.page(1)
+    except EmptyPage:
+        logs_page = paginator.page(paginator.num_pages)
+
     context = {
-        'logs': logs,
+        'logs': logs_page,
         'total_alumnos': total_alumnos,
         'total_profesores': total_profesores,
         'total_grupos': total_grupos,

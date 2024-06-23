@@ -36,8 +36,8 @@
                         <div class="alert alert-danger">{{ form.tipo_pago.errors }}</div>
                     {% endif %}
                 </div>
-                <div class="form-group form-check">
-                    <label for="solvencia_mes">Solvencia Mes:</label>
+                <div class="form-group">
+                    <label for="solvencia_mes">Solvencia del Mes:</label>
                     {{ form.solvencia_mes }}
                     {% if form.solvencia_mes.errors %}
                         <div class="alert alert-danger">{{ form.solvencia_mes.errors }}</div>
@@ -53,18 +53,18 @@
     <!-- Filtrar la cantidad seleccionada -->
     <div class="filterEntries">
         <div class="entries">
-            Enseñar <select name="" id="table_size" class="form-control">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
+            Enseñar <select name="page_size" id="table_size" class="form-control">
+                <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
+                <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
+                <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
+                <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
             </select> entradas
         </div>
-        <!-- Filtrar por busqueda -->
+        <!-- Filtrar por búsqueda -->
         <div class="filter">
             <form id="search-form" method="get" action="/pago">
                 <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese fecha, monto, alumno o tipo de pago" value="{{ request.GET.search }}" class="form-control">
+                <input type="search" name="search" id="search" placeholder="Ingrese fecha, monto, nombre del alumno o tipo de pago" value="{{ request.GET.search }}" class="form-control">
             </form>
         </div>
     </div>
@@ -73,13 +73,13 @@
     <div id="pago-table">
         <table class="table table-striped">
             <thead class="thead-dark">
-                <!-- Titulos de las tablas -->
+                <!-- Títulos de las tablas -->
                 <tr class="heading">
                     <th>Fecha</th>
                     <th>Monto</th>
                     <th>Alumno</th>
                     <th>Tipo de Pago</th>
-                    <th>Solvencia Mes</th>
+                    <th>Solvencia del Mes</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -92,8 +92,8 @@
                         <td>{{ pago.tipo_pago }}</td>
                         <td>{{ pago.solvencia_mes }}</td>
                         <td>
-                          <a href="/pago/{{pago.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
-                          <a href="/pago_delete/{{pago.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
+                            <a href="/pago/{{pago.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <a href="/pago_delete/{{pago.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>
                 {% endfor %} 
@@ -104,13 +104,21 @@
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
-            <button class="btn btn-custom">Prev</button>
-            <button class="btn btn-custom active">1</button>
-            <button class="btn btn-custom">2</button>
-            <button class="btn btn-custom">3</button>
-            <button class="btn btn-custom">4</button>
-            <button class="btn btn-custom">5</button>
-            <button class="btn btn-custom">Next</button>
+            {% if pagos.has_previous %}
+                <a href="?page={{ pagos.previous_page_number }}" class="btn btn-custom">Prev</a>
+            {% endif %}
+
+            {% for num in pagos.paginator.page_range %}
+                {% if pagos.number == num %}
+                    <span class="btn btn-custom active">{{ num }}</span>
+                {% elif num > pagos.number|add:'-3' and num < pagos.number|add:'3' %}
+                    <a href="?page={{ num }}" class="btn btn-custom">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagos.has_next %}
+                <a href="?page={{ pagos.next_page_number }}" class="btn btn-custom">Next</a>
+            {% endif %}
         </div>
     </footer>
 </div>
@@ -141,5 +149,13 @@
     document.getElementById('search-form').addEventListener('submit', function(event) {
         event.preventDefault(); // Evitar el envío del formulario de manera tradicional
         updateTable(document.getElementById('search').value);
+    });
+
+    // Cambiar el número de entradas mostradas
+    document.getElementById('table_size').addEventListener('change', function() {
+        const pageSize = this.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('page_size', pageSize);
+        window.location.search = urlParams.toString();
     });
 </script>

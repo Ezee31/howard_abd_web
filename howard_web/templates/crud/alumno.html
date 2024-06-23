@@ -59,14 +59,14 @@
     <!-- Filtrar la cantidad seleccionada -->
     <div class="filterEntries">
         <div class="entries">
-            Enseñar <select name="" id="table_size" class="form-control">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
+            Enseñar <select name="page_size" id="table_size" class="form-control">
+                <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
+                <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
+                <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
+                <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
             </select> entradas
         </div>
-        <!-- Filtrar por busqueda -->
+        <!-- Filtrar por búsqueda -->
         <div class="filter">
             <form id="search-form" method="get" action="/alumno">
                 <label for="search">Buscar</label>
@@ -79,7 +79,7 @@
     <div id="alumno-table">
         <table class="table table-striped">
             <thead class="thead-dark">
-                <!-- Titulos de las tablas -->
+                <!-- Títulos de las tablas -->
                 <tr class="heading">
                     <th>Nombres</th>
                     <th>Apellidos</th>
@@ -99,12 +99,10 @@
                         <td>{{ alumno.email }}</td>
                         <td>{{ alumno.activo }}</td> 
                         <td>{{ alumno.grupo }}</td>
-                        <!-- Dentro del tbody -->
                         <td>
                             <a href="/alumno/{{alumno.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
                             <a href="/alumno_delete/{{alumno.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
-                                
                     </tr>
                 {% endfor %} 
             </tbody>
@@ -114,13 +112,21 @@
     <footer>
         <span>Mostrar del 1 al 10 o 50</span>
         <div class="pagination">
-            <button class="btn btn-custom">Prev</button>
-            <button class="btn btn-custom active">1</button>
-            <button class="btn btn-custom">2</button>
-            <button class="btn btn-custom">3</button>
-            <button class="btn btn-custom">4</button>
-            <button class="btn btn-custom">5</button>
-            <button class="btn btn-custom">Next</button>
+            {% if alumnos.has_previous %}
+                <a href="?page={{ alumnos.previous_page_number }}" class="btn btn-custom">Prev</a>
+            {% endif %}
+
+            {% for num in alumnos.paginator.page_range %}
+                {% if alumnos.number == num %}
+                    <span class="btn btn-custom active">{{ num }}</span>
+                {% elif num > alumnos.number|add:'-3' and num < alumnos.number|add:'3' %}
+                    <a href="?page={{ num }}" class="btn btn-custom">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if alumnos.has_next %}
+                <a href="?page={{ alumnos.next_page_number }}" class="btn btn-custom">Next</a>
+            {% endif %}
         </div>
     </footer>
 </div>
@@ -151,5 +157,13 @@
     document.getElementById('search-form').addEventListener('submit', function(event) {
         event.preventDefault(); // Evitar el envío del formulario de manera tradicional
         updateTable(document.getElementById('search').value);
+    });
+
+    // Cambiar el número de entradas mostradas
+    document.getElementById('table_size').addEventListener('change', function() {
+        const pageSize = this.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('page_size', pageSize);
+        window.location.search = urlParams.toString();
     });
 </script>
