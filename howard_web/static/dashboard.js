@@ -41,6 +41,10 @@
       const elementoTipoPago = document.querySelector("#option-tipo-pago");
       elementoTipoPago.classList.add("selected");
       break;
+    case '/reportes':
+        const elementoReportes = document.querySelector("#option-reportes");
+        elementoReportes.classList.add("selected");
+        break;
   }
 })();
 
