@@ -99,7 +99,7 @@ body{
 
 header{
     width: 100%;
-    height: 80px;
+    height: 98px;
     background: #f5f5f5;
     display: flex;
     align-items: center;
@@ -139,6 +139,8 @@ header{
     transition: all 300ms cubic-bezier(0.785, 0.135, 0.15, 0.86);
 }
 
+
+
 /*Ocultar scroll para chrome, safari y opera*/
 .menu__side::-webkit-scrollbar{
     display: none;
@@ -155,8 +157,12 @@ header{
     padding: 20px 30px;
     display: flex;
     align-items: center;
-    margin-top: 10px;
+    margin-top: -23px;
     margin-left: 15px;
+}
+
+.custom{
+    margin-top: 10px;
 }
 
 .name__page i, svg{
@@ -185,6 +191,7 @@ header{
 }
 svg{
     margin-left: -5px;
+    margin-top: -10px;
 }
 .options__menu .option{
     padding: 20px 0px;
