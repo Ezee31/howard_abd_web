@@ -156,13 +156,15 @@ header{
     display: flex;
     align-items: center;
     margin-top: 10px;
+    margin-left: 15px;
 }
 
-.name__page i{
+.name__page i, svg{
     width: 20px;
     margin-right: 20px;
     margin-left: 12px;
 }
+
 
 .options__menu{
     padding: 20px 30px;
@@ -181,7 +183,9 @@ header{
 .options__menu a:hover{
     color: white;
 }
-
+svg{
+    margin-left: -5px;
+}
 .options__menu .option{
     padding: 20px 0px;
     display: flex;
