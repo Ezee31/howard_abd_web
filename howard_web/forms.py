@@ -53,31 +53,20 @@ class GrupoForm(forms.Form):
         self.fields['profesor'].choices = profesores
 
 class AlumnoForm(forms.Form):
-    email = forms.EmailField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Email'})
-    )
-    nombres = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombres'})
-    )
-    apellidos = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellidos'})
-    )
-    activo = forms.BooleanField(
-        required=False, 
-        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
-    )
-    telefono = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Telefono'})
-    )
-    grupo = forms.ChoiceField(
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        choices=[]
-    )
+    email = forms.EmailField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Email'}))
+    nombres = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombres'}))
+    apellidos = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apellidos'}))
+    activo = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    telefono = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Telefono'}))
+    grupo = forms.ChoiceField(widget=forms.Select(attrs={'class': 'form-control'}), choices=[])
 
     def __init__(self, *args, **kwargs):
-        grupos = kwargs.pop('grupos', [])
-        super(AlumnoForm, self).__init__(*args, **kwargs)
-        self.fields['grupo'].choices = grupos
+        if 'grupos' in kwargs:
+            grupos = kwargs.pop('grupos')
+            super(AlumnoForm, self).__init__(*args, **kwargs)
+            self.fields['grupo'].choices = grupos
+        else:
+            super(AlumnoForm, self).__init__(*args, **kwargs)
 
 class PagoForm(forms.Form):
     fecha = forms.DateField(

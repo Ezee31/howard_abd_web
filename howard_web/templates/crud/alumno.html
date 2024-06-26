@@ -4,57 +4,33 @@
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Alumnos</h2>
     
-    <div class="header-content">    
-        <form method='post'>
-            {% csrf_token %}
-            <div class="formFields">
-                <div class="form-group">
-                    <label for="nombres">Nombres:</label>
-                    {{ form.nombres }}
-                    {% if form.nombres.errors %}
-                        <div class="alert alert-danger">{{ form.nombres.errors }}</div>
-                    {% endif %}
+    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#alumnoModal" onclick="openModal('add')">
+        Añadir Alumno
+    </button>
+    <!--modal para alumno-->
+    <div id="alumnoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="alumnoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alumnoModalLabel">Añadir Alumno</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label for="apellidos">Apellidos:</label>
-                    {{ form.apellidos }}
-                    {% if form.apellidos.errors %}
-                        <div class="alert alert-danger">{{ form.apellidos.errors }}</div>
-                    {% endif %}
+                <div class="modal-body">
+                    <form id="alumnoForm" method="post">
+                        {% csrf_token %}
+                        <div id="form-fields">
+                            {{ form.as_p }}
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="telefono">Telefono:</label>
-                    {{ form.telefono }}
-                    {% if form.telefono.errors %}
-                        <div class="alert alert-danger">{{ form.telefono.errors }}</div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    {{ form.email }}
-                    {% if form.email.errors %}
-                        <div class="alert alert-danger">{{ form.email.errors }}</div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="activo">Activo:</label>
-                    {{ form.activo }}
-                    {% if form.activo.errors %}
-                        <div class="alert alert-danger">{{ form.activo.errors }}</div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="grupo">Grupo:</label>
-                    {{ form.grupo }}
-                    {% if form.grupo.errors %}
-                        <div class="alert alert-danger">{{ form.grupo.errors }}</div>
-                    {% endif %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
                 </div>
             </div>
-            <div class="addMenberbtn">
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
-        </form> 
+        </div>
     </div>
     <!-- Filtrar la cantidad seleccionada -->
     <div class="filterEntries">
@@ -66,7 +42,6 @@
                 <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
             </select> entradas
         </div>
-        <!-- Filtrar por búsqueda -->
         <div class="filter">
             <form id="search-form" method="get" action="/alumno">
                 <label for="search">Buscar</label>
@@ -75,11 +50,9 @@
         </div>
     </div>
 
-    <!-- Tabla -->
     <div id="alumno-table">
         <table class="table table-striped">
             <thead class="thead-dark">
-                <!-- Títulos de las tablas -->
                 <tr class="heading">
                     <th>Nombres</th>
                     <th>Apellidos</th>
@@ -97,20 +70,20 @@
                         <td>{{ alumno.apellidos }}</td>
                         <td>{{ alumno.telefono }}</td>
                         <td>{{ alumno.email }}</td>
-                        <td>{{ alumno.activo }}</td> 
+                        <td>{{ alumno.activo }}</td>
                         <td>{{ alumno.grupo }}</td>
                         <td>
-                            <a href="/alumno/{{alumno.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <button type="button" class="btn btn-sm btn-custom-modify" data-toggle="modal" data-target="#alumnoModal" onclick="openModal('edit', {{ alumno.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
                             <a href="/alumno_delete/{{alumno.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>
-                {% endfor %} 
+                {% endfor %}
             </tbody>
         </table>
     </div>
-    <!-- Botones para ver más registros -->
+
     <footer>
-        <span>Mostrar del 1 al 10 o 50</span>
+        <span>Mostrar del 1 al {{ alumnos.paginator.per_page }} de {{ alumnos.paginator.count }}</span>
         <div class="pagination">
             {% if alumnos.has_previous %}
                 <a href="?page={{ alumnos.previous_page_number }}" class="btn btn-custom">Prev</a>
@@ -130,10 +103,69 @@
         </div>
     </footer>
 </div>
-{% endblock %}
 
 <script>
-    // Función para actualizar la tabla de alumnos
+    function openModal(action, id=null) {
+        let url = '';
+        if (action === 'add') {
+            url = "{% url 'alumno_add' %}";
+            document.getElementById('alumnoModalLabel').innerText = 'Añadir Alumno';
+        } else if (action === 'edit') {
+            url = `{% url 'alumno_edit' 0 %}`.replace('0', id);
+            document.getElementById('alumnoModalLabel').innerText = 'Editar Alumno';
+        }
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('form-fields').innerHTML = html;
+                document.getElementById('alumnoForm').action = url; 
+            });
+    }
+
+    function submitForm() {
+        const form = document.getElementById('alumnoForm');
+        const data = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: data,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                const errors = data.errors;
+                for (const [field, messages] of Object.entries(errors)) {
+                    const fieldElement = document.querySelector(`[name="${field}"]`);
+                    fieldElement.classList.add('is-invalid');
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'invalid-feedback';
+                    errorContainer.innerHTML = messages.join('<br>');
+                    fieldElement.parentNode.appendChild(errorContainer);
+                }
+            }
+        });
+    }
+
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        updateTable(document.getElementById('search').value);
+    });
+
+    document.getElementById('table_size').addEventListener('change', function() {
+        const pageSize = this.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('page_size', pageSize);
+        window.location.search = urlParams.toString();
+    });
+
     function updateTable(searchValue) {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', `/alumno?search=${searchValue}`, true);
@@ -147,23 +179,5 @@
         };
         xhr.send();
     }
-
-    // Escuchar el evento de entrada en el campo de búsqueda
-    document.getElementById('search').addEventListener('input', function() {
-        updateTable(this.value);
-    });
-
-    // Escuchar el evento de envío del formulario
-    document.getElementById('search-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
-        updateTable(document.getElementById('search').value);
-    });
-
-    // Cambiar el número de entradas mostradas
-    document.getElementById('table_size').addEventListener('change', function() {
-        const pageSize = this.value;
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('page_size', pageSize);
-        window.location.search = urlParams.toString();
-    });
 </script>
+{% endblock %}

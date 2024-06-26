@@ -4,51 +4,32 @@
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Grupos</h2>
     
-    <div class="header-content">    
-        <form method='post'>
-            {% csrf_token %}
-            <div class="formFields">
-                <div class="form-group">
-                    <label for="nombre">Nombre:</label>
-                    {{ form.nombre }}
-                    {% if form.nombre.errors %}
-                        <div class="alert alert-danger">{{ form.nombre.errors }}</div>
-                    {% endif %}
+    <!--modal para alumno-->
+    <div id="grupoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="alumnoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="grupoModalLabel">Añadir Grupo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label for="nivel">Nivel:</label>
-                    {{ form.nivel }}
-                    {% if form.nivel.errors %}
-                        <div class="alert alert-danger">{{ form.nivel.errors }}</div>
-                    {% endif %}
+                <div class="modal-body">
+                    <form id="alumnoForm" method="post">
+                        {% csrf_token %}
+                        <div id="form-fields">
+                            {{ form.as_p }}
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="cupo_maximo">Cupo Máximo:</label>
-                    {{ form.cupo_maximo }}
-                    {% if form.cupo_maximo.errors %}
-                        <div class="alert alert-danger">{{ form.cupo_maximo.errors }}</div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="horario">Horario:</label>
-                    {{ form.horario }}
-                    {% if form.horario.errors %}
-                        <div class="alert alert-danger">{{ form.horario.errors }}</div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="profesor">Profesor:</label>
-                    {{ form.profesor }}
-                    {% if form.profesor.errors %}
-                        <div class="alert alert-danger">{{ form.profesor.errors }}</div>
-                    {% endif %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
                 </div>
             </div>
-            <div class="addMenberbtn">
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
-        </form> 
+        </div>
     </div>
+
     <!-- Filtrar la cantidad seleccionada -->
     <div class="filterEntries">
         <div class="entries">

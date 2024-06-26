@@ -4,45 +4,35 @@
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Profesores</h2>
     
-    <div class="header-content">    
-        <form method='post'>
-            {% csrf_token %}
-            <div class="formFields">
-                <div class="form-group">
-                    <label for="nombres">Nombres:</label>
-                    {{ form.nombres }}
-                    {% if form.nombres.errors %}
-                        <div class="alert alert-danger">{{ form.nombres.errors }}</div>
-                    {% endif %}
+    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#profesorModal" onclick="openModal('add')">
+        Añadir Profesor
+    </button>
+
+    <div id="profesorModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="profesorModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profesorModalLabel">Añadir Profesor</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label for="apellidos">Apellidos:</label>
-                    {{ form.apellidos }}
-                    {% if form.apellidos.errors %}
-                        <div class="alert alert-danger">{{ form.apellidos.errors }}</div>
-                    {% endif %}
+                <div class="modal-body">
+                    <form id="profesorForm" method="post">
+                        {% csrf_token %}
+                        <div id="form-fields">
+                            {{ form.as_p }}
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="estudios">Estudios:</label>
-                    {{ form.estudios }}
-                    {% if form.estudios.errors %}
-                        <div class="alert alert-danger">{{ form.estudios.errors }}</div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="experiencia">Experiencia:</label>
-                    {{ form.experiencia }}
-                    {% if form.experiencia.errors %}
-                        <div class="alert alert-danger">{{ form.experiencia.errors }}</div>
-                    {% endif %}
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
                 </div>
             </div>
-            <div class="addMenberbtn">
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
-        </form> 
+        </div>
     </div>
-    <!-- Filtrar la cantidad seleccionada -->
+
     <div class="filterEntries">
         <div class="entries">
             Enseñar <select name="page_size" id="table_size" class="form-control">
@@ -52,20 +42,17 @@
                 <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
             </select> entradas
         </div>
-        <!-- Filtrar por búsqueda -->
         <div class="filter">
             <form id="search-form" method="get" action="/profesor">
                 <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, apellido o estudios" value="{{ request.GET.search }}" class="form-control">
+                <input type="search" name="search" id="search" placeholder="Ingrese un nombre o apellido" value="{{ request.GET.search }}" class="form-control">
             </form>
         </div>
     </div>
 
-    <!-- Tabla -->
     <div id="profesor-table">
         <table class="table table-striped">
             <thead class="thead-dark">
-                <!-- Títulos de las tablas -->
                 <tr class="heading">
                     <th>Nombres</th>
                     <th>Apellidos</th>
@@ -82,18 +69,18 @@
                         <td>{{ profesor.estudios }}</td>
                         <td>{{ profesor.experiencia }}</td>
                         <td>
-                            <a href="/profesor/{{profesor.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
-                            <a href="/profesor_delete/{{profesor.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
+                            <button type="button" class="btn btn-sm btn-custom-modify" data-toggle="modal" data-target="#profesorModal" onclick="openModal('edit', {{ profesor.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <a href="/profesor_delete/{{ profesor.id }}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>
-                {% endfor %} 
+                {% endfor %}
             </tbody>
         </table>
     </div>
-    <!-- Botones para ver más registros -->
+
     <footer>
-        <span>Mostrar del 1 al 10 o 50</span>
-        <div class="pagination d-flex justify-content-end">
+        <span>Mostrar del 1 al {{ profesores.paginator.per_page }} de {{ profesores.paginator.count }}</span>
+        <div class="pagination">
             {% if profesores.has_previous %}
                 <a href="?page={{ profesores.previous_page_number }}" class="btn btn-custom">Prev</a>
             {% endif %}
@@ -112,10 +99,69 @@
         </div>
     </footer>
 </div>
-{% endblock %}
 
 <script>
-    // Función para actualizar la tabla de profesores
+    function openModal(action, id=null) {
+        let url = '';
+        if (action === 'add') {
+            url = "{% url 'profesor_add' %}";
+            document.getElementById('profesorModalLabel').innerText = 'Añadir Profesor';
+        } else if (action === 'edit') {
+            url = `{% url 'profesor_edit' 0 %}`.replace('0', id);
+            document.getElementById('profesorModalLabel').innerText = 'Editar Profesor';
+        }
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('form-fields').innerHTML = html;
+                document.getElementById('profesorForm').setAttribute('action', url);
+            });
+    }
+
+    function submitForm() {
+        const form = document.getElementById('profesorForm');
+        const data = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: data,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                const errors = data.errors;
+                for (const [field, messages] of Object.entries(errors)) {
+                    const fieldElement = document.querySelector(`[name="${field}"]`);
+                    fieldElement.classList.add('is-invalid');
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'invalid-feedback';
+                    errorContainer.innerHTML = messages.join('<br>');
+                    fieldElement.parentNode.appendChild(errorContainer);
+                }
+            }
+        });
+    }
+
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        updateTable(document.getElementById('search').value);
+    });
+
+    document.getElementById('table_size').addEventListener('change', function() {
+        const pageSize = this.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('page_size', pageSize);
+        window.location.search = urlParams.toString();
+    });
+
     function updateTable(searchValue) {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', `/profesor?search=${searchValue}`, true);
@@ -129,23 +175,5 @@
         };
         xhr.send();
     }
-
-    // Escuchar el evento de entrada en el campo de búsqueda
-    document.getElementById('search').addEventListener('input', function() {
-        updateTable(this.value);
-    });
-
-    // Escuchar el evento de envío del formulario
-    document.getElementById('search-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
-        updateTable(document.getElementById('search').value);
-    });
-
-    // Cambiar el número de entradas mostradas
-    document.getElementById('table_size').addEventListener('change', function() {
-        const pageSize = this.value;
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('page_size', pageSize);
-        window.location.search = urlParams.toString();
-    });
 </script>
+{% endblock %}

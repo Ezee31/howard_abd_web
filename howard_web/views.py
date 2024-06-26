@@ -9,6 +9,8 @@ from .models import TipoTurno, Horario, TipoPago, Profesor, Grupo, Alumno, Pago
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 
 # Create your views here.
@@ -212,84 +214,113 @@ def horario_delete(request, id):
     horario.delete()
     return redirect("horario")
 
-
 # profesor endpoints
 @login_required(login_url='signin')
-def profesor(request, id=None):
+def profesor(request):
+    profesores = Profesor.objects.all()
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
+        page = request.GET.get('page', 1)
+
         if search_query:
             profesores = Profesor.objects.filter(
                 models.Q(nombres__icontains=search_query) |
-                models.Q(apellidos__icontains=search_query) |
-                models.Q(estudios__icontains=search_query)
+                models.Q(apellidos__icontains=search_query)
             )
         else:
             profesores = Profesor.objects.all()
-        
-        # Paginación
-        paginator = Paginator(profesores, 10)  # Mostrar 10 profesores por página
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        
-        if id:
-            profesor = Profesor.objects.get(id=id)
-            edit_profesor_form = ProfesorForm(initial={
-                'nombres': profesor.nombres, 
-                'apellidos': profesor.apellidos,
-                'estudios': profesor.estudios,
-                'experiencia': profesor.experiencia
-            })
-            return render(request, "crud/profesor.html", {'profesores': page_obj, 'form': edit_profesor_form, 'page_obj': page_obj})
+
+        paginator = Paginator(profesores, 10)
+        profesores_page = paginator.get_page(page)
+
+        new_profesor_form = ProfesorForm()
+        return render(request, "crud/profesor.html", {'profesores': profesores_page, 'form': new_profesor_form})
+
+    elif request.method == 'POST':
+        form = ProfesorForm(request.POST)
+        if form.is_valid():
+            new_profesor = Profesor(
+                nombres=form.cleaned_data["nombres"],
+                apellidos=form.cleaned_data["apellidos"],
+                estudios=form.cleaned_data["estudios"],
+                experiencia=form.cleaned_data["experiencia"]
+            )
+            new_profesor.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Profesor).pk,
+                object_id=new_profesor.pk,
+                object_repr=str(new_profesor),
+                action_flag=ADDITION,
+                change_message=f'Added {new_profesor}'
+            )
+            return JsonResponse({'success': True})
         else:
-            new_profesor_form = ProfesorForm()
-            return render(request, "crud/profesor.html", {'profesores': page_obj, 'form': new_profesor_form, 'page_obj': page_obj})
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def profesor_add(request):
+    if request.method == 'GET':
+        form = ProfesorForm()
+        return render(request, 'crud/partials/profesor_form.html', {'form': form})
 
     if request.method == 'POST':
-        profesor_form = ProfesorForm(request.POST)
-        if profesor_form.is_valid():
-            nombres = profesor_form.cleaned_data["nombres"]
-            apellidos = profesor_form.cleaned_data["apellidos"]
-            estudios = profesor_form.cleaned_data["estudios"]
-            experiencia = profesor_form.cleaned_data["experiencia"]
-            if id:
-                profesor = get_object_or_404(Profesor, id=id)
-                profesor.nombres = nombres
-                profesor.apellidos = apellidos
-                profesor.estudios = estudios
-                profesor.experiencia = experiencia
-                profesor.save()
-                # Registrar la actualización
-                LogEntry.objects.log_action(
-                    user_id=request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(Profesor).pk,
-                    object_id=profesor.pk,
-                    object_repr=str(profesor),
-                    action_flag=CHANGE,
-                    change_message=f'Updated {profesor}'
-                )
-            else:
-                new_profesor = Profesor(
-                    nombres=nombres, 
-                    apellidos=apellidos,
-                    estudios=estudios,
-                    experiencia=experiencia
-                )
-                new_profesor.save()
-                # Registrar la creación
-                LogEntry.objects.log_action(
-                    user_id=request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(Profesor).pk,
-                    object_id=new_profesor.pk,
-                    object_repr=str(new_profesor),
-                    action_flag=ADDITION,
-                    change_message=f'Added {new_profesor}'
-                )
-            return redirect("profesor")
-        
-@login_required(login_url='signin')      
-def profesor_delete(request, id):
+        form = ProfesorForm(request.POST)
+        if form.is_valid():
+            new_profesor = Profesor(
+                nombres=form.cleaned_data["nombres"],
+                apellidos=form.cleaned_data["apellidos"],
+                estudios=form.cleaned_data["estudios"],
+                experiencia=form.cleaned_data["experiencia"]
+            )
+            new_profesor.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Profesor).pk,
+                object_id=new_profesor.pk,
+                object_repr=str(new_profesor),
+                action_flag=ADDITION,
+                change_message=f'Added {new_profesor}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def profesor_edit(request, id):
     profesor = get_object_or_404(Profesor, id=id)
+    if request.method == 'GET':
+        form = ProfesorForm(initial={
+            'nombres': profesor.nombres,
+            'apellidos': profesor.apellidos,
+            'estudios': profesor.estudios,
+            'experiencia': profesor.experiencia
+        })
+        return render(request, 'crud/partials/profesor_form.html', {'form': form, 'profesor_id': id})
+
+    if request.method == 'POST':
+        form = ProfesorForm(request.POST)
+        if form.is_valid():
+            profesor.nombres = form.cleaned_data["nombres"]
+            profesor.apellidos = form.cleaned_data["apellidos"]
+            profesor.estudios = form.cleaned_data["estudios"]
+            profesor.experiencia = form.cleaned_data["experiencia"]
+            profesor.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Profesor).pk,
+                object_id=profesor.pk,
+                object_repr=str(profesor),
+                action_flag=CHANGE,
+                change_message=f'Updated {profesor}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def profesor_delete(request, id):
+    profesor = Profesor.objects.get(id=id)
     LogEntry.objects.log_action(
         user_id=request.user.pk,
         content_type_id=ContentType.objects.get_for_model(Profesor).pk,
@@ -299,52 +330,103 @@ def profesor_delete(request, id):
         change_message=f'Deleted {profesor}'
     )
     profesor.delete()
-    return redirect("profesor")
-
+    return redirect('profesor')
+    
 
 # tipopago endpoints
-login_required(login_url='signin')
-def tipo_pago(request, id=None):
+@login_required(login_url='signin')
+def tipo_pago(request):
+    tipos_pagos = TipoPago.objects.all()
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
-        page = request.GET.get('page', 1) # captura la pagina en la que se encuentra
-        page_size = request.GET.get('page_size', 10)
+        page = request.GET.get('page', 1)
 
         if search_query:
-            tipos_pago = TipoPago.objects.filter(
+            tipos_pagos = TipoPago.objects.filter(
                 models.Q(nombre__icontains=search_query)
             )
         else:
-            tipos_pago = TipoPago.objects.all()
+            tipos_pagos = TipoPago.objects.all()
 
-        paginator = Paginator(tipos_pago, page_size)  # Mostrar `page_size` tipos de pago por página
-        tipos_pago_page = paginator.get_page(page)
+        paginator = Paginator(tipos_pagos, 10)
+        tipos_pagos_page = paginator.get_page(page)
 
-        if id:
-            tipo_pago = TipoPago.objects.get(id=id)
-            edit_tipo_pago_form = TipoPagoForm(initial={'nombre': tipo_pago.nombre})
-            return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago_page, 'form': edit_tipo_pago_form})
-        else:
-            new_tipo_pago_form = TipoPagoForm()
-            return render(request, "crud/tipoPago.html", {'tipos_pago': tipos_pago_page, 'form': new_tipo_pago_form})
+        new_tipo_pago_form = TipoPagoForm()
+        return render(request, "crud/tipoPago.html", {'tipos_pagos': tipos_pagos_page, 'form': new_tipo_pago_form})
 
-    if request.method == 'POST':
+    elif request.method == 'POST':
         tipo_pago_form = TipoPagoForm(request.POST)
         if tipo_pago_form.is_valid():
-            nombre = tipo_pago_form.cleaned_data["nombre"]
-            if id:
-                tipo_pago = get_object_or_404(TipoPago, id=id)
-                tipo_pago.nombre = nombre
-                tipo_pago.save()
-            else:
-                new_tipo_pago = TipoPago(nombre=nombre)
-                new_tipo_pago.save()
+            new_tipo_pago = TipoPago(
+                nombre=tipo_pago_form.cleaned_data["nombre"]
+            )
+            new_tipo_pago.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(TipoPago).pk,
+                object_id=new_tipo_pago.pk,
+                object_repr=str(new_tipo_pago),
+                action_flag=ADDITION,
+                change_message=f'Added {new_tipo_pago}'
+            )
             return redirect("tipo_pago")
-        
+        else:
+            return render(request, "crud/tipoPago.html", {'form': tipo_pago_form})
+
+@login_required(login_url='signin')
+def tipo_pago_add(request):
+    if request.method == 'GET':
+        form = TipoPagoForm()
+        return render(request, 'crud/partials/tipo_pago_form.html', {'form': form})
+
+    if request.method == 'POST':
+        form = TipoPagoForm(request.POST)
+        if form.is_valid():
+            new_tipo_pago = TipoPago(
+                nombre=form.cleaned_data["nombre"]
+            )
+            new_tipo_pago.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(TipoPago).pk,
+                object_id=new_tipo_pago.pk,
+                object_repr=str(new_tipo_pago),
+                action_flag=ADDITION,
+                change_message=f'Added {new_tipo_pago}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def tipo_pago_edit(request, id):
+    tipo_pago = get_object_or_404(TipoPago, id=id)
+    if request.method == 'GET':
+        form = TipoPagoForm(initial={
+            'nombre': tipo_pago.nombre,
+        })
+        return render(request, 'crud/partials/tipo_pago_form.html', {'form': form})
+
+    if request.method == 'POST':
+        form = TipoPagoForm(request.POST)
+        if form.is_valid():
+            tipo_pago.nombre = form.cleaned_data["nombre"]
+            tipo_pago.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(TipoPago).pk,
+                object_id=tipo_pago.pk,
+                object_repr=str(tipo_pago),
+                action_flag=CHANGE,
+                change_message=f'Updated {tipo_pago}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
 @login_required(login_url='signin')
 def tipo_pago_delete(request, id):
-    tipo_pago = get_object_or_404(TipoPago, id=id)
-    # Registrar la eliminación
+    tipo_pago = TipoPago.objects.get(id=id)
     LogEntry.objects.log_action(
         user_id=request.user.pk,
         content_type_id=ContentType.objects.get_for_model(TipoPago).pk,
@@ -354,7 +436,7 @@ def tipo_pago_delete(request, id):
         change_message=f'Deleted {tipo_pago}'
     )
     tipo_pago.delete()
-    return redirect("tipo_pago")
+    return redirect('tipo_pago')
 
 
 # grupo endpoint 
@@ -462,8 +544,8 @@ def alumno(request, id=None):
     
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
-        page = request.GET.get('page', 1) #captura la pagina en la que se encuentra
-        
+        page = request.GET.get('page', 1)  # captura la página en la que se encuentra
+
         if search_query:
             alumnos = Alumno.objects.filter(
                 models.Q(nombres__icontains=search_query) |
@@ -473,17 +555,18 @@ def alumno(request, id=None):
             )
         else:
             alumnos = Alumno.objects.all()
-        
+
+        # paginado
         paginator = Paginator(alumnos, 10)  # Mostrar 10 alumnos por página
         alumnos_page = paginator.get_page(page)
-        
+
         if id:
             alumno = Alumno.objects.get(id=id)
             edit_alumno_form = AlumnoForm(initial={
-                'nombres': alumno.nombres, 
+                'nombres': alumno.nombres,
                 'email': alumno.email,
                 'apellidos': alumno.apellidos,
-                'activo': alumno.activo, 
+                'activo': alumno.activo,
                 'telefono': alumno.telefono,
                 'grupo': alumno.grupo.id
             }, grupos=grupos)
@@ -492,7 +575,7 @@ def alumno(request, id=None):
             new_alumno_form = AlumnoForm(grupos=grupos)
             return render(request, "crud/alumno.html", {'alumnos': alumnos_page, 'form': new_alumno_form})
 
-    if request.method == 'POST':
+    elif request.method == 'POST':
         alumno_form = AlumnoForm(request.POST, grupos=grupos)
         if alumno_form.is_valid():
             nombres = alumno_form.cleaned_data["nombres"]
@@ -522,11 +605,11 @@ def alumno(request, id=None):
                 )
             else:
                 new_alumno = Alumno(
-                    nombres=nombres, 
+                    nombres=nombres,
                     email=email,
                     apellidos=apellidos,
                     activo=activo,
-                    telefono=telefono, 
+                    telefono=telefono,
                     grupo=grupo
                 )
                 new_alumno.save()
@@ -540,9 +623,79 @@ def alumno(request, id=None):
                     change_message=f'Added {new_alumno}'
                 )
             return redirect("alumno")
+        else:
+            return render(request, "crud/alumno.html", {'form': alumno_form})
 
 @login_required(login_url='signin')
-def alumno_delete(request,id):
+def alumno_add(request):
+    grupos = Grupo.objects.all().values_list('id', 'nombre')
+    if request.method == 'GET':
+        form = AlumnoForm(grupos=grupos)
+        return render(request, 'crud/partials/alumno_form.html', {'form': form})
+
+    if request.method == 'POST':
+        form = AlumnoForm(request.POST, grupos=grupos)
+        if form.is_valid():
+            new_alumno = Alumno(
+                nombres=form.cleaned_data["nombres"],
+                email=form.cleaned_data["email"],
+                apellidos=form.cleaned_data["apellidos"],
+                activo=form.cleaned_data["activo"],
+                telefono=form.cleaned_data["telefono"],
+                grupo=Grupo.objects.get(id=int(form.cleaned_data["grupo"]))
+            )
+            new_alumno.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Alumno).pk,
+                object_id=new_alumno.pk,
+                object_repr=str(new_alumno),
+                action_flag=ADDITION,
+                change_message=f'Added {new_alumno}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def alumno_edit(request, id):
+    grupos = Grupo.objects.all().values_list('id', 'nombre')
+    alumno = get_object_or_404(Alumno, id=id)
+    if request.method == 'GET':
+        form = AlumnoForm(initial={
+            'nombres': alumno.nombres,
+            'email': alumno.email,
+            'apellidos': alumno.apellidos,
+            'activo': alumno.activo,
+            'telefono': alumno.telefono,
+            'grupo': alumno.grupo.id
+        }, grupos=grupos)
+        return render(request, 'crud/partials/alumno_form.html', {'form': form})
+
+    if request.method == 'POST':
+        form = AlumnoForm(request.POST, grupos=grupos)
+        if form.is_valid():
+            alumno.nombres = form.cleaned_data["nombres"]
+            alumno.email = form.cleaned_data["email"]
+            alumno.apellidos = form.cleaned_data["apellidos"]
+            alumno.activo = form.cleaned_data["activo"]
+            alumno.telefono = form.cleaned_data["telefono"]
+            alumno.grupo = Grupo.objects.get(id=int(form.cleaned_data["grupo"]))
+            alumno.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Alumno).pk,
+                object_id=alumno.pk,
+                object_repr=str(alumno),
+                action_flag=CHANGE,
+                change_message=f'Updated {alumno}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def alumno_delete(request, id):
     alumno = Alumno.objects.get(id=id)
     # Registrar la eliminación
     LogEntry.objects.log_action(
@@ -556,27 +709,26 @@ def alumno_delete(request,id):
     alumno.delete()
     return redirect('alumno')
 
-#pago endpoints
+# pago endpoints
 @login_required(login_url='signin')
 def pago(request, id=None):
-    tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
     alumnos = Alumno.objects.all().values_list('id', 'nombres')
+    tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
 
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
-        page = request.GET.get('page', 1)  # Captura la página en la que se encuentra
+        page = request.GET.get('page', 1)
 
         if search_query:
             pagos = Pago.objects.filter(
-                models.Q(fecha__icontains=search_query) |
-                models.Q(monto__icontains=search_query) |
                 models.Q(alumno__nombres__icontains=search_query) |
+                models.Q(monto__icontains=search_query) |
                 models.Q(tipo_pago__nombre__icontains=search_query)
             )
         else:
             pagos = Pago.objects.all()
 
-        paginator = Paginator(pagos, 10)  # Mostrar 10 pagos por página
+        paginator = Paginator(pagos, 10)
         pagos_page = paginator.get_page(page)
 
         if id:
@@ -587,14 +739,14 @@ def pago(request, id=None):
                 'alumno': pago.alumno.id,
                 'tipo_pago': pago.tipo_pago.id,
                 'solvencia_mes': pago.solvencia_mes
-            }, tipos_pagos=tipos_pagos, alumnos=alumnos)
+            }, alumnos=alumnos, tipos_pagos=tipos_pagos)
             return render(request, "crud/pago.html", {'pagos': pagos_page, 'form': edit_pago_form})
         else:
-            new_pago_form = PagoForm(tipos_pagos=tipos_pagos, alumnos=alumnos)
+            new_pago_form = PagoForm(alumnos=alumnos, tipos_pagos=tipos_pagos)
             return render(request, "crud/pago.html", {'pagos': pagos_page, 'form': new_pago_form})
 
-    if request.method == 'POST':
-        pago_form = PagoForm(request.POST, tipos_pagos=tipos_pagos, alumnos=alumnos)
+    elif request.method == 'POST':
+        pago_form = PagoForm(request.POST, alumnos=alumnos, tipos_pagos=tipos_pagos)
         if pago_form.is_valid():
             fecha = pago_form.cleaned_data["fecha"]
             monto = pago_form.cleaned_data["monto"]
@@ -611,7 +763,6 @@ def pago(request, id=None):
                 pago.tipo_pago = tipo_pago
                 pago.solvencia_mes = solvencia_mes
                 pago.save()
-                # Registrar la actualización
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Pago).pk,
@@ -629,7 +780,6 @@ def pago(request, id=None):
                     solvencia_mes=solvencia_mes
                 )
                 new_pago.save()
-                # Registrar la creación
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Pago).pk,
@@ -639,7 +789,80 @@ def pago(request, id=None):
                     change_message=f'Added {new_pago}'
                 )
             return redirect("pago")
+        else:
+            if id:
+                return render(request, "crud/pago.html", {'form': pago_form, 'pago': pago})
+            else:
+                return render(request, "crud/pago.html", {'form': pago_form})
 
+@login_required(login_url='signin')
+def pago_add(request):
+    alumnos = Alumno.objects.all().values_list('id', 'nombres')
+    tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
+    if request.method == 'GET':
+        form = PagoForm(alumnos=alumnos, tipos_pagos=tipos_pagos)
+        return render(request, 'crud/partials/pago_form.html', {'form': form})
+
+    if request.method == 'POST':
+        form = PagoForm(request.POST, alumnos=alumnos, tipos_pagos=tipos_pagos)
+        if form.is_valid():
+            new_pago = Pago(
+                fecha=form.cleaned_data["fecha"],
+                monto=form.cleaned_data["monto"],
+                alumno=Alumno.objects.get(id=int(form.cleaned_data["alumno"])),
+                tipo_pago=TipoPago.objects.get(id=int(form.cleaned_data["tipo_pago"])),
+                solvencia_mes=form.cleaned_data["solvencia_mes"]
+            )
+            new_pago.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Pago).pk,
+                object_id=new_pago.pk,
+                object_repr=str(new_pago),
+                action_flag=ADDITION,
+                change_message=f'Added {new_pago}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def pago_edit(request, id):
+    alumnos = Alumno.objects.all().values_list('id', 'nombres')
+    tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
+    pago = get_object_or_404(Pago, id=id)
+    if request.method == 'GET':
+        form = PagoForm(initial={
+            'fecha': pago.fecha,
+            'monto': pago.monto,
+            'alumno': pago.alumno.id,
+            'tipo_pago': pago.tipo_pago.id,
+            'solvencia_mes': pago.solvencia_mes
+        }, alumnos=alumnos, tipos_pagos=tipos_pagos)
+        return render(request, 'crud/partials/pago_form.html', {'form': form})
+
+    if request.method == 'POST':
+        form = PagoForm(request.POST, alumnos=alumnos, tipos_pagos=tipos_pagos)
+        if form.is_valid():
+            pago.fecha = form.cleaned_data["fecha"]
+            pago.monto = form.cleaned_data["monto"]
+            pago.alumno = Alumno.objects.get(id=int(form.cleaned_data["alumno"]))
+            pago.tipo_pago = TipoPago.objects.get(id=int(form.cleaned_data["tipo_pago"]))
+            pago.solvencia_mes = form.cleaned_data["solvencia_mes"]
+            pago.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Pago).pk,
+                object_id=pago.pk,
+                object_repr=str(pago),
+                action_flag=CHANGE,
+                change_message=f'Updated {pago}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+        
 @login_required(login_url='signin')
 def pago_delete(request, id):
     pago = Pago.objects.get(id=id)

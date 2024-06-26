@@ -1,0 +1,10 @@
+<form method="post" action="{% if form.instance.pk %}{% url 'tipo_pago_edit' form.instance.pk %}{% else %}{% url 'tipo_pago_add' %}{% endif %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="nombre">Nombre:</label>
+        {{ form.nombre }}
+        {% if form.nombre.errors %}
+            <div class="alert alert-danger">{{ form.nombre.errors }}</div>
+        {% endif %}
+    </div>
+</form>
