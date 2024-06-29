@@ -1,0 +1,17 @@
+<form id="horarioForm" method="post" action="{% if form.instance.pk %}{% url 'horario_edit' form.instance.pk %}{% else %}{% url 'horario_add' %}{% endif %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="nombre">Nombre:</label>
+        {{ form.nombre }}
+        {% if form.nombre.errors %}
+            <div class="alert alert-danger">{{ form.nombre.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="tipo_turno">Nivel:</label>
+        {{ form.tipo_turno }}
+        {% if form.tipo_turno.errors %}
+            <div class="alert alert-danger">{{ form.tipo_turno.errors }}</div>
+        {% endif %}
+    </div>
+</form>

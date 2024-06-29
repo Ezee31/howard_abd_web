@@ -8,17 +8,19 @@ urlpatterns = [
   path("dashboard", views.dashboard, name="dashboard"),
 
   # TipoTurno views
-  path("tipo_turno", views.tipo_turno, name="tipo_turno"),
-  path("tipo_turno/<int:id>", views.tipo_turno, name="tipo_turno_edit"),
-  path("tipo_turno_delete/<int:id>", views.tipo_turno_delete, name="tipo_turno_delete"),
+  path('tipo_turno', views.tipo_turno, name='tipo_turno'),
+  path('tipo_turno_add/', views.tipo_turno_add, name='tipo_turno_add'),
+  path('tipo_turno_edit/<int:id>/', views.tipo_turno_edit, name='tipo_turno_edit'),
+  path('tipo_turno_delete/<int:id>/', views.tipo_turno_delete, name='tipo_turno_delete'),
 
   # Horario views
-  path("horario", views.horario, name="horario"),
-  path("horario/<int:id>", views.horario, name="horario_edit"),
-  path("horario_delete/<int:id>", views.horario_delete, name="horario_delete"),
+  path('horario', views.horario, name="horario"),
+  path('horario_add/', views.horario_add, name="horario_add"),
+  path('horario_edit/<int:id>/', views.horario_edit, name="horario_edit"),
+  path('horario_delete/<int:id>/', views.horario_delete, name="horario_delete"),
 
   # Profesor views
-  path('profesor/', views.profesor, name='profesor'),
+  path('profesor', views.profesor, name='profesor'),
   path('profesor_add/', views.profesor_add, name='profesor_add'),
   path('profesor_edit/<int:id>/', views.profesor_edit, name='profesor_edit'),
   path('profesor_delete/<int:id>/', views.profesor_delete, name='profesor_delete'),
@@ -31,9 +33,10 @@ urlpatterns = [
 
 
   # Grupo views
-  path("grupo", views.grupo, name="grupo"),
-  path("grupo/<int:id>", views.grupo, name="grupo_edit"),
-  path("grupo_delete/<int:id>", views.grupo_delete, name="grupo_delete"),
+  path('grupo', views.grupo, name='grupo'),
+  path('grupo_add/', views.grupo_add, name='grupo_add'),
+  path('grupo_edit/<int:id>/', views.grupo_edit, name='grupo_edit'),
+  path('grupo_delete/<int:id>/', views.grupo_delete, name='grupo_delete'),
 
   # Alumno views
   path('alumno', views.alumno, name='alumno'),
@@ -42,7 +45,7 @@ urlpatterns = [
   path('alumno_delete/<int:id>/', views.alumno_delete, name='alumno_delete'),
 
   # Pago views
-  path('pago/', views.pago, name='pago'),
+  path('pago', views.pago, name='pago'),
   path('pago_add/', views.pago_add, name='pago_add'),
   path('pago_edit/<int:id>/', views.pago_edit, name='pago_edit'),
   path('pago_delete/<int:id>/', views.pago_delete, name='pago_delete'),

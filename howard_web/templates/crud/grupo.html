@@ -4,8 +4,12 @@
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Grupos</h2>
     
+    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#grupoModal" onclick="openModal('add')">
+        Añadir Grupo
+    </button>
+
     <!--modal para alumno-->
-    <div id="grupoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="alumnoModalLabel" aria-hidden="true">
+    <div id="grupoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="grupoModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -15,7 +19,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form id="alumnoForm" method="post">
+                    <form id="grupoForm" method="post">
                         {% csrf_token %}
                         <div id="form-fields">
                             {{ form.as_p }}
@@ -24,7 +28,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
+                    <button type="submit" class="btn btn-primary" onclick="submitForm(event)">Guardar</button>
                 </div>
             </div>
         </div>
@@ -71,7 +75,7 @@
                         <td>{{ grupo.horario }}</td>
                         <td>{{ grupo.profesor }}</td>
                         <td>
-                            <a href="/grupo/{{grupo.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <button type="button" class="btn btn-sm btn-custom-modify" data-toggle="modal" data-target="#grupoModal" onclick="openModal('edit', {{ grupo.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
                             <a href="/grupo_delete/{{grupo.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>
@@ -81,7 +85,7 @@
     </div>
     <!-- Botones para ver más registros -->
     <footer>
-        <span>Mostrar del 1 al 10 o 50</span>
+        <span>Mostrar del 1 al {{grupos.paginator.per_page}} de {{grupos.paginator.count}}</span>
         <div class="pagination">
             {% if grupos.has_previous %}
                 <a href="?page={{ grupos.previous_page_number }}" class="btn btn-custom">Prev</a>
@@ -99,9 +103,73 @@
         </div>
     </footer>
 </div>
-{% endblock %}
 
 <script>
+    function openModal(action, id=null) {
+        let url = '';
+        if (action === 'add') {
+            url = "{% url 'grupo_add' %}";
+            document.getElementById('grupoModalLabel').innerText = 'Añadir Grupo';
+        } else if (action === 'edit') {
+            url = `{% url 'grupo_edit' 0 %}`.replace('0', id);
+            document.getElementById('grupoModalLabel').innerText = 'Editar Grupo';
+        }
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('form-fields').innerHTML = html;
+                document.getElementById('grupoForm').setAttribute('action', url);
+            });
+    }
+
+    function submitForm(event) {
+        event.preventDefault(); // Prevenir el comportamiento predeterminado del formulario
+        const form = document.getElementById('grupoForm');
+        const data = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: data,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                const errors = data.errors;
+                for (const [field, messages] of Object.entries(errors)) {
+                    const fieldElement = document.querySelector(`[name="${field}"]`);
+                    fieldElement.classList.add('is-invalid');
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'invalid-feedback';
+                    errorContainer.innerHTML = messages.join('<br>');
+                    fieldElement.parentNode.appendChild(errorContainer);
+                }
+            }
+        });
+    }
+
+    // Escuchar el evento de entrada en el campo de búsqueda
+    document.getElementById('search').addEventListener('input', function() {
+        updateTable(this.value);
+    });
+
+    // Escuchar el evento de envío del formulario
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
+        updateTable(document.getElementById('search').value);
+    });
+
+    // Cambiar el número de entradas mostradas
+    document.getElementById('table_size').addEventListener('change', function() {
+        const pageSize = this.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('page_size', pageSize);
+        window.location.search = urlParams.toString();
+    });
+
     // Función para actualizar la tabla de grupos
     function updateTable(searchValue) {
         const xhr = new XMLHttpRequest();
@@ -116,15 +184,6 @@
         };
         xhr.send();
     }
-
-    // Escuchar el evento de entrada en el campo de búsqueda
-    document.getElementById('search').addEventListener('input', function() {
-        updateTable(this.value);
-    });
-
-    // Escuchar el evento de envío del formulario
-    document.getElementById('search-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
-        updateTable(document.getElementById('search').value);
-    });
 </script>
+
+{% endblock %}

@@ -42,7 +42,8 @@ def dashboard(request):
 
 # tipo turno endpoints
 @login_required(login_url='signin')
-def tipo_turno(request, id=None):
+def tipo_turno(request):
+    tipos_turnos = TipoTurno.objects.all()
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
         page = request.GET.get('page', 1)  # captura la pagina en la que se encuentra
@@ -59,61 +60,93 @@ def tipo_turno(request, id=None):
         
         paginator = Paginator(tipos_turnos, 10)  # Mostrar 10 tipos de turnos por página
         tipos_turnos_page = paginator.get_page(page)
+
+        new_tipo_turno_form = TipoTurnoForm()
+        return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos_page, 'form': new_tipo_turno_form})
+
+    elif request.method == 'POST':
+        form = TipoTurnoForm(request.POST)
+        if form.is_valid():
+            new_tipo_turno = TipoTurno(    
+                dias = form.cleaned_data["dias"],
+                hora_entrada = form.cleaned_data["hora_entrada"],
+                hora_salida = form.cleaned_data["hora_salida"],
+                formato = form.cleaned_data["formato"]
+            )
+            new_tipo_turno.save()
+            # Registrar la actualización
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(TipoTurno).pk,
+                object_id=new_tipo_turno.pk,
+                object_repr=str(new_tipo_turno),
+                action_flag=ADDITION,
+                change_message=f'Added {new_tipo_turno}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': form.errors}, status=400)
         
-        if id:
-            tipo_turno = TipoTurno.objects.get(id=id)
-            edit_tipo_turno_form = TipoTurnoForm(initial={
+@login_required(login_url='signin')
+def tipo_turno_add(request):
+    if request.method == 'GET':
+        form = TipoTurnoForm()
+        return render(request, 'crud/partials/tipo_turno_form.html', {'form': form})
+    
+    if request.method == 'POST':
+        form = TipoTurnoForm(request.POST)
+        if form.is_valid():
+            new_tipo_turno = TipoTurno(
+                dias=form.cleaned_data["dias"],
+                hora_entrada=form.cleaned_data["hora_entrada"],
+                hora_salida=form.cleaned_data["hora_salida"],
+                formato=form.cleaned_data["formato"]
+            )
+            new_tipo_turno.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(TipoTurno).pk,
+                object_id=new_tipo_turno.pk,
+                object_repr=str(new_tipo_turno),
+                action_flag=ADDITION,
+                change_message=f'Added {new_tipo_turno}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+            
+
+@login_required(login_url='signin')
+def tipo_turno_edit(request, id):
+    tipo_turno = get_object_or_404(TipoTurno, id=id)
+    if request.method == 'GET':
+        form = TipoTurnoForm(initial={
                 'dias': tipo_turno.dias, 
                 'hora_entrada': tipo_turno.hora_entrada,
                 'hora_salida': tipo_turno.hora_salida,
                 'formato': tipo_turno.formato
-            })
-            return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos_page, 'form': edit_tipo_turno_form})
-        else:
-            new_tipo_turno_form = TipoTurnoForm()
-            return render(request, "crud/tipoTurno.html", {'tipos_turnos': tipos_turnos_page, 'form': new_tipo_turno_form})
-
+        })
+        return render(request, 'crud/partials/tipo_turno_form.html', {'form': form, 'tipo_turno_id': id})
+    
     if request.method == 'POST':
-        tipo_turno_form = TipoTurnoForm(request.POST)
-        if tipo_turno_form.is_valid():
-            dias = tipo_turno_form.cleaned_data["dias"]
-            hora_entrada = tipo_turno_form.cleaned_data["hora_entrada"]
-            hora_salida = tipo_turno_form.cleaned_data["hora_salida"]
-            formato = tipo_turno_form.cleaned_data["formato"]
-            if id:
-                tipo_turno = get_object_or_404(TipoTurno, id=id)
-                tipo_turno.dias = dias
-                tipo_turno.hora_entrada = hora_entrada
-                tipo_turno.hora_salida = hora_salida
-                tipo_turno.formato = formato
-                tipo_turno.save()
-                # Registrar la actualización
-                LogEntry.objects.log_action(
-                    user_id=request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(TipoTurno).pk,
-                    object_id=tipo_turno.pk,
-                    object_repr=str(tipo_turno),
-                    action_flag=CHANGE,
-                    change_message=f'Updated {tipo_turno}'
-                )
-            else:
-                new_tipo_turno = TipoTurno(
-                    dias=dias, 
-                    hora_entrada=hora_entrada,
-                    hora_salida=hora_salida,
-                    formato=formato
-                )
-                new_tipo_turno.save()
-                # Registrar la creación
-                LogEntry.objects.log_action(
-                    user_id=request.user.pk,
-                    content_type_id=ContentType.objects.get_for_model(TipoTurno).pk,
-                    object_id=new_tipo_turno.pk,
-                    object_repr=str(new_tipo_turno),
-                    action_flag=ADDITION,
-                    change_message=f'Added {new_tipo_turno}'
-                )
-            return redirect("tipo_turno")
+        form = TipoTurnoForm(request.POST)
+        if form.is_valid():
+            tipo_turno.dias = form.cleaned_data["dias"]
+            tipo_turno.hora_entrada = form.cleaned_data["hora_entrada"]
+            tipo_turno.hora_salida = form.cleaned_data["hora_salida"]
+            tipo_turno.formato = form.cleaned_data["formato"]
+            tipo_turno.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(TipoTurno).pk,
+                object_id=tipo_turno.pk,
+                object_repr=str(tipo_turno),
+                action_flag=CHANGE,
+                change_message=f'Updated {tipo_turno}'
+            )
+            return JsonResponse({'success': True})
+        else: 
+            return JsonResponse({'errors': form.errors}, status=400)
 
 
 @login_required(login_url='signin')
@@ -163,7 +196,7 @@ def horario(request, id=None):
             new_horario_form = HorarioForm(tipos_turnos=tipos_turnos)
             return render(request, "crud/horario.html", {'horarios': horarios_page, 'form': new_horario_form})
 
-    if request.method == 'POST':
+    elif request.method == 'POST':
         horario_form = HorarioForm(request.POST, tipos_turnos=tipos_turnos)
         if horario_form.is_valid():
             nombre = horario_form.cleaned_data["nombre"]
@@ -199,6 +232,67 @@ def horario(request, id=None):
                     change_message=f'Added {new_horario}'
                 )
             return redirect("horario")
+        else:
+            if id:
+                return render(request, "crud/horario.html", {'form': horario_form, 'horario': horario})
+            else:
+                return render(request, "crud/horario.html", {'form': horario_form})
+
+@login_required(login_url='signin')
+def horario_add(request):
+    tipos_turnos = TipoTurno.objects.all().values_list('id', 'dias')
+    if request.method == 'GET':
+        form = HorarioForm(tipos_turnos = tipos_turnos)
+        return render(request, 'crud/partials/horario_form.html', {'form': form})
+    
+    if request.method == 'POST':
+        form = HorarioForm(request.POST, tipos_turnos=tipos_turnos)
+        if form.is_valid():
+            new_horario = Horario(
+                nombre=form.cleaned_data["nombre"],
+                tipo_turno=TipoTurno.objects.get(id=int(form.cleaned_data["tipo_turno"]))
+            )
+            new_horario.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Horario).pk,
+                object_id=new_horario.pk,
+                object_repr=str(new_horario),
+                action_flag=ADDITION,
+                change_message=f'Added {new_horario}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def horario_edit(request, id):
+    tipos_turnos = TipoTurno.objects.all().values_list('id','dias')
+    horario= get_object_or_404(Horario, id=id)
+    if request.method == 'GET':
+        form = HorarioForm(initial={
+            'nombre': horario.nombre,
+            'tipo_turno': horario.tipo_turno.id,
+        }, tipos_turnos=tipos_turnos)
+        return render(request, 'crud/partials/horario_form.html', {'form': form})
+    
+    if request.method == 'POST':
+        form = HorarioForm(request.POST, tipos_turnos=tipos_turnos)
+        if form.is_valid():
+            horario.nombre = form.cleaned_data["nombre"]
+            horario.tipo_turno = TipoTurno.objects.get(id=int(form.cleaned_data["tipo_turno"]))
+            horario.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Horario).pk,
+                object_id=horario.pk,
+                object_repr=str(horario),
+                action_flag=CHANGE,
+                change_message=f'Updated {horario}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
 
 @login_required(login_url='signin')
 def horario_delete(request, id):
@@ -213,6 +307,7 @@ def horario_delete(request, id):
     )
     horario.delete()
     return redirect("horario")
+
 
 # profesor endpoints
 @login_required(login_url='signin')
@@ -442,8 +537,8 @@ def tipo_pago_delete(request, id):
 # grupo endpoint 
 @login_required(login_url='signin')
 def grupo(request, id=None):
-    horarios = Horario.objects.all().values_list('id','nombre')
-    profesores = Profesor.objects.all().values_list('id','nombres')
+    horarios = Horario.objects.all().values_list('id', 'nombre')
+    profesores = Profesor.objects.all().values_list('id', 'nombres')
     
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
@@ -453,24 +548,29 @@ def grupo(request, id=None):
             grupos = Grupo.objects.filter(
                 models.Q(nombre__icontains=search_query) |
                 models.Q(nivel__icontains=search_query) |
-                models.Q(profesor__nombres__icontains=search_query) |
-                models.Q(horario__nombre__icontains=search_query)
+                models.Q(cupo_maximo__icontains=search_query) |
+                models.Q(horario__nombre__icontains=search_query) |
+                models.Q(profesor__nombres__icontains=search_query)
             )
         else:
             grupos = Grupo.objects.all()
         
-        paginator = Paginator(grupos, 10)  # Mostrar 10 grupos por página
+        paginator = Paginator(grupos, 10)  # Show 10 groups per page
         grupos_page = paginator.get_page(page)
         
         if id:
-            grupo = Grupo.objects.get(id=id)
-            edit_grupo_form = GrupoForm(initial={
-                'nombre': grupo.nombre, 
-                'nivel': grupo.nivel,
-                'cupo_maximo': grupo.cupo_maximo,
-                'horario': grupo.horario.id,
-                'profesor': grupo.profesor.id
-            }, horarios=horarios, profesores=profesores)
+            grupo = get_object_or_404(Grupo, id=id)
+            edit_grupo_form = GrupoForm(
+                initial={
+                    'nombre': grupo.nombre,
+                    'nivel': grupo.nivel,
+                    'cupo_maximo': grupo.cupo_maximo,
+                    'horario': grupo.horario.id,
+                    'profesor': grupo.profesor.id
+                },
+                horarios=horarios,
+                profesores=profesores
+            )
             return render(request, "crud/grupo.html", {'grupos': grupos_page, 'form': edit_grupo_form})
         else:
             new_grupo_form = GrupoForm(horarios=horarios, profesores=profesores)
@@ -483,9 +583,10 @@ def grupo(request, id=None):
             nivel = grupo_form.cleaned_data["nivel"]
             cupo_maximo = grupo_form.cleaned_data["cupo_maximo"]
             horario_id = grupo_form.cleaned_data["horario"]
-            horario = Horario.objects.get(id=int(horario_id))
+            horario = get_object_or_404(Horario, id=horario_id)
             profesor_id = grupo_form.cleaned_data["profesor"]
-            profesor = Profesor.objects.get(id=int(profesor_id))
+            profesor = get_object_or_404(Profesor, id=profesor_id)
+            
             if id:
                 grupo = get_object_or_404(Grupo, id=id)
                 grupo.nombre = nombre
@@ -494,7 +595,6 @@ def grupo(request, id=None):
                 grupo.horario = horario
                 grupo.profesor = profesor
                 grupo.save()
-                # Registrar la actualización
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Grupo).pk,
@@ -512,7 +612,6 @@ def grupo(request, id=None):
                     profesor=profesor
                 )
                 new_grupo.save()
-                # Registrar la creación
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Grupo).pk,
@@ -522,6 +621,84 @@ def grupo(request, id=None):
                     change_message=f'Added {new_grupo}'
                 )
             return redirect("grupo")
+        else:
+            if id:
+                return render(request, "crud/grupo.html", {'form': grupo_form, 'grupo': grupo})
+            else:
+                return render(request, "crud/grupo.html", {'form': grupo_form})
+
+@login_required(login_url='signin')
+def grupo_add(request):
+    horarios = Horario.objects.all().values_list('id', 'nombre')
+    profesores = Profesor.objects.all().values_list('id', 'nombres')
+    if request.method == 'GET':
+        form = GrupoForm(horarios=horarios, profesores=profesores)
+        return render(request, 'crud/partials/grupo_form.html', {'form': form})
+    
+    if request.method == 'POST':
+        form = GrupoForm(request.POST, horarios=horarios, profesores=profesores)
+        if form.is_valid():
+            horario = get_object_or_404(Horario, id=int(form.cleaned_data["horario"]))
+            profesor = get_object_or_404(Profesor, id=int(form.cleaned_data["profesor"]))
+            new_grupo = Grupo(
+                nombre=form.cleaned_data["nombre"],
+                nivel=form.cleaned_data["nivel"],
+                cupo_maximo=form.cleaned_data["cupo_maximo"],
+                horario=horario,
+                profesor=profesor
+            )
+            new_grupo.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Grupo).pk,
+                object_id=new_grupo.pk,
+                object_repr=str(new_grupo),
+                action_flag=ADDITION,
+                change_message=f'Added {new_grupo}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
+
+@login_required(login_url='signin')
+def grupo_edit(request, id):
+    horarios = Horario.objects.all().values_list('id', 'nombre')
+    profesores = Profesor.objects.all().values_list('id', 'nombres')
+    grupo = get_object_or_404(Grupo, id=id)
+    if request.method == 'GET':
+        form = GrupoForm(
+            initial={
+                'nombre': grupo.nombre,
+                'nivel': grupo.nivel,
+                'cupo_maximo': grupo.cupo_maximo,
+                'profesor': grupo.profesor.id,
+                'horario': grupo.horario.id
+            },
+            horarios=horarios,
+            profesores=profesores
+        )
+        return render(request, 'crud/partials/grupo_form.html', {'form': form})
+        
+    if request.method == 'POST':
+        form = GrupoForm(request.POST, horarios=horarios, profesores=profesores)
+        if form.is_valid():
+            grupo.nombre = form.cleaned_data["nombre"]
+            grupo.nivel = form.cleaned_data["nivel"]
+            grupo.cupo_maximo = form.cleaned_data["cupo_maximo"]
+            grupo.profesor = get_object_or_404(Profesor, id=int(form.cleaned_data["profesor"]))
+            grupo.horario = get_object_or_404(Horario, id=int(form.cleaned_data["horario"]))
+            grupo.save()
+            LogEntry.objects.log_action(
+                user_id=request.user.pk,
+                content_type_id=ContentType.objects.get_for_model(Grupo).pk,
+                object_id=grupo.pk,
+                object_repr=str(grupo),
+                action_flag=CHANGE,
+                change_message=f'Updated {grupo}'
+            )
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'errors': form.errors}, status=400)
 
 @login_required(login_url='signin')
 def grupo_delete(request, id):

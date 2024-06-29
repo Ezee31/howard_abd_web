@@ -1,0 +1,38 @@
+<form id="grupoForm" method="post" action="{% if form.instance.pk %}{% url 'grupo_edit' form.instance.pk %}{% else %}{% url 'grupo_add' %}{% endif %}">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="nombre">Nombre:</label>
+        {{ form.nombre }}
+        {% if form.nombre.errors %}
+            <div class="alert alert-danger">{{ form.nombre.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="nivel">Nivel:</label>
+        {{ form.nivel }}
+        {% if form.nivel.errors %}
+            <div class="alert alert-danger">{{ form.nivel.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="cupo_maximo">Cupo maximo:</label>
+        {{ form.cupo_maximo }}
+        {% if form.cupo_maximo.errors %}
+            <div class="alert alert-danger">{{ form.cupo_maximo.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="profesor">Profesor:</label>
+        {{ form.profesor }}
+        {% if form.profesor.errors %}
+            <div class="alert alert-danger">{{ form.profesor.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="horario">Horario:</label>
+        {{ form.horario }}
+        {% if form.horario.errors %}
+            <div class="alert alert-danger">{{ form.horario.errors }}</div>
+        {% endif %}
+    </div>
+</form>
