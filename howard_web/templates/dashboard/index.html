@@ -5,38 +5,53 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú lateral</title>
+    <title>{% block title %}Menú lateral{% endblock %}</title>
 
     <!-- bootstrap local -->
-    <link href= "{% static "css/bootstrap.min.css" %}" rel="stylesheet">
-    <link href= "{% static "css/bootstrap-grid.min.css" %}" rel="stylesheet">
-    <link href= "{% static "css/bootstrap-utilities.min.css" %}" rel="stylesheet">
-    <link href= "{% static "css/bootstrap-reboot.min.css" %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-grid.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-utilities.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-reboot.min.css' %}" rel="stylesheet">
 
     <!-- fontawesome local -->
     <link href="{% static 'css/fontawesome.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/brands.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/solid.min.css' %}" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static "dashboard.css" %}">
-    <link rel="stylesheet" href="{% static "crud-styles.css" %}">
-    <link rel="stylesheet" href="{% static "home.css" %}">
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'crud-styles.css' %}">
+    <link rel="stylesheet" href="{% static 'home.css' %}">
 </head>
 <body id="body">
+    {% csrf_token %}
     <header>
         <div class="icon__menu">
             <i class="fas fa-bars" id="btn_open"></i>
         </div>
+        <div class="profile-container">
+            {% if request.user.profile_picture %}
+                <img src="{{ request.user.profile_picture.url }}" alt="Perfil" class="profile-btn" id="profile-btn">
+            {% else %}
+                <img src="{% static 'profile-image.jpg' %}" alt="Perfil" class="profile-btn" id="profile-btn">
+            {% endif %}
+            <div class="dropdown-menu" id="dropdown-menu">
+                <a href="{% url 'profile' %}" class="dropdown-item">  Ver Perfil</a>
+                <a href="{% url 'register' %}" class="dropdown-item">  Registrar Usuario </a>
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item btn btn-link">Cerrar Sesión</button>
+                </form>
+            </div>
+        </div>
     </header>
 
     <div class="menu__side" id="menu_side">
-
         <div class="name__page">
             <i class="fa-solid fa-school"></i>
-            <h4 class="custom">Howard Bilingual School</h4>
+            <h4>Howard Bilingual School</h4>
         </div>
-
         <div class="options__menu">
+            {% csrf_token %}
             <a id="option-raiz" href="/">
                 <div class="option">
                     <i class="fas fa-home" title="Inicio"></i>
@@ -79,7 +94,7 @@
                     <h4>Pago</h4>
                 </div>
             </a>
-            <a id="option-tipo-pago" href="{% url 'tipo_pago' %}">
+            <a id="option-tipo_pago" href="{% url 'tipo_pago' %}">
                 <div class="option">
                     <i class="fa-solid fa-dollar-sign" title="Tipo pago"></i>
                     <h4>Tipo pago</h4>
@@ -97,7 +112,7 @@
                     <div class="option">
                         <i class="fa-solid fa-right-from-bracket" title="Cerrar sesión"></i>
                         <h4>Cerrar sesión</h4>
-                     </div>
+                    </div>
                 </button>
             </form>
         </div>
@@ -105,21 +120,23 @@
 
     <main>
         {% block content %}
-        {% comment %} renderizando vistas parciales {% endcomment %}
         {% endblock %}
     </main>
 
     <!-- scripts de bootstrap -->
-    <script src="{% static "js/jquery-3.7.1.min.js" %}"></script>
-    <script src="{% static "js/bootstrap.min.js" %}"></script>
-    <script src="{% static "js/bootstrap.bundle.min.js" %}"></script> 
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script> 
 
     <!-- scripts de fontawesome -->
     <script src="{% static 'js/fontawesome.min.js' %}"></script>
     <script src="{% static 'js/solid.min.js' %}"></script>
     <script src="{% static 'js/brands.min.js' %}"></script>
 
-    <script src="{% static "dashboard.js" %}"></script>
-    <script src="{% static "home.js" %}"></script>
+    <script src="{% static 'dashboard.js' %}"></script>
+    <script src="{% static 'home.js' %}"></script>
+
+    {% block extra_js %}
+    {% endblock %}
 </body>
 </html>

@@ -1,0 +1,124 @@
+{% extends "dashboard/index.html" %}
+{% load static %}
+{% block title %}Configuración de la Cuenta{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Configuración de la Cuenta</h2>
+    <div class="row justify-content-center">
+     
+
+        <!-- Formulario de Actualización de Usuario -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Actualizar Información
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="update-form">
+                        {% csrf_token %}
+                        {{ u_form.username.errors }}
+                        <div class="mb-3">
+                            <label for="{{ u_form.username.id_for_label }}" class="form-label">Nombre de Usuario</label>
+                            {{ u_form.username }}
+                        </div>
+                        {{ u_form.email.errors }}
+                        <div class="mb-3">
+                            <label for="{{ u_form.email.id_for_label }}" class="form-label">Email</label>
+                            {{ u_form.email }}
+                        </div>
+                        {{ u_form.first_name.errors }}
+                        <div class="mb-3">
+                            <label for="{{ u_form.first_name.id_for_label }}" class="form-label">Nombre</label>
+                            {{ u_form.first_name }}
+                        </div>
+                        {{ u_form.last_name.errors }}
+                        <div class="mb-3">
+                            <label for="{{ u_form.last_name.id_for_label }}" class="form-label">Apellido</label>
+                            {{ u_form.last_name }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de Cambio de Contraseña -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Cambiar Contraseña
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'change_password' %}" id="password-change-form">
+                        {% csrf_token %}
+                        {{ password_change_form.old_password.errors }}
+                        <div class="mb-3">
+                            <label for="{{ password_change_form.old_password.id_for_label }}" class="form-label">Contraseña Actual</label>
+                            {{ password_change_form.old_password }}
+                        </div>
+                        {{ password_change_form.new_password1.errors }}
+                        <div class="mb-3">
+                            <label for="{{ password_change_form.new_password1.id_for_label }}" class="form-label">Nueva Contraseña</label>
+                            {{ password_change_form.new_password1 }}
+                            <small class="form-text text-muted">La contraseña debe tener al menos 8 caracteres, no debe ser comúnmente usada y debe contener al menos un número y una letra.</small>
+                        </div>
+                        {{ password_change_form.new_password2.errors }}
+                        <div class="mb-3">
+                            <label for="{{ password_change_form.new_password2.id_for_label }}" class="form-label">Confirmar Nueva Contraseña</label>
+                            {{ password_change_form.new_password2 }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón para eliminar foto de perfil y agregar nueva foto -->
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Foto de Perfil
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'delete_profile_picture' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger mb-3">Eliminar Foto de Perfil</button>
+                    </form>
+                    <form method="POST" enctype="multipart/form-data" action="{% url 'update_profile_picture' %}" id="profile-picture-form">
+                        {% csrf_token %}
+                        {{ p_form.profile_picture.errors }}
+                        <div class="mb-3">
+                            <label for="{{ p_form.profile_picture.id_for_label }}" class="form-label">Agregar Nueva Foto de Perfil</label>
+                            <input type="file" name="profile_picture" class="form-control-file" id="{{ p_form.profile_picture.id_for_label }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Subir Foto</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+           <!-- Botón de regreso a Ver Perfil -->
+           <div class="col-md-12 text-center mb-4">
+            <a href="{% url 'profile' %}" class="btn btn-secondary">Regresar a Ver Perfil</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+ <!-- SweetAlert2 -->
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ <script>
+     // Mostrar alertas de éxito o error
+     {% if messages %}
+         {% for message in messages %}
+             Swal.fire({
+                 icon: '{{ message.tags }}' === 'error' ? 'error' : 'success',
+                 title: '{{ message }}',
+                 showConfirmButton: false,
+                 timer: 3000
+             });
+         {% endfor %}
+     {% endif %}
+ </script>
+{% endblock %}

@@ -1,5 +1,10 @@
 from django import forms
 from datetime import date
+from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.forms import PasswordChangeForm
+
+
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -127,3 +132,84 @@ class TipoPagoForm(forms.Form):
     nombre = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'})
     )
+
+
+
+
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name']
+
+    def __init__(self, *args, **kwargs):
+        super(UserUpdateForm, self).__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({'class': 'form-control'})
+        self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super(CustomPasswordChangeForm, self).__init__(*args, **kwargs)
+        self.fields['old_password'].widget.attrs.update({'class': 'form-control'})
+        self.fields['new_password1'].widget.attrs.update({'class': 'form-control'})
+        self.fields['new_password2'].widget.attrs.update({'class': 'form-control'})
+
+class PasswordChangeForm(forms.Form):
+    old_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    new_password_confirm = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        new_password_confirm = cleaned_data.get('new_password_confirm')
+
+        if new_password and new_password != new_password_confirm:
+            self.add_error('new_password_confirm', 'Las contraseñas no coinciden')
+
+        if new_password:
+            try:
+                validate_password(new_password)
+            except forms.ValidationError as e:
+                self.add_error('new_password', e)
+        
+        return cleaned_data
+    
+class ProfilePictureForm(forms.ModelForm):
+    profile_picture = forms.ImageField(required=False)
+
+    class Meta:
+        model = User
+        fields = ['profile_picture']
+
+    def __init__(self, *args, **kwargs):
+        super(ProfilePictureForm, self).__init__(*args, **kwargs)
+        self.fields['profile_picture'].widget.attrs.update({'class': 'form-control-file'})
+
+            
+class UserRegisterForm(forms.ModelForm):
+    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    profile_picture = forms.ImageField(required=False)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'profile_picture']
+    
+    def __init__(self, *args, **kwargs):
+        super(UserRegisterForm, self).__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update({'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({'class': 'form-control'})
+        self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['profile_picture'].widget.attrs.update({'class': 'form-control-file'})
+
+    def clean_password2(self):
+        password1 = self.cleaned_data.get('password1')
+        password2 = self.cleaned_data.get('password2')
+        if password1 and password2 and password1 != password2:
+            raise forms.ValidationError("Las contraseñas no coinciden")
+        validate_password(password2)
+        return password2

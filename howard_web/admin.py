@@ -61,3 +61,4 @@ class AlumnoAdmin(admin.ModelAdmin):
 class PagoAdmin(admin.ModelAdmin):
     fields = ["fecha", "monto", "alumno", "tipo_pago", "solvencia_mes"]  
     list_display = ["fecha", "monto", "alumno", "tipo_pago", "solvencia_mes"]  
+

@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class TipoTurno(models.Model):
@@ -92,8 +94,19 @@ class Pago(models.Model):
     
     class Meta:
         db_table = "Pago"
-        verbose_name = "Pago"
+        verbose_name = "Pago"   
         verbose_name_plural = "Pagos"
 
     def __str__(self):
         return f"Pago de {self.monto} de {self.alumno} el {self.fecha}"
+    
+def user_directory_path(instance, filename):
+    return f'user_{instance.id}/{filename}'
+
+
+
+def user_directory_path(instance, filename):
+    return 'user_{0}/{1}'.format(instance.id, filename)
+
+# Asegúrate de que el campo profile_picture está añadido al modelo User
+User.add_to_class('profile_picture', models.ImageField(upload_to=user_directory_path, blank=True, null=True))

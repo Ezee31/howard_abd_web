@@ -192,6 +192,7 @@ header{
 svg{
     margin-left: -5px;
     margin-top: -10px;
+    cursor: pointer;
 }
 .options__menu .option{
     padding: 20px 0px;
@@ -225,6 +226,54 @@ a.selected{
     left: -30px;
 }
 
+/* Estilo para el botón de perfil */
+/* Styles for the profile button and dropdown menu */
+.profile-container {
+    position: relative;
+    float: right;
+    margin-right: 20px;
+}
+
+.profile-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #fff;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.dropdown-menu a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+}
+
+.dropdown-menu a:hover {
+    background-color: #ddd;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    white-space: nowrap;
+    
+}
+
+.profile-container:hover .dropdown-menu {
+    display: block;
+}
+
 /*Clases para usar en JavaScript*/
 
 .body_move{
@@ -234,8 +283,6 @@ a.selected{
 .menu__side_move{
     width: 250px;
 }
-
-
 .btn_dashboard{
     
     margin-left: 10px;
@@ -250,6 +297,8 @@ a.selected{
 }
 
 
+
+
 @media screen and (max-width: 760px){
     .body_move{
         margin-left: 0px;
@@ -259,4 +308,19 @@ a.selected{
         width: 80px;
         left: -80px;
     }
+}
+
+
+/* Mi perfil */
+
+
+/* Configuracion de la cuenta */
+.bg-primary {
+    background-color: #17202A !important;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #b81414;
+    border-color: #dc3545;
 }

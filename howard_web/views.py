@@ -10,7 +10,12 @@ from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import JsonResponse
-from django.template.loader import render_to_string
+from .forms import UserUpdateForm, UserRegisterForm
+from django.contrib.auth.decorators import login_required
+from django.core.files.storage import FileSystemStorage
+from django.contrib.auth import update_session_auth_hash
+from .forms import UserUpdateForm, ProfilePictureForm, CustomPasswordChangeForm
+from django.contrib import messages
 
 
 # Create your views here.
@@ -199,7 +204,7 @@ def horario(request, id=None):
                     change_message=f'Added {new_horario}'
                 )
             return redirect("horario")
-
+        
 @login_required(login_url='signin')
 def horario_delete(request, id):
     horario = Horario.objects.get(id=id)
@@ -928,3 +933,105 @@ def reportes(request):
         'DELETION': DELETION,
     }
     return render(request, 'utilidades/reportes.html', context)
+
+#view perfil
+@login_required(login_url='signin')
+def profile(request):
+    if request.method == 'POST':
+        u_form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
+        if u_form.is_valid():
+            u_form.save()
+            update_session_auth_hash(request, request.user)  # Mantiene al usuario autenticado después de cambiar la contraseña
+            return redirect('profile')
+    else:
+        u_form = UserUpdateForm(instance=request.user)
+    context = {
+        'u_form': u_form
+    }
+    return render(request, 'profile/profile.html', context)
+
+
+@login_required(login_url='signin')
+def account_settings(request):
+    if request.method == 'POST':
+        u_form = UserUpdateForm(request.POST, instance=request.user)
+        if u_form.is_valid():
+            u_form.save()
+            messages.success(request, '¡La información de la cuenta se ha actualizado con éxito!')
+            return redirect('account_settings')
+    else:
+        u_form = UserUpdateForm(instance=request.user)
+    
+    password_change_form = CustomPasswordChangeForm(user=request.user)
+    
+    context = {
+        'u_form': u_form,
+        'password_change_form': password_change_form,
+    }
+    return render(request, 'profile/account_settings.html', context)
+
+@login_required(login_url='signin')
+def update_profile_picture(request):
+    if request.method == 'POST':
+        p_form = ProfilePictureForm(request.POST, request.FILES, instance=request.user)
+        if p_form.is_valid():
+            p_form.save()
+            messages.success(request, '¡La foto de perfil se ha actualizado con éxito!')
+            return redirect('account_settings')
+    else:
+        p_form = ProfilePictureForm(instance=request.user)
+
+    context = {
+        'p_form': p_form,
+    }
+    return render(request, 'profile/update_profile_picture.html', context)
+
+@login_required(login_url='signin')
+def change_password(request):
+    if request.method == 'POST':
+        password_change_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+        if password_change_form.is_valid():
+            user = password_change_form.save()
+            update_session_auth_hash(request, user)  # Important, to update the session with the new password
+            messages.success(request, '¡La contraseña se ha cambiado con éxito!')
+            return redirect('account_settings')
+        else:
+            messages.error(request, 'La contraseña no cumple con los requisitos.')
+    else:
+        password_change_form = CustomPasswordChangeForm(user=request.user)
+    
+    return render(request, 'profile/account_settings.html', {
+        'password_change_form': password_change_form,
+    })
+
+@login_required(login_url='signin')
+def delete_profile_picture(request):
+    if request.method == 'POST':
+        user = request.user
+        user.profile_picture.delete(save=False)
+        user.profile_picture = 'default_profile_picture.jpg'
+        user.save()
+        messages.success(request, '¡La foto de perfil se ha eliminado con éxito!')
+        return redirect('account_settings')
+
+
+#register profile view
+@login_required(login_url='signin')
+def register(request):
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password1'])
+            user.is_superuser = True
+            user.is_staff = True
+            if 'profile_picture' in request.FILES:
+                user.profile_picture = request.FILES['profile_picture']
+            user.save()
+            messages.success(request, '¡Usuario creado con éxito!')
+            return redirect('register')
+        else:
+            messages.error(request, 'Por favor, corrija los errores.')
+    else:
+        form = UserRegisterForm()
+    return render(request, 'profile/register.html', {'form': form})

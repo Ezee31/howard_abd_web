@@ -1,0 +1,65 @@
+{% extends "dashboard/index.html" %}
+{% load static %}
+{% block title %}Ver Perfil{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Perfil del Usuario</h2>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    Información del Perfil
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de Usuario</label>
+                            <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" value="{{ user.email }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" class="form-control" value="{{ user.first_name }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Apellido</label>
+                            <input type="text" class="form-control" value="{{ user.last_name }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Foto de Perfil</label>
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="Foto de Perfil" class="img-thumbnail">
+                            {% else %}
+                                <img src="{% static 'profile-image.jpg' %}" alt="Foto de Perfil" class="img-thumbnail">
+                            {% endif %}
+                            <div class="mb-3 d-flex justify-content-center mt-3">
+                        <a href="{% url 'account_settings' %}" class="btn btn-primary">Configuracion de la Cuenta</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Mostrar alertas de éxito o error
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: '{{ message.tags }}' === 'error' ? 'error' : 'success',
+                title: '{{ message }}',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        {% endfor %}
+    {% endif %}
+</script>
+{% endblock %}

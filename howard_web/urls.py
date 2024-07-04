@@ -1,6 +1,7 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from django.contrib.auth.views import LogoutView
+from .views import account_settings, change_password
 
 urlpatterns = [
   # Authentication views
@@ -47,9 +48,18 @@ urlpatterns = [
   path('pago_edit/<int:id>/', views.pago_edit, name='pago_edit'),
   path('pago_delete/<int:id>/', views.pago_delete, name='pago_delete'),
 
-  # Logout view
-  path("logout/", LogoutView.as_view(next_page='signin'), name="logout"),
-  
   # Reportes view
- path("reportes", views.reportes, name="reportes"),
+  path("reportes", views.reportes, name="reportes"),
+ 
+  # Perfil views
+  path('profile/', views.profile, name='profile'),
+  path('register/', views.register, name='register'),
+  path("logout", LogoutView.as_view(next_page='signin'), name="logout"),
+  path('account_settings/', views.account_settings, name='account_settings'),
+  path('update_profile_picture/', views.update_profile_picture, name='update_profile_picture'),
+  path('change_password/', views.change_password, name='change_password'),
+  path('delete_profile_picture/', views.delete_profile_picture, name='delete_profile_picture'),
+
+  
+
 ]
