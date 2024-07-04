@@ -4,29 +4,34 @@
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Horarios</h2>
 
-    <div class="header-content">
-        <form method='post'>
-            {% csrf_token %}
-            <div class="formFields">
-                <div class="form-group">
-                    <label for="tipo_turno">Tipo de Turno:</label>
-                    {{ form.tipo_turno }}
-                    {% if form.tipo_turno.errors %}
-                        <div class="alert alert-danger">{{ form.tipo_turno.errors }}</div>
-                    {% endif %}
+    
+    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#horarioModal" onclick="openModal('add')">
+        Añadir Horario
+    </button>
+
+    <div id="horarioModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="horarioModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="horarioModalLabel">Añadir Horario</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label for="nombre">Nombre:</label>
-                    {{ form.nombre }}
-                    {% if form.nombre.errors %}
-                        <div class="alert alert-danger">{{ form.nombre.errors }}</div>
-                    {% endif %}
+                <div class="modal-body">
+                    <form id="horarioForm" method="post">
+                        {% csrf_token %}
+                        <div id="form-fields">
+                            {{ form.as_p }}
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
                 </div>
             </div>
-            <div class="addMenberbtn">
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
-        </form>
+        </div>
     </div>
 
     <!-- Filtrar la cantidad seleccionada -->
@@ -65,7 +70,7 @@
                         <td>{{ horario.tipo_turno }}</td>
                         <td>{{ horario.nombre }}</td>
                         <td>
-                            <a href="/horario/{{horario.id}}" class="btn btn-sm btn-custom-modify"><i class="fa-regular fa-pen-to-square"></i></a>
+                            <button type="button" class="btn btn-sm btn-custom-modify" data-toggle="modal" data-target="#horarioModal" onclick="openModal('edit', {{ horario.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
                             <a href="/horario_delete/{{horario.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>
@@ -75,7 +80,7 @@
     </div>
     <!-- Botones para ver más registros -->
     <footer>
-        <span>Mostrar del 1 al 10 o 50</span>
+        <span>Mostrar del 1 al {{horarios.paginator.per_page}} de {{horarios.paginator.count}}</span>
         <div class="pagination">
             {% if horarios.has_previous %}
                 <a href="?page={{ horarios.previous_page_number }}" class="btn btn-custom">Prev</a>
@@ -95,22 +100,53 @@
         </div>
     </footer>
 </div>
-{% endblock %}
+
 
 <script>
-    // Función para actualizar la tabla de horarios
-    function updateTable(searchValue) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `/horario?search=${searchValue}`, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const newTableBody = doc.getElementById('horario-table-body').innerHTML;
-                document.getElementById('horario-table-body').innerHTML = newTableBody;
+
+    function openModal(action, id=null) {
+        let url = '';
+        if (action === 'add') {
+            url = "{% url 'horario_add' %}";
+            document.getElementById('horarioModalLabel').innerText = 'Añadir Horario';
+        } else if (action === 'edit') {
+            url = `{% url 'horario_edit' 0 %}`.replace('0', id);
+            document.getElementById('horarioModalLabel').innerText = 'Editar Horario';
+        }
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('form-fields').innerHTML = html;
+                document.getElementById('horarioForm').setAttribute('action', url);
+            });
+    }
+
+    function submitForm() {
+        const form = document.getElementById('horarioForm');
+        const data = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: data,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
             }
-        };
-        xhr.send();
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                const errors = data.errors;
+                for (const [field, messages] of Object.entries(errors)) {
+                    const fieldElement = document.querySelector(`[name="${field}"]`);
+                    fieldElement.classList.add('is-invalid');
+                    const errorContainer = document.createElement('div');
+                    errorContainer.className = 'invalid-feedback';
+                    errorContainer.innerHTML = messages.join('<br>');
+                    fieldElement.parentNode.appendChild(errorContainer);
+                }
+            }
+        });
     }
 
     // Escuchar el evento de entrada en el campo de búsqueda
@@ -131,4 +167,23 @@
         urlParams.set('page_size', pageSize);
         window.location.search = urlParams.toString();
     });
+
+    // Función para actualizar la tabla de horarios
+    function updateTable(searchValue) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `/horario?search=${searchValue}`, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const newTableBody = doc.getElementById('horario-table-body').innerHTML;
+                document.getElementById('horario-table-body').innerHTML = newTableBody;
+            }
+        };
+        xhr.send();
+    }
+
+
 </script>
+
+{% endblock %}
