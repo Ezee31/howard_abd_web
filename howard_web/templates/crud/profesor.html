@@ -3,8 +3,8 @@
 {% block content %}
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Profesores</h2>
-    
-    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#profesorModal" onclick="openModal('add')">
+
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#profesorModal" onclick="openModal('add')">
         Añadir Profesor
     </button>
 
@@ -13,9 +13,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="profesorModalLabel">Añadir Profesor</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="profesorForm" method="post">
@@ -26,7 +24,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
                 </div>
             </div>
@@ -69,7 +67,7 @@
                         <td>{{ profesor.estudios }}</td>
                         <td>{{ profesor.experiencia }}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-custom-modify" data-toggle="modal" data-target="#profesorModal" onclick="openModal('edit', {{ profesor.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button type="button" class="btn btn-sm btn-custom-modify" data-bs-toggle="modal" data-bs-target="#profesorModal" onclick="openModal('edit', {{ profesor.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
                             <a href="/profesor_delete/{{ profesor.id }}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>

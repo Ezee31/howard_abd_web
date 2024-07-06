@@ -1,6 +1,4 @@
-from django.http import HttpResponse
 from django.db import models
-from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import LoginForm, TipoTurnoForm, HorarioForm, ProfesorForm, TipoPagoForm, GrupoForm, AlumnoForm, PagoForm
@@ -15,7 +13,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from .forms import UserUpdateForm, ProfilePictureForm, CustomPasswordChangeForm
 from django.contrib import messages
-
+from .utils import agregar_icono_tipo_pago
+from json import dumps
 
 # Create your views here.
 # login endpoint
@@ -835,7 +834,8 @@ def alumno_add(request):
                 action_flag=ADDITION,
                 change_message=f'Added {new_alumno}'
             )
-            return JsonResponse({'success': True})
+            alumno_creado = {'id':new_alumno.pk, 'nombres':new_alumno.nombres, 'apellidos': new_alumno.apellidos}
+            return JsonResponse({'success': True, 'alumno': alumno_creado})
         else:
             return JsonResponse({'errors': form.errors}, status=400)
 
@@ -924,11 +924,10 @@ def pago(request, id=None):
             }, alumnos=alumnos, tipos_pagos=tipos_pagos)
             return render(request, "crud/pago.html", {'pagos': pagos_page, 'form': edit_pago_form})
         else:
-            new_pago_form = PagoForm(alumnos=alumnos, tipos_pagos=tipos_pagos)
-            return render(request, "crud/pago.html", {'pagos': pagos_page, 'form': new_pago_form})
+            return render(request, "crud/pago.html", {'pagos': pagos_page})
 
     elif request.method == 'POST':
-        pago_form = PagoForm(request.POST, alumnos=alumnos, tipos_pagos=tipos_pagos)
+        pago_form = PagoForm(request.POST)
         if pago_form.is_valid():
             fecha = pago_form.cleaned_data["fecha"]
             monto = pago_form.cleaned_data["monto"]
@@ -982,11 +981,11 @@ def pago_add(request):
     alumnos = Alumno.objects.all().values_list('id', 'nombres')
     tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
     if request.method == 'GET':
-        form = PagoForm(alumnos=alumnos, tipos_pagos=tipos_pagos)
+        form = PagoForm()
         return render(request, 'crud/partials/pago_form.html', {'form': form})
 
     if request.method == 'POST':
-        form = PagoForm(request.POST, alumnos=alumnos, tipos_pagos=tipos_pagos)
+        form = PagoForm(request.POST)
         if form.is_valid():
             new_pago = Pago(
                 fecha=form.cleaned_data["fecha"],
@@ -1024,7 +1023,7 @@ def pago_edit(request, id):
         return render(request, 'crud/partials/pago_form.html', {'form': form})
 
     if request.method == 'POST':
-        form = PagoForm(request.POST, alumnos=alumnos, tipos_pagos=tipos_pagos)
+        form = PagoForm(request.POST)
         if form.is_valid():
             pago.fecha = form.cleaned_data["fecha"]
             pago.monto = form.cleaned_data["monto"]
@@ -1044,7 +1043,6 @@ def pago_edit(request, id):
         else:
             return JsonResponse({'errors': form.errors}, status=400)
 
-        
 @login_required(login_url='signin')
 def pago_delete(request, id):
     pago = Pago.objects.get(id=id)
@@ -1058,6 +1056,41 @@ def pago_delete(request, id):
     )
     pago.delete()
     return redirect("pago")
+
+@login_required(login_url='signin')
+def pagos(request):
+    # lecturas de base de datos
+    tipos_pagos = TipoPago.objects.all()
+    grupos = Grupo.objects.all().values_list('id', 'nombre')
+
+    # agregando icono a cada tipo de pago
+    tipos_pagos = map(agregar_icono_tipo_pago, tipos_pagos)
+
+    # crear formularios
+    new_alumno_form = AlumnoForm(grupos=grupos)
+    new_pago_form = PagoForm()
+
+    context = {
+        'tipos_pagos': tipos_pagos,
+        'alumno_form': new_alumno_form,
+        'pago_form': new_pago_form
+    }
+    return render(request, "procesos/pagos.html", context)
+
+@login_required(login_url='signin')
+def filtrar_alumnos(request):
+    filtro = request.GET.get('filtrar', '')
+    alumnos_encontrados = dumps(
+        list(
+            Alumno.objects.filter(
+                models.Q(nombres__icontains=filtro) |
+                models.Q(apellidos__icontains=filtro)
+            ).values('id', 'nombres', 'apellidos')
+        )
+    )
+    # esta es otra forma de depurar la dejo por aquí de respaldo
+    # breakpoint()
+    return JsonResponse({'alumnos': alumnos_encontrados}, status=200)
 
 # reportes endpoints
 @login_required(login_url='signin')

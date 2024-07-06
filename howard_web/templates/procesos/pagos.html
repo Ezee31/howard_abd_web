@@ -1,0 +1,38 @@
+{% extends "dashboard/index.html" %}
+{% load static %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% static "css/jquery-ui.min.css" %}">
+  <link rel="stylesheet" href="{% static "css/pagos.css" %}">
+{% endblock %}
+
+{% block content %}
+<article id="wizard" class="container">
+  <h3>Tipo de pago</h3>
+  <section>
+    {% include 'procesos/partials/tipos_pagos.html' with tipos_pagos=tipos_pagos %}
+  </section>
+
+  <h3>Alumno</h3>
+  <section>
+    {% include 'procesos/partials/buscar_alumno.html' %}
+    {% include 'procesos/partials/crear_alumno.html' with form=alumno_form %}
+  </section>
+
+  <h3>Pago</h3>
+  <section>
+    {% include 'procesos/partials/pago_form.html' with form=pago_form %}
+  </section>
+
+  <h3>Recibo</h3>
+  <section>
+    {% include 'procesos/partials/resultado.html' %}
+  </section>
+</article>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static "js/jquery.steps.min.js" %}"></script>
+  <script src="{% static "js/jquery-ui.min.js" %}"></script>
+  <script src="{% static "js/pagos.js" %}"></script>
+{% endblock %}

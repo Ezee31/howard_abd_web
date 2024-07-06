@@ -80,6 +80,7 @@
 .table thead.thead-dark th {
     background-color: #17202A;
     border-color: #17202A;
+    color: white;
 }
 
 *{
@@ -184,6 +185,7 @@ header{
     display: block;
     position: relative;
     transition: color 300ms;
+    text-decoration: none;
 }
 
 .options__menu a:hover{
@@ -229,9 +231,8 @@ a.selected{
 /* Estilo para el botón de perfil */
 /* Styles for the profile button and dropdown menu */
 .profile-container {
-    position: relative;
-    float: right;
-    margin-right: 20px;
+    position: fixed;
+    right: 0.625rem;
 }
 
 .profile-btn {

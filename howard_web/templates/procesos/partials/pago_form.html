@@ -1,5 +1,19 @@
-<form method="post" action="{% if form.instance.pk %}{% url 'pago_edit' form.instance.pk %}{% else %}{% url 'pago_add' %}{% endif %}">
+<form id="pago-form" method="post">
     {% csrf_token %}
+    <div class="form-group">
+      <label for="tipo_pago">Tipo de Pago:</label>
+      {{ form.tipo_pago }}
+      {% if form.tipo_pago.errors %}
+          <div class="alert alert-danger">{{ form.tipo_pago.errors }}</div>
+      {% endif %}
+    </div>
+    <div class="form-group">
+      <label for="alumno">Alumno:</label>
+      {{ form.alumno }}
+      {% if form.alumno.errors %}
+          <div class="alert alert-danger">{{ form.alumno.errors }}</div>
+      {% endif %}
+    </div>
     <div class="form-group">
         <label for="fecha">Fecha:</label>
         {{ form.fecha }}
@@ -12,20 +26,6 @@
         {{ form.monto }}
         {% if form.monto.errors %}
             <div class="alert alert-danger">{{ form.monto.errors }}</div>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="alumno">Alumno:</label>
-        {{ form.alumno }}
-        {% if form.alumno.errors %}
-            <div class="alert alert-danger">{{ form.alumno.errors }}</div>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="tipo_pago">Tipo de Pago:</label>
-        {{ form.tipo_pago }}
-        {% if form.tipo_pago.errors %}
-            <div class="alert alert-danger">{{ form.tipo_pago.errors }}</div>
         {% endif %}
     </div>
     <div class="form-group">

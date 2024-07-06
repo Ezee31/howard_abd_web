@@ -3,19 +3,18 @@
 {% block content %}
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Alumnos</h2>
-    
-    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#alumnoModal" onclick="openModal('add')">
+
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#alumnoModal" onclick="openModal('add')">
         Añadir Alumno
     </button>
+
     <!--modal para alumno-->
     <div id="alumnoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="alumnoModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="alumnoModalLabel">Añadir Alumno</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="alumnoForm" method="post">
@@ -26,7 +25,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
                 </div>
             </div>
@@ -73,7 +72,7 @@
                         <td>{{ alumno.activo }}</td>
                         <td>{{ alumno.grupo }}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-custom-modify" data-toggle="modal" data-target="#alumnoModal" onclick="openModal('edit', {{ alumno.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button type="button" class="btn btn-sm btn-custom-modify" data-bs-toggle="modal" data-bs-target="#alumnoModal" onclick="openModal('edit', {{ alumno.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
                             <a href="/alumno_delete/{{alumno.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>

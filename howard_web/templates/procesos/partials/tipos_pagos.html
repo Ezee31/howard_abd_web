@@ -1,0 +1,16 @@
+<h6>Selecccionar tipo de pago</h6>
+<div class="purpose-radios-wrapper">
+  {% comment %} cargando tipos de pagos desde la base de datos {% endcomment %}
+  {% for tipo_pago in tipos_pagos %}
+    <div class="purpose-radio" data-tipo-pago-id="{{tipo_pago.id}}" data-tipo-pago-nombre="{{tipo_pago.nombre}}">
+      <input type="radio" name="purpose" id="{{tipo_pago.id}}_input_radio" class="purpose-radio-input" value="{{tipo_pago.id}}">
+      <label for="{{tipo_pago.id}}_input_radio" class="purpose-radio-label">
+        <span class="label-icon">
+          <i class="fa-solid {{tipo_pago.icono}} label-icon-default"></i>
+          <i class="fa-solid {{tipo_pago.icono}} label-icon-active"></i>
+        </span>
+        <span class="label-text">{{tipo_pago.nombre}}</span>
+      </label>
+    </div>
+  {% endfor %}
+</div>

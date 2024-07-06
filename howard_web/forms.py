@@ -74,31 +74,22 @@ class AlumnoForm(forms.Form):
             super(AlumnoForm, self).__init__(*args, **kwargs)
 
 class PagoForm(forms.Form):
+    tipo_pago = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': 'disabled'})
+    )
+    alumno = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'disabled': 'disabled'})
+    )
     fecha = forms.DateField(
         widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'})
     )
     monto = forms.CharField(
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Monto'})
     )
-    alumno = forms.ChoiceField(
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        choices=[]
-    )
-    tipo_pago = forms.ChoiceField(
-        widget=forms.Select(attrs={'class': 'form-control'}),
-        choices=[]
-    )
     solvencia_mes = forms.BooleanField(
-        required=False, 
+        required=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-
-    def __init__(self, *args, **kwargs):
-        tipos_pagos = kwargs.pop('tipos_pagos', [])
-        alumnos = kwargs.pop('alumnos', [])
-        super(PagoForm, self).__init__(*args, **kwargs)
-        self.fields['tipo_pago'].choices = tipos_pagos
-        self.fields['alumno'].choices = alumnos
 
 class ProfesorForm(forms.Form):
     nombres = forms.CharField(

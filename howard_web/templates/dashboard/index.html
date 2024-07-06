@@ -18,9 +18,13 @@
     <link href="{% static 'css/brands.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/solid.min.css' %}" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
-    <link rel="stylesheet" href="{% static 'crud-styles.css' %}">
-    <link rel="stylesheet" href="{% static 'home.css' %}">
+    <!-- sweetalert2 -->
+    <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}">
+
+    <link rel="stylesheet" href="{% static "dashboard.css" %}">
+    <link rel="stylesheet" href="{% static "crud-styles.css" %}">
+    <link rel="stylesheet" href="{% static "home.css" %}">
+    {% block styles %}{% endblock %}
 </head>
 <body id="body">
     {% csrf_token %}
@@ -94,7 +98,7 @@
                     <h4>Pago</h4>
                 </div>
             </a>
-            <a id="option-tipo_pago" href="{% url 'tipo_pago' %}">
+            <a id="option-tipo-pago" href="{% url 'tipo_pago' %}">
                 <div class="option">
                     <i class="fa-solid fa-dollar-sign" title="Tipo pago"></i>
                     <h4>Tipo pago</h4>
@@ -133,10 +137,11 @@
     <script src="{% static 'js/solid.min.js' %}"></script>
     <script src="{% static 'js/brands.min.js' %}"></script>
 
-    <script src="{% static 'dashboard.js' %}"></script>
-    <script src="{% static 'home.js' %}"></script>
+    <!-- sweetalert2 -->
+    <script src="{% static "js/sweetalert2.all.min.js" %}"></script>
 
-    {% block extra_js %}
-    {% endblock %}
+    <script src="{% static "js/dashboard.js" %}"></script>
+    <script src="{% static "js/helper.js" %}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

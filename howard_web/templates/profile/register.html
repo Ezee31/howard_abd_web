@@ -61,20 +61,18 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
- <!-- SweetAlert2 -->
- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
- <script>
-     // Mostrar alertas de éxito o error
-     {% if messages %}
-         {% for message in messages %}
-             Swal.fire({
-                 icon: '{{ message.tags }}' === 'error' ? 'error' : 'success',
-                 title: '{{ message }}',
-                 showConfirmButton: false,
-                 timer: 3000
-             });
-         {% endfor %}
-     {% endif %}
- </script>
+{% block scripts %}
+<script>
+    // Mostrar alertas de éxito o error
+    {% if messages %}
+        {% for message in messages %}
+            Swal.fire({
+                icon: '{{ message.tags }}' === 'error' ? 'error' : 'success',
+                title: '{{ message }}',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        {% endfor %}
+    {% endif %}
+</script>
 {% endblock %}

@@ -4,8 +4,7 @@
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Horarios</h2>
 
-    
-    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#horarioModal" onclick="openModal('add')">
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#horarioModal" onclick="openModal('add')">
         Añadir Horario
     </button>
 
@@ -14,9 +13,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="horarioModalLabel">Añadir Horario</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="horarioForm" method="post">
@@ -27,7 +24,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
                 </div>
             </div>
@@ -70,7 +67,7 @@
                         <td>{{ horario.tipo_turno }}</td>
                         <td>{{ horario.nombre }}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-custom-modify" data-toggle="modal" data-target="#horarioModal" onclick="openModal('edit', {{ horario.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button type="button" class="btn btn-sm btn-custom-modify" data-bs-toggle="modal" data-bs-target="#horarioModal" onclick="openModal('edit', {{ horario.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
                             <a href="/horario_delete/{{horario.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>

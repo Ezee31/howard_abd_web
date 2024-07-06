@@ -25,13 +25,12 @@ urlpatterns = [
   path('profesor_add/', views.profesor_add, name='profesor_add'),
   path('profesor_edit/<int:id>/', views.profesor_edit, name='profesor_edit'),
   path('profesor_delete/<int:id>/', views.profesor_delete, name='profesor_delete'),
-  
+
   # TipoPago views
   path('tipo_pago', views.tipo_pago, name='tipo_pago'),
   path('tipo_pago_add/', views.tipo_pago_add, name='tipo_pago_add'),
   path('tipo_pago_edit/<int:id>/', views.tipo_pago_edit, name='tipo_pago_edit'),
   path('tipo_pago_delete/<int:id>/', views.tipo_pago_delete, name='tipo_pago_delete'),
-
 
   # Grupo views
   path('grupo', views.grupo, name='grupo'),
@@ -50,10 +49,12 @@ urlpatterns = [
   path('pago_add/', views.pago_add, name='pago_add'),
   path('pago_edit/<int:id>/', views.pago_edit, name='pago_edit'),
   path('pago_delete/<int:id>/', views.pago_delete, name='pago_delete'),
+  path('pagos', views.pagos, name='pagos'),
+  path('pagos/alumnos', views.filtrar_alumnos, name='filtrar_alumnos'),
 
   # Reportes view
   path("reportes", views.reportes, name="reportes"),
- 
+
   # Perfil views
   path('profile/', views.profile, name='profile'),
   path('register/', views.register, name='register'),
@@ -61,8 +62,5 @@ urlpatterns = [
   path('account_settings/', views.account_settings, name='account_settings'),
   path('update_profile_picture/', views.update_profile_picture, name='update_profile_picture'),
   path('change_password/', views.change_password, name='change_password'),
-  path('delete_profile_picture/', views.delete_profile_picture, name='delete_profile_picture'),
-
-  
-
+  path('delete_profile_picture/', views.delete_profile_picture, name='delete_profile_picture')
 ]

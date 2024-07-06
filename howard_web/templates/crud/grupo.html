@@ -3,8 +3,8 @@
 {% block content %}
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Grupos</h2>
-    
-    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#grupoModal" onclick="openModal('add')">
+
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#grupoModal" onclick="openModal('add')">
         Añadir Grupo
     </button>
 
@@ -14,9 +14,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="grupoModalLabel">Añadir Grupo</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="grupoForm" method="post">
@@ -27,7 +25,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="submit" class="btn btn-primary" onclick="submitForm(event)">Guardar</button>
                 </div>
             </div>
@@ -75,7 +73,7 @@
                         <td>{{ grupo.horario }}</td>
                         <td>{{ grupo.profesor }}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-custom-modify" data-toggle="modal" data-target="#grupoModal" onclick="openModal('edit', {{ grupo.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
+                            <button type="button" class="btn btn-sm btn-custom-modify" data-bs-toggle="modal" data-bs-target="#grupoModal" onclick="openModal('edit', {{ grupo.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
                             <a href="/grupo_delete/{{grupo.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>
                     </tr>

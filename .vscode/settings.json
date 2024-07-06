@@ -1,3 +1,11 @@
 {
-  "emmet.includeLanguages": {"django-html": "html"}
+  "emmet.includeLanguages": {
+    "django-html": "html"
+  },
+  "cSpell.words": [
+    "ajax",
+    "csrf",
+    "signin",
+    "Swal"
+  ]
 }
