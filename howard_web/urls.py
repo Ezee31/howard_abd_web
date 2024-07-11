@@ -2,6 +2,7 @@ from django.urls import path, include
 from . import views
 from django.contrib.auth.views import LogoutView
 from .views import splash_screen
+from .views import alumno_detalle
 
 urlpatterns = [
   # Authentication views
@@ -44,6 +45,7 @@ urlpatterns = [
   path('alumno_add/', views.alumno_add, name='alumno_add'),
   path('alumno_edit/<int:id>/', views.alumno_edit, name='alumno_edit'),
   path('alumno_delete/<int:id>/', views.alumno_delete, name='alumno_delete'),
+  path('alumno/<int:alumno_id>/', alumno_detalle, name='alumno_detalle'),
 
   # Pago views
   path('pago', views.pago, name='pago'),
@@ -63,5 +65,6 @@ urlpatterns = [
   path('account_settings/', views.account_settings, name='account_settings'),
   path('update_profile_picture/', views.update_profile_picture, name='update_profile_picture'),
   path('change_password/', views.change_password, name='change_password'),
-  path('delete_profile_picture/', views.delete_profile_picture, name='delete_profile_picture')
+  path('delete_profile_picture/', views.delete_profile_picture, name='delete_profile_picture'),
+  
 ]

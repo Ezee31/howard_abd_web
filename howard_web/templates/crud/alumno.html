@@ -1,5 +1,4 @@
 {% extends "dashboard/index.html" %}
-
 {% block content %}
 <div class="container">
     <h2 class="my-4 text-primary">Gestión de Alumnos</h2>
@@ -72,6 +71,7 @@
                         <td>{{ alumno.activo }}</td>
                         <td>{{ alumno.grupo }}</td>
                         <td>
+                            <a href="{% url 'alumno_detalle' alumno.id %}" class="btn btn-info btn-sm">Solvencia</a>
                             <button type="button" class="btn btn-sm btn-custom-modify" data-bs-toggle="modal" data-bs-target="#alumnoModal" onclick="openModal('edit', {{ alumno.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
                             <a href="/alumno_delete/{{alumno.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
                         </td>

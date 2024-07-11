@@ -16,6 +16,7 @@ from django.contrib import messages
 from .utils import agregar_icono_tipo_pago
 from json import dumps
 import json
+from datetime import date, timedelta
 
 # Create your views here.
 # login endpoint
@@ -1279,9 +1280,33 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'profile/register.html', {'form': form})
 
-
+#splash screen
 def splash_screen(request):
     if request.session.get('splash_seen', False):
         return redirect('dashboard')  
     request.session['splash_seen'] = True
     return render(request, 'splash.html')
+
+#revision de pago
+def alumno_detalle(request, alumno_id):
+    alumno = get_object_or_404(Alumno, id=alumno_id)
+    tipo_mensualidad = TipoPago.objects.get(nombre="Mensualidad")
+    ultimo_pago_mensualidad = Pago.objects.filter(alumno=alumno, tipo_pago=tipo_mensualidad).order_by('-fecha').first()
+    hoy = date.today()
+
+    if ultimo_pago_mensualidad:
+        proximo_pago = ultimo_pago_mensualidad.fecha + timedelta(days=30)
+        dias_restantes = (proximo_pago - hoy).days
+    else:
+        proximo_pago = None
+        dias_restantes = None
+
+    context = {
+        'alumno': alumno,
+        'ultimo_pago_mensualidad': ultimo_pago_mensualidad,
+        'proximo_pago': proximo_pago,
+        'dias_restantes': dias_restantes
+    }
+    return render(request, 'alumno_detalle.html', context)
+
+

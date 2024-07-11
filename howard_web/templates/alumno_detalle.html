@@ -1,0 +1,35 @@
+{% extends "dashboard/index.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h2>{{ alumno.nombres }} {{ alumno.apellidos }}</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>Email:</strong> {{ alumno.email }}</p>
+
+            <h3 class="mt-4 text-primary">Estado de Pagos</h3>
+            {% if ultimo_pago_mensualidad %}
+                <p><strong>Último Pago de Mensualidad:</strong> {{ ultimo_pago_mensualidad.fecha }} - ${{ ultimo_pago_mensualidad.monto }}</p>
+                <p><strong>Próximo Pago:</strong> {{ proximo_pago }}</p>
+                <p class="text-danger"><strong>Días Restantes para el Próximo Pago:</strong> {{ dias_restantes }}</p>
+            {% else %}
+                <p class="text-danger">Este alumno no ha realizado ningún pago de mensualidad aún.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    .card-header {
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+</style>
+{% endblock %}
