@@ -1278,7 +1278,7 @@ def reportes(request):
     totales = []
     for pago in pagos_fecha:
         meses.append(f"{pago['fecha__year']}-{pago['fecha__month']:02d}")
-        totales.append(pago['total'])
+        totales.append(int(pago['total']))
 
     context = {
         'logs': logs_page,
