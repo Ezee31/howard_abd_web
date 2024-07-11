@@ -15,6 +15,7 @@ from .forms import UserUpdateForm, ProfilePictureForm, CustomPasswordChangeForm
 from django.contrib import messages
 from .utils import agregar_icono_tipo_pago
 from json import dumps
+import json
 
 # Create your views here.
 # login endpoint
@@ -1093,16 +1094,22 @@ def filtrar_alumnos(request):
     return JsonResponse({'alumnos': alumnos_encontrados}, status=200)
 
 # reportes endpoints
-@login_required(login_url='signin')
 def reportes(request):
     search_query = request.GET.get('search', '')
-    page = request.GET.get('page', 1) # Captura la página en la que se encuentra
+    search_pagos_query = request.GET.get('search_pagos', '')
+    logs_page_number = request.GET.get('logs_page', 1)  # Captura la página de logs
+    pagos_page_number = request.GET.get('pagos_page', 1)  # Captura la página de pagos
     page_size = request.GET.get('page_size', 10)
 
     try:
-        page = int(page)
+        logs_page_number = int(logs_page_number)
     except ValueError:
-        page = 1
+        logs_page_number = 1
+
+    try:
+        pagos_page_number = int(pagos_page_number)
+    except ValueError:
+        pagos_page_number = 1
 
     try:
         page_size = int(page_size)
@@ -1110,11 +1117,12 @@ def reportes(request):
         page_size = 10
 
     logs = LogEntry.objects.select_related('content_type', 'user').all().order_by('-action_time')
+    pagos = Pago.objects.all().order_by('-fecha')
     total_alumnos = Alumno.objects.count()
     total_profesores = Profesor.objects.count()
     total_grupos = Grupo.objects.count()
     total_pagos = Pago.objects.count()
-    pagos_por_mes = Pago.objects.values('fecha__month').annotate(total=models.Sum('monto')).order_by('fecha__month')
+    pagos_fecha = Pago.objects.values('fecha__year','fecha__month').annotate(total=models.Sum('monto')).order_by('fecha__year', 'fecha__month')
 
     if search_query:
         logs = logs.filter(
@@ -1123,24 +1131,51 @@ def reportes(request):
             models.Q(object_repr__icontains=search_query)
         )
 
-    paginator = Paginator(logs, page_size)  # Mostrar `page_size` logs por página
+    if search_pagos_query:
+        pagos_fecha = pagos_fecha.filter(
+            models.Q(fecha__year__icontains=search_pagos_query) |
+            models.Q(fecha__month__icontains=search_pagos_query)
+        )
+
+    paginator_logs = Paginator(logs, page_size)  # Mostrar `page_size` logs por página
+    paginator_pagos = Paginator(pagos_fecha, page_size)  # Mostrar `page_size` pagos por página
+
     try:
-        logs_page = paginator.page(page)
+        logs_page = paginator_logs.page(logs_page_number)
     except PageNotAnInteger:
-        logs_page = paginator.page(1)
+        logs_page = paginator_logs.page(1)
     except EmptyPage:
-        logs_page = paginator.page(paginator.num_pages)
+        logs_page = paginator_logs.page(paginator_logs.num_pages)
+
+    try:
+        pagos_page = paginator_pagos.page(pagos_page_number)
+    except PageNotAnInteger:
+        pagos_page = paginator_pagos.page(1)
+    except EmptyPage:
+        pagos_page = paginator_pagos.page(paginator_pagos.num_pages)
+
+    # Preparar datos para la gráfica
+    meses = []
+    totales = []
+    for pago in pagos_fecha:
+        meses.append(f"{pago['fecha__year']}-{pago['fecha__month']:02d}")
+        totales.append(pago['total'])
 
     context = {
         'logs': logs_page,
+        'pagos': pagos_page,
         'total_alumnos': total_alumnos,
         'total_profesores': total_profesores,
         'total_grupos': total_grupos,
         'total_pagos': total_pagos,
-        'pagos_por_mes': pagos_por_mes,
+        'pagos_fecha': pagos_fecha,
         'ADDITION': ADDITION,
         'CHANGE': CHANGE,
         'DELETION': DELETION,
+        'search_query': search_query,
+        'search_pagos_query': search_pagos_query,
+        'meses': json.dumps(meses),
+        'totales': json.dumps(totales),
     }
     return render(request, 'utilidades/reportes.html', context)
 

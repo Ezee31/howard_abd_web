@@ -38,22 +38,43 @@
             </div>
         </div>
     </div>
+    
+    <div class="my-4">
+        <canvas id="pagosChart"></canvas>
+    </div>
 
     <h3 class="my-4 text-primary">Pagos por Mes</h3>
     <div class="table-responsive mb-4">
+        <!-- Filtrar por búsqueda -->
+        <div class="filter">
+            <form id="search-form" method="get" action="/reportes">
+                <label for="search_pagos">Buscar Pagos</label>
+                <input type="search" name="search_pagos" id="search_pagos" placeholder="Ingrese año o mes" value="{{ request.GET.search_pagos }}" class="form-control">
+            </form>
+        </div>
         <table class="table table-striped">
             <thead class="thead-dark">
                 <tr>
+                    <th>Año</th>
                     <th>Mes</th>
                     <th>Total Pagos</th>
                 </tr>
             </thead>
             <tbody>
-                {% for pago in pagos_por_mes %}
-                    <tr>
-                        <td>{{ pago.fecha__month }}</td>
-                        <td>{{ pago.total }}</td>
-                    </tr>
+                {% for pago in pagos_fecha %}
+                <tr>
+                    <td>{{ pago.fecha__year }}</td>
+                    <td>
+                        {% if pago.fecha__month == 1 %}Enero{% elif pago.fecha__month == 2 %}Febrero
+                        {% elif pago.fecha__month == 3 %}Marzo{% elif pago.fecha__month == 4 %}Abril
+                        {% elif pago.fecha__month == 5 %}Mayo{% elif pago.fecha__month == 6 %}Junio
+                        {% elif pago.fecha__month == 7 %}Julio{% elif pago.fecha__month == 8 %}Agosto
+                        {% elif pago.fecha__month == 9 %}Septiembre{% elif pago.fecha__month == 10 %}Octubre
+                        {% elif pago.fecha__month == 11 %}Noviembre{% elif pago.fecha__month == 12 %}Diciembre
+                        {% endif %}
+                    </td>
+                    <td>{{ pago.total }}</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -61,22 +82,11 @@
 
     <h3 class="my-4 text-primary">Registro de Cambios</h3>
     <div class="table-responsive">
-        <div class="filterEntries mb-3">
-            <div class="entries">
-                Enseñar <select name="page_size" id="table_size" class="form-control">
-                    <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
-                    <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
-                    <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
-                    <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
-                </select> entradas
-            </div>
-            <!-- Filtrar por búsqueda -->
-            <div class="filter">
-                <form id="search-form" method="get" action="/reportes">
-                    <label for="search">Buscar</label>
-                    <input type="search" name="search" id="search" placeholder="Ingrese un usuario, modelo o descripción" value="{{ request.GET.search }}" class="form-control">
-                </form>
-            </div>
+        <div class="filter">
+            <form id="search-form" method="get" action="/reportes">
+                <label for="search">Buscar</label>
+                <input type="search" name="search" id="search" placeholder="Ingrese un usuario, modelo o descripción" value="{{ request.GET.search }}" class="form-control">
+            </form>
         </div>
         <table class="table table-striped">
             <thead class="thead-dark">
@@ -131,40 +141,39 @@
         </div>
     </footer>
 </div>
-{% endblock %}
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <script>
-    // Función para actualizar la tabla de reportes
-    function updateTable(searchValue) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `/reportes?search=${searchValue}`, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const newTableBody = doc.getElementById('logs-table-body').innerHTML;
-                document.getElementById('logs-table-body').innerHTML = newTableBody;
+    
+    var ctx = document.getElementById('pagosChart').getContext('2d');
+    var meses = JSON.parse('{{ meses|escapejs }}');
+    var totales = JSON.parse('{{ totales|escapejs }}');
+    var pagosChart = new Chart(ctx, {
+        type: 'bar', // Tipo de gráfico
+        data: {
+            labels: meses,
+            datasets: [{
+                label: 'Total de Pagos por Mes',
+                data: totales,
+                backgroundColor: 'rgba(3, 7, 10, 0.6)',
+                borderColor: 'rgba(3, 7, 10, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
-        };
-        xhr.send();
-    }
-
-    // Escuchar el evento de entrada en el campo de búsqueda
-    document.getElementById('search').addEventListener('input', function() {
-        updateTable(this.value);
-    });
-
-    // Escuchar el evento de envío del formulario
-    document.getElementById('search-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
-        updateTable(document.getElementById('search').value);
-    });
-
-    // Cambiar el número de entradas mostradas
-    document.getElementById('table_size').addEventListener('change', function() {
-        const pageSize = this.value;
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('page_size', pageSize);
-        window.location.search = urlParams.toString();
+        }
     });
 </script>
+{% endblock %}
+
+
