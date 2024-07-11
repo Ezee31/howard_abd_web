@@ -2,8 +2,47 @@
 {% load static %}
 
 {% block content %}
-  <div class="container_home">
-    <img class="home_img" src="{% static "imagen-re.png" %}">
-    <h1 class="home_h1">Bienvenido a Howard Bilingual School</h1>
-  </div>
+<div class="mt-5 animated fadeInUp">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-md-8 text-center">
+            <img class="img-fluid mb-4" src="{% static "imagen-re.png" %}" alt="Howard Bilingual School Logo" style="max-width: 1500px;">
+            <h1 class="display-4">Bienvenido a Howard Bilingual School</h1>
+        </div>
+    </div>
+</div>
+
+<!-- Animation CSS -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+    
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .animated {
+        animation-duration: 1s;
+        animation-fill-mode: both;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 100%, 0);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .display-4 {
+      font-size: 3.5rem;
+      color: white;
+      margin-top: 50px;
+  }
+
+    .fadeInUp {
+        animation-name: fadeInUp;
+    }
+</style>
 {% endblock %}

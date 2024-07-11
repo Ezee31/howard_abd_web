@@ -31,11 +31,9 @@ def signin(request):
                 login(request, user)
                 return redirect("dashboard")
 
-    # returning dashboard if user is already logged into the system
     if request.method == 'GET' and request.user.is_authenticated:
         return redirect("dashboard")
 
-    # returning login form
     new_login_form = LoginForm()
     return render(request, "login/index.html", {'form': new_login_form})
 
@@ -1280,3 +1278,10 @@ def register(request):
     else:
         form = UserRegisterForm()
     return render(request, 'profile/register.html', {'form': form})
+
+
+def splash_screen(request):
+    if request.session.get('splash_seen', False):
+        return redirect('dashboard')  
+    request.session['splash_seen'] = True
+    return render(request, 'splash.html')

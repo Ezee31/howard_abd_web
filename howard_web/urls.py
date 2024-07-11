@@ -1,12 +1,13 @@
 from django.urls import path, include
 from . import views
 from django.contrib.auth.views import LogoutView
-from .views import account_settings, change_password
+from .views import splash_screen
 
 urlpatterns = [
   # Authentication views
-  path("", views.signin, name="signin"),
-  path("dashboard", views.dashboard, name="dashboard"),
+    path("", splash_screen, name="splash"),
+    path("signin/", views.signin, name="signin"),
+    path("dashboard/", views.dashboard, name="dashboard"),
 
   # TipoTurno views
   path('tipo_turno', views.tipo_turno, name='tipo_turno'),
