@@ -7,7 +7,7 @@ from .models import TipoTurno, Horario, TipoPago, Profesor, Grupo, Alumno, Pago
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from .forms import UserUpdateForm, UserRegisterForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
@@ -15,8 +15,14 @@ from .forms import UserUpdateForm, ProfilePictureForm, CustomPasswordChangeForm
 from django.contrib import messages
 from .utils import agregar_icono_tipo_pago
 from json import dumps
-import json
 from datetime import date, timedelta
+from num2words import num2words
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.platypus import Table, TableStyle
+from reportlab.graphics.shapes import *
 
 # Create your views here.
 # login endpoint
@@ -978,8 +984,6 @@ def pago(request, id=None):
 
 @login_required(login_url='signin')
 def pago_add(request):
-    alumnos = Alumno.objects.all().values_list('id', 'nombres')
-    tipos_pagos = TipoPago.objects.all().values_list('id', 'nombre')
     if request.method == 'GET':
         form = PagoForm()
         return render(request, 'crud/partials/pago_form.html', {'form': form})
@@ -1003,7 +1007,20 @@ def pago_add(request):
                 action_flag=ADDITION,
                 change_message=f'Added {new_pago}'
             )
-            return JsonResponse({'success': True})
+
+            grupo = Grupo.objects.select_related('horario').get(id=new_pago.alumno.grupo_id)
+            tipo_turno = TipoTurno.objects.get(id=grupo.horario.tipo_turno_id)
+
+            return JsonResponse({
+                'success': True,
+                'pago_id': new_pago.pk,
+                'fecha': date.today().strftime('%B %d, %Y'),
+                'alumno': f'{new_pago.alumno.nombres} {new_pago.alumno.apellidos}',
+                'cantidad_en_letras': str(num2words(new_pago.monto, to='currency', lang='es_NI')).capitalize(),
+                'mes_pagado': new_pago.fecha.strftime("%B %Y"),
+                'horario': f'{tipo_turno.dias} de {tipo_turno.hora_entrada}-{tipo_turno.hora_salida} {tipo_turno.formato}',
+                'importe': f'C$ {new_pago.monto}'
+            })
         else:
             return JsonResponse({'errors': form.errors}, status=400)
 
@@ -1068,7 +1085,7 @@ def pagos(request):
 
     # crear formularios
     new_alumno_form = AlumnoForm(grupos=grupos)
-    new_pago_form = PagoForm()
+    new_pago_form = PagoForm(initial={'fecha': date.today()})
 
     context = {
         'tipos_pagos': tipos_pagos,
@@ -1091,6 +1108,109 @@ def filtrar_alumnos(request):
     # esta es otra forma de depurar la dejo por aquí de respaldo
     # breakpoint()
     return JsonResponse({'alumnos': alumnos_encontrados}, status=200)
+
+@login_required(login_url='signin')
+def descargar_factura(request, pago_id):
+    pago = Pago.objects.select_related('alumno', 'tipo_pago').get(id=pago_id)
+
+    # armando nombre del archivo
+    tipo_pago_efectuado = pago.tipo_pago.nombre.lower()
+    mes = pago.fecha.strftime("%B").lower()
+    anio = pago.fecha.strftime("%Y")
+    nombre_del_alumno = pago.alumno.nombres.lower() if ' ' not in pago.alumno.nombres else pago.alumno.nombres.split(' ')[0].lower()
+    nombre_del_archivo = f'{tipo_pago_efectuado}_{mes}_{anio}_{nombre_del_alumno}'
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename={nombre_del_archivo}.pdf'
+
+    # inicializando documento con formato letter (American format) también podemos usar A4 (internacional)
+    pdf = canvas.Canvas(response, pagesize=letter)
+    pdf.setFont('Helvetica-Bold', 12)
+    # agregando titulo que aparece en la pestaña del navegador
+    pdf.setTitle('Hoja de matricula' if tipo_pago_efectuado == 'matricula' else 'Factura')
+
+    if tipo_pago_efectuado == 'matricula':
+        pass
+    else:
+      # el pago efectuado pudo ser mensualidad o una venta
+      grupo = Grupo.objects.select_related('horario').get(id=pago.alumno.grupo_id)
+      tipo_turno = TipoTurno.objects.get(id=grupo.horario.tipo_turno_id)
+
+      # header
+      # titulo y sub titulo
+      pdf.drawString(219, 760, 'Howard Bilingual School - H.B.S')
+      pdf.drawString(234, 730, 'RECIBO OFICIAL DE CAJA')
+
+      # numero de whatsapp parte superior derecha
+      lienzo = Drawing(400, 200)
+      lienzo.add(Rect(365, 120, 130, 55, fillColor=colors.lightgrey, strokeColor=colors.lightgrey))
+      lienzo.add(String(400, 153, 'Whatsapp', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
+      lienzo.add(String(400, 132, '8593-7255', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
+
+      # datos de la factura
+      # no. recibo
+      no_recibo = pago.id
+      pdf.drawString(192, 690, 'No. RECIBO')
+      lienzo.add(Rect(220, 88, 30, 14, fillColor=colors.lightgrey, strokeColor=colors.lightgrey))
+      lienzo.add(String(237, 90, str(no_recibo), fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
+
+      # fecha
+      pdf.drawString(386, 690, 'FECHA:')
+      pdf.line(440, 689, 560, 689)
+      lienzo.add(String(395, 90, date.today().strftime('%B %d, %Y'), fontName='Helvetica', fontSize=12, fillColor=colors.black))
+
+      # recibimos de
+      pdf.drawString(50, 650, 'RECIBIMOS DE:')
+      pdf.line(192, 649, 450, 649)
+      lienzo.add(String(147, 50, f'{pago.alumno.nombres} {pago.alumno.apellidos}', fontName='Helvetica', fontSize=12, fillColor=colors.black))
+
+      # la suma de
+      pdf.drawString(50, 620, 'LA SUMA DE:')
+      pdf.line(192, 619, 450, 619)
+      lienzo.add(String(147, 20, str(num2words(pago.monto, to='currency', lang='es_NI')).capitalize(), fontName='Helvetica', fontSize=12, fillColor=colors.black))
+
+      # tabla del pago
+      headers = ['MENSUALIDAD DE', 'HORARIO', 'DEBE', 'IMPORTE']
+      horario = f'{tipo_turno.dias} de {tipo_turno.hora_entrada}-{tipo_turno.hora_salida} {tipo_turno.formato}'
+      values = [pago.fecha.strftime("%B %Y"), horario, '', f'C$ {pago.monto}']
+      footer = ['EFECTIVO - CAJA', 'VALOR', '', f'C$ {pago.monto}']
+      data = [headers, values, footer]
+
+      table = Table(data, colWidths=[1.6*inch, 3*inch, 1*inch, 1.5*inch])
+      # (columna, fila)
+      table.setStyle(TableStyle([
+        ('GRID',(0,0), (-1,-2), 0.5, colors.black),
+        ('FONTNAME', (0,0), (3,0), 'Helvetica-Bold'),
+        ('BACKGROUND',(0,0), (3,0), colors.lightgrey),
+        ('ALIGN', (1,0), (3,0), 'CENTER'),
+        ('LINEABOVE', (0,0), (-1,0), 1, colors.black),
+        ('LINEABOVE', (0,1), (-1,-2), 0.25, colors.black),
+        ('LINEBELOW', (0,-1), (-1,-2), 1, colors.black),
+        ('ALIGN', (1,1), (-1,-2), 'LEFT'),
+        ('ALIGN', (3,1), (-1,-2), 'RIGHT'),
+        ('ALIGN', (-3,-1), (-1,-1), 'RIGHT'),
+        ('GRID',(-2,-1), (-1,-1), 0.5, colors.black),
+        ('FONTNAME', (-4,-1), (-3,-1), 'Helvetica-Bold'),
+        ('LEFTPADDING', (-4,-1), (-4,-1), 2),
+      ]))
+      width=600
+      height=560
+      table.wrapOn(pdf, width, height)
+      table.drawOn(pdf, 50, height - len(data))
+
+      # cajero(a)
+      pdf.drawString(52, 530, 'CAJERO(A):')
+      pdf.line(130, 529, 350, 529)
+      lienzo.add(String(85, -70, 'Howard Ramos', fontName='Helvetica', fontSize=12, fillColor=colors.black))
+
+      # firma
+      pdf.drawString(290, 480, 'FIRMA')
+
+      # render lienzo
+      lienzo.drawOn(pdf, 50, 600)
+
+      pdf.save()
+      return response
 
 # reportes endpoints
 def reportes(request):
@@ -1173,8 +1293,8 @@ def reportes(request):
         'DELETION': DELETION,
         'search_query': search_query,
         'search_pagos_query': search_pagos_query,
-        'meses': json.dumps(meses),
-        'totales': json.dumps(totales),
+        'meses': dumps(meses),
+        'totales': dumps(totales),
     }
     return render(request, 'utilidades/reportes.html', context)
 
@@ -1194,7 +1314,6 @@ def profile(request):
     }
     return render(request, 'profile/profile.html', context)
 
-
 @login_required(login_url='signin')
 def account_settings(request):
     if request.method == 'POST':
@@ -1205,9 +1324,9 @@ def account_settings(request):
             return redirect('account_settings')
     else:
         u_form = UserUpdateForm(instance=request.user)
-    
+
     password_change_form = CustomPasswordChangeForm(user=request.user)
-    
+
     context = {
         'u_form': u_form,
         'password_change_form': password_change_form,
@@ -1243,7 +1362,7 @@ def change_password(request):
             messages.error(request, 'La contraseña no cumple con los requisitos.')
     else:
         password_change_form = CustomPasswordChangeForm(user=request.user)
-    
+
     return render(request, 'profile/account_settings.html', {
         'password_change_form': password_change_form,
     })
@@ -1257,7 +1376,6 @@ def delete_profile_picture(request):
         user.save()
         messages.success(request, '¡La foto de perfil se ha eliminado con éxito!')
         return redirect('account_settings')
-
 
 #register profile view
 @login_required(login_url='signin')

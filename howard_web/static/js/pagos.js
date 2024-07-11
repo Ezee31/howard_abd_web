@@ -164,6 +164,28 @@ function guardarAlumno() {
   });
 }
 
+// descargar factura
+function descargarFactura() {
+  const pagoId = localStorage.getItem('pago_id');
+  $.ajax({
+    url: `/pagos/factura/${pagoId}`,
+    xhrFields: {
+        responseType: 'blob'
+    },
+    success: function (json) {
+        var a = document.createElement('a');
+        var url = window.URL.createObjectURL(json);
+        a.href = url;
+        a.download = `factura-no-${pagoId}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    },
+    error: function(error) {
+       console.log("Error ->", error);
+    }
+  });
+}
+
 // guardar nuevo pago
 function guardarPago() {
   const alumnoForm = $("#pago-form");
@@ -192,12 +214,32 @@ function guardarPago() {
     data: formData,
     success: function(response) {
       if (response.success) {
+        const {
+          pago_id,
+          fecha,
+          alumno,
+          cantidad_en_letras,
+          mes_pagado,
+          horario,
+          importe
+        } = response;
+
+        localStorage.setItem('pago_id', pago_id);
         Swal.fire({
           icon: 'success',
           title: 'Pago creado exitosamente!',
           showConfirmButton: false,
           timer: 3000
         });
+
+        // llenar campos de factura
+        $('#no-recibo-response').text(pago_id);
+        $('#fecha-response').text(fecha);
+        $('#recibimos-de-response').text(alumno);
+        $('#suma-de-response').text(cantidad_en_letras);
+        $('#mes-pagado-response').text(mes_pagado);
+        $('#horario-response').text(horario);
+        $('#importe-response').text(importe);
       }
     }
   });

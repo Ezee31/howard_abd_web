@@ -41,6 +41,7 @@
 .btn-custom.active {
     background-color: #17202A; /* Color de fondo cuando está activo */
     border-color: #17202A;     /* Color del borde cuando está activo */
+    color: white;
 }
 
 .btn-custom:focus {

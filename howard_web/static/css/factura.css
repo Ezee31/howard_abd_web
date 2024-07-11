@@ -1,0 +1,43 @@
+.invoice-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.invoice-header h2, .invoice-header h4 {
+  margin: 5px 0;
+}
+
+.invoice-details, .invoice-footer {
+  margin-bottom: 20px;
+}
+
+.invoice-details h5, .invoice-footer h5 {
+  margin: 15px 0 5px 0;
+}
+
+.table td, .table th {
+  border: 1px solid black;
+}
+
+.signature-line {
+  border-top: 1px solid black;
+  margin-top: 40px;
+  width: 50%;
+  text-align: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.no-border {
+  border: none !important;
+}

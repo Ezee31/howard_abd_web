@@ -46,7 +46,9 @@
                         <td>{{ pago.tipo_pago }}</td>
                         <td>{{ pago.solvencia_mes }}</td>
                         <td>
-                            <a href="/pago_delete/{{pago.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
+                            <a href="/pagos/factura/{{pago.id}}" class="btn btn-sm btn-secondary">
+                              <i class="fa-solid fa-download" style="margin-right: 0!important;"></i>
+                            </a>
                         </td>
                     </tr>
                 {% endfor %}

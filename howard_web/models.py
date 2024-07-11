@@ -91,7 +91,7 @@ class TipoPago(models.Model):
 
 class Pago(models.Model):
     fecha = models.DateField()
-    monto = models.IntegerField()
+    monto = models.DecimalField(max_digits=10, decimal_places=2)
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE)
     tipo_pago = models.ForeignKey(TipoPago, on_delete=models.CASCADE)
     solvencia_mes = models.BooleanField()

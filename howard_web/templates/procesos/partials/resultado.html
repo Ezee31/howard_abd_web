@@ -1,1 +1,55 @@
-<h1>Recibo en construccion</h1>
+<button type="button" class="btn btn-secondary" onclick="descargarFactura()">Descargar factura</button>
+
+<div class="main">
+  <div class="container mt-3">
+    <div class="card animate__animated animate__fadeIn">
+      <div class="card-header">
+        <div class="invoice-header">
+          <h2>Howard Bilingual School - H.B.S</h2>
+          <h4>RECIBO OFICIAL DE CAJA</h4>
+          <div class="row">
+            <div class="col-6 text-left">No. RECIBO: <strong id="no-recibo-response">19</strong></div>
+            <div class="col-6 text-right">FECHA: <strong id="fecha-response">Julio 11, 2024</strong></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row mb-4">
+          <div class="col-6 col-md-6">
+            <div class="invoice-details">
+              <h5>RECIBIMOS DE:</h5>
+              <p id="recibimos-de-response">Ezequiel Carmona</p>
+            </div>
+          </div>
+          <div class="col-6 col-md-6">
+            <div class="invoice-details">
+              <h5>LA SUMA DE:</h5>
+              <p id="suma-de-response">Mil doscientos córdobas con cero centavos</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive-sm">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th scope="col" width="30%">MENSUALIDAD DE</th>
+                <th scope="col" width="40%" class="text-center">HORARIO</th>
+                <th scope="col" width="10%" class="text-center">DEBE</th>
+                <th scope="col" width="20%" class="text-center">IMPORTE</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="mes-pagado-response" class="text-left"></td>
+                <td id="horario-response" class="item_name"></td>
+                <td class="text-right"></td>
+                <td id="importe-response" class="text-right"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -83,8 +83,8 @@ class PagoForm(forms.Form):
     fecha = forms.DateField(
         widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'date'})
     )
-    monto = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Monto'})
+    monto = forms.DecimalField(
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Monto'})
     )
     solvencia_mes = forms.BooleanField(
         required=False,
