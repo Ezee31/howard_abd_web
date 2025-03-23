@@ -1129,88 +1129,88 @@ def descargar_factura(request, pago_id):
     # agregando titulo que aparece en la pestaña del navegador
     pdf.setTitle('Hoja de matricula' if tipo_pago_efectuado == 'matricula' else 'Factura')
 
-    if tipo_pago_efectuado == 'matricula':
-        pass
-    else:
-      # el pago efectuado pudo ser mensualidad o una venta
-      grupo = Grupo.objects.select_related('horario').get(id=pago.alumno.grupo_id)
-      tipo_turno = TipoTurno.objects.get(id=grupo.horario.tipo_turno_id)
+    # if tipo_pago_efectuado == 'matricula':
+    #     pass
+    
+    # el pago efectuado pudo ser mensualidad o una venta
+    grupo = Grupo.objects.select_related('horario').get(id=pago.alumno.grupo_id)
+    tipo_turno = TipoTurno.objects.get(id=grupo.horario.tipo_turno_id)
 
       # header
       # titulo y sub titulo
-      pdf.drawString(219, 760, 'Howard Bilingual School - H.B.S')
-      pdf.drawString(234, 730, 'RECIBO OFICIAL DE CAJA')
+    pdf.drawString(219, 760, 'Howard Bilingual School - H.B.S')
+    pdf.drawString(234, 730, 'RECIBO OFICIAL DE CAJA')
 
       # numero de whatsapp parte superior derecha
-      lienzo = Drawing(400, 200)
-      lienzo.add(Rect(365, 120, 130, 55, fillColor=colors.lightgrey, strokeColor=colors.lightgrey))
-      lienzo.add(String(400, 153, 'Whatsapp', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
-      lienzo.add(String(400, 132, '8593-7255', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
+    lienzo = Drawing(400, 200)
+    lienzo.add(Rect(365, 120, 130, 55, fillColor=colors.lightgrey, strokeColor=colors.lightgrey))
+    lienzo.add(String(400, 153, 'Whatsapp', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
+    lienzo.add(String(400, 132, '8593-7255', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
 
       # datos de la factura
       # no. recibo
-      no_recibo = pago.id
-      pdf.drawString(192, 690, 'No. RECIBO')
-      lienzo.add(Rect(220, 88, 30, 14, fillColor=colors.lightgrey, strokeColor=colors.lightgrey))
-      lienzo.add(String(237, 90, str(no_recibo), fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
+    no_recibo = pago.id
+    pdf.drawString(192, 690, 'No. RECIBO')
+    lienzo.add(Rect(220, 88, 30, 14, fillColor=colors.lightgrey, strokeColor=colors.lightgrey))
+    lienzo.add(String(237, 90, str(no_recibo), fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
 
       # fecha
-      pdf.drawString(386, 690, 'FECHA:')
-      pdf.line(440, 689, 560, 689)
-      lienzo.add(String(395, 90, date.today().strftime('%B %d, %Y'), fontName='Helvetica', fontSize=12, fillColor=colors.black))
+    pdf.drawString(386, 690, 'FECHA:')
+    pdf.line(440, 689, 560, 689)
+    lienzo.add(String(395, 90, date.today().strftime('%B %d, %Y'), fontName='Helvetica', fontSize=12, fillColor=colors.black))
 
       # recibimos de
-      pdf.drawString(50, 650, 'RECIBIMOS DE:')
-      pdf.line(192, 649, 450, 649)
-      lienzo.add(String(147, 50, f'{pago.alumno.nombres} {pago.alumno.apellidos}', fontName='Helvetica', fontSize=12, fillColor=colors.black))
+    pdf.drawString(50, 650, 'RECIBIMOS DE:')
+    pdf.line(192, 649, 450, 649)
+    lienzo.add(String(147, 50, f'{pago.alumno.nombres} {pago.alumno.apellidos}', fontName='Helvetica', fontSize=12, fillColor=colors.black))
 
-      # la suma de
-      pdf.drawString(50, 620, 'LA SUMA DE:')
-      pdf.line(192, 619, 450, 619)
-      lienzo.add(String(147, 20, str(num2words(pago.monto, to='currency', lang='es_NI')).capitalize(), fontName='Helvetica', fontSize=12, fillColor=colors.black))
+    # la suma de
+    pdf.drawString(50, 620, 'LA SUMA DE:')
+    pdf.line(192, 619, 450, 619)
+    lienzo.add(String(147, 20, str(num2words(pago.monto, to='currency', lang='es_NI')).capitalize(), fontName='Helvetica', fontSize=12, fillColor=colors.black))
 
-      # tabla del pago
-      headers = ['MENSUALIDAD DE', 'HORARIO', 'DEBE', 'IMPORTE']
-      horario = f'{tipo_turno.dias} de {tipo_turno.hora_entrada}-{tipo_turno.hora_salida} {tipo_turno.formato}'
-      values = [pago.fecha.strftime("%B %Y"), horario, '', f'C$ {pago.monto}']
-      footer = ['EFECTIVO - CAJA', 'VALOR', '', f'C$ {pago.monto}']
-      data = [headers, values, footer]
+    # tabla del pago
+    headers = ['MATRICULA DE'if tipo_pago_efectuado == 'matricula' else "MENSUALIDAD DE" , 'HORARIO', 'DEBE', 'IMPORTE']
+    horario = f'{tipo_turno.dias} de {tipo_turno.hora_entrada}-{tipo_turno.hora_salida} {tipo_turno.formato}'
+    values = [pago.fecha.strftime("%B %Y"), horario, '', f'C$ {pago.monto}']
+    footer = ['EFECTIVO - CAJA', 'VALOR', '', f'C$ {pago.monto}']
+    data = [headers, values, footer]
 
-      table = Table(data, colWidths=[1.6*inch, 3*inch, 1*inch, 1.5*inch])
-      # (columna, fila)
-      table.setStyle(TableStyle([
-        ('GRID',(0,0), (-1,-2), 0.5, colors.black),
-        ('FONTNAME', (0,0), (3,0), 'Helvetica-Bold'),
-        ('BACKGROUND',(0,0), (3,0), colors.lightgrey),
-        ('ALIGN', (1,0), (3,0), 'CENTER'),
-        ('LINEABOVE', (0,0), (-1,0), 1, colors.black),
-        ('LINEABOVE', (0,1), (-1,-2), 0.25, colors.black),
-        ('LINEBELOW', (0,-1), (-1,-2), 1, colors.black),
-        ('ALIGN', (1,1), (-1,-2), 'LEFT'),
-        ('ALIGN', (3,1), (-1,-2), 'RIGHT'),
-        ('ALIGN', (-3,-1), (-1,-1), 'RIGHT'),
-        ('GRID',(-2,-1), (-1,-1), 0.5, colors.black),
-        ('FONTNAME', (-4,-1), (-3,-1), 'Helvetica-Bold'),
-        ('LEFTPADDING', (-4,-1), (-4,-1), 2),
-      ]))
-      width=600
-      height=560
-      table.wrapOn(pdf, width, height)
-      table.drawOn(pdf, 50, height - len(data))
+    table = Table(data, colWidths=[1.6*inch, 3*inch, 1*inch, 1.5*inch])
+    # (columna, fila)
+    table.setStyle(TableStyle([
+    ('GRID',(0,0), (-1,-2), 0.5, colors.black),
+    ('FONTNAME', (0,0), (3,0), 'Helvetica-Bold'),
+    ('BACKGROUND',(0,0), (3,0), colors.lightgrey),
+    ('ALIGN', (1,0), (3,0), 'CENTER'),
+    ('LINEABOVE', (0,0), (-1,0), 1, colors.black),
+    ('LINEABOVE', (0,1), (-1,-2), 0.25, colors.black),
+    ('LINEBELOW', (0,-1), (-1,-2), 1, colors.black),
+    ('ALIGN', (1,1), (-1,-2), 'LEFT'),
+    ('ALIGN', (3,1), (-1,-2), 'RIGHT'),
+    ('ALIGN', (-3,-1), (-1,-1), 'RIGHT'),
+    ('GRID',(-2,-1), (-1,-1), 0.5, colors.black),
+    ('FONTNAME', (-4,-1), (-3,-1), 'Helvetica-Bold'),
+    ('LEFTPADDING', (-4,-1), (-4,-1), 2),
+    ]))
+    width=600
+    height=560
+    table.wrapOn(pdf, width, height)
+    table.drawOn(pdf, 50, height - len(data))
 
-      # cajero(a)
-      pdf.drawString(52, 530, 'CAJERO(A):')
-      pdf.line(130, 529, 350, 529)
-      lienzo.add(String(85, -70, 'Howard Ramos', fontName='Helvetica', fontSize=12, fillColor=colors.black))
+    # cajero(a)
+    pdf.drawString(52, 530, 'CAJERO(A):')
+    pdf.line(130, 529, 350, 529)
+    lienzo.add(String(85, -70, 'Howard Ramos', fontName='Helvetica', fontSize=12, fillColor=colors.black))
 
-      # firma
-      pdf.drawString(290, 480, 'FIRMA')
+    # firma
+    pdf.drawString(290, 480, 'FIRMA')
 
-      # render lienzo
-      lienzo.drawOn(pdf, 50, 600)
+    # render lienzo
+    lienzo.drawOn(pdf, 50, 600)
 
-      pdf.save()
-      return response
+    pdf.save()
+    return response
 
 # reportes endpoints
 def reportes(request):
