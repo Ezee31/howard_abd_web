@@ -1,152 +1,191 @@
 {% extends 'dashboard/index.html' %}
 
-{% block title %}IA Proyecciones - Howard BS{% endblock %}
+{% block title %}Inteligencia de Negocios{% endblock %}
 
 {% block content %}
 <div class="container-fluid p-4">
     
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-brain text-info"></i> Panel de Inteligencia Artificial
+            <i class="fas fa-robot text-primary"></i> Panel de Inteligencia Artificial
         </h1>
         <a href="{% url 'reporte_ia_pdf' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-            <i class="fas fa-download fa-sm text-white-50"></i> Generar Reporte Ejecutivo IA
+            <i class="fas fa-download fa-sm text-white-50"></i> Descargar Reporte Ejecutivo
         </a>
     </div>
 
-    <div class="row">
-
-        <div class="col-xl-3 col-md-6 mb-4">
+    <div class="row mb-4">
+        <h6 class="text-primary font-weight-bold px-3">1. Proyecciones Financieras</h6>
+        
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Proyección Ingresos ({{ mes_prediccion }})
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                C$ {{ prediccion_ingresos }}
-                            </div>
-                            <div class="mt-2">
-                                <span class="badge bg-{{ color_estado }}">{{ estado_ia }}</span>
-                            </div>
-                            <small class="text-muted">Confianza del modelo: {{ precision_modelo }}%</small>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Ingreso Proyectado ({{ mes_prediccion }})</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">C$ {{ prediccion_ingresos }}</div>
+                            <div class="mt-1"><span class="badge bg-{{ color_estado }}">{{ estado_ia }}</span></div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-coins fa-2x text-gray-300"></i>
-                        </div>
+                        <div class="col-auto"><i class="fas fa-chart-line fa-2x text-gray-300"></i></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Próxima Temporada Alta
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ pico_matricula }}
-                            </div>
-                            <p class="text-xs text-muted mt-2 mb-0">
-                                <i class="fas fa-arrow-up text-success"></i> Se recomienda reforzar personal administrativo.
-                            </p>
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Mejor Mes para Ventas</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pico_matricula }}</div>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-plus fa-2x text-gray-300"></i>
-                        </div>
+                        <div class="col-auto"><i class="fas fa-calendar-check fa-2x text-gray-300"></i></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Temporada Baja Esperada
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ bajo_matricula }}
-                            </div>
-                            <p class="text-xs text-muted mt-2 mb-0">
-                                <i class="fas fa-arrow-down text-warning"></i> Oportunidad para lanzar promociones.
-                            </p>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-user-minus fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-danger shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Alerta de Riesgo (Morosidad)
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                {{ riesgo_mes }}
-                            </div>
-                            <p class="text-xs text-muted mt-2 mb-0">
-                                <i class="fas fa-exclamation-triangle text-danger"></i> {{ riesgo_detalle }}
-                            </p>
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Mes Crítico (Morosidad)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ riesgo_mes }}</div>
+                            <small class="text-muted">{{ riesgo_detalle }}</small>
                         </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar-times fa-2x text-gray-300"></i>
-                        </div>
+                        <div class="col-auto"><i class="fas fa-exclamation-circle fa-2x text-gray-300"></i></div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow h-100 py-2">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">2. Semáforo de Comportamiento de Pago (Segmentación)</h6>
+                </div>
+                <div class="card-body">
+                    {% if clustering %}
+                        <div class="row text-center">
+                            <div class="col-md-4 border-end">
+                                <h4 class="text-success font-weight-bold">{{ clustering.premium.cantidad }}</h4>
+                                <span class="badge bg-success mb-2">Premium (Puntuales)</span>
+                                <p class="small text-muted">Clientes ideales. Fidelizar.</p>
+                                <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#modalPremium">
+                                    Ver Lista
+                                </button>
+                            </div>
+                            
+                            <div class="col-md-4 border-end">
+                                <h4 class="text-secondary font-weight-bold">{{ clustering.estandar.cantidad }}</h4>
+                                <span class="badge bg-secondary mb-2">Estándar (Al día)</span>
+                                <p class="small text-muted">Comportamiento regular.</p>
+                            </div>
+
+                            <div class="col-md-4">
+                                <h4 class="text-danger font-weight-bold">{{ clustering.riesgo.cantidad }}</h4>
+                                <span class="badge bg-danger mb-2">Riesgo (Morosos)</span>
+                                <p class="small text-muted">Requieren gestión de cobro.</p>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalRiesgo">
+                                    Ver Lista Crítica
+                                </button>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Faltan datos para segmentar.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="row">
-        <div class="col-lg-12 mb-4">
+        <div class="col-lg-6 mb-4">
             <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Detalle Técnico del Modelo Predictivo</h6>
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-danger">Probabilidad de Abandono</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5 class="small font-weight-bold">Metodología (Prophet / Scikit-Learn)</h5>
-                            <p>El sistema utiliza algoritmos de regresión y series temporales para el análisis de datos académicos. Sus componentes principales son:</p>
-                            <ul>
-                                <li><strong>Tendencia Financiera:</strong> Proyección lineal de ingresos basada en historial.</li>
-                                <li><strong>Estacionalidad:</strong> Detección de patrones repetitivos anuales (picos de matrícula).</li>
-                                <li><strong>Detección de Anomalías:</strong> Identificación de patrones de pago tardío (riesgo de morosidad).</li>
-                            </ul>
+                    {% if riesgo_desercion %}
+                        <div class="table-responsive">
+                            <table class="table table-sm" width="100%">
+                                <thead><tr><th>Alumno</th><th>Probabilidad</th></tr></thead>
+                                <tbody>
+                                    {% for item in riesgo_desercion %}
+                                    <tr>
+                                        <td>{{ item.nombre }}</td>
+                                        <td class="text-danger font-weight-bold">{{ item.probabilidad }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="col-md-6">
-                            <h5 class="small font-weight-bold">Fuentes de Datos (SQL Server)</h5>
-                            <p>La IA se alimenta en tiempo real de la base de datos institucional:</p>
-                            <ul>
-                                <li>Tabla <code>Pago</code>: Historial completo de transacciones (2024-2025).</li>
-                                <li>Filtro <code>TipoPago</code>: Segmentación automática entre 'Matrícula' y 'Mensualidad'.</li>
-                                <li>Variables: Fechas de transacción y montos efectivos.</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <hr>
-                    <p class="mb-0 text-center text-muted small">
-                        <i>"La IA permite anticipar fluctuaciones financieras, optimizar la planificación de recursos y detectar riesgos."</i> 
-                        - Documento ISO 3 Grupo #8
-                    </p>
+                    {% else %}
+                        <p class="mb-0 text-success">No se detectaron riesgos altos.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">Uso de Instalaciones</h6>
+                </div>
+                <div class="card-body">
+                    {% if cupos %}
+                        <ul class="list-group list-group-flush">
+                            {% for c in cupos %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ c.grupo }} <span class="badge bg-{{ c.clase }}">{{ c.estado }} ({{ c.ocupacion }})</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
+</div>
+
+<div class="modal fade" id="modalPremium" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Clientes Premium</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group">
+            {% for nombre, apellido in clustering.premium.lista %}
+                <li class="list-group-item">{{ nombre }} {{ apellido }}</li>
+            {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalRiesgo" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Clientes en Riesgo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group">
+            {% for nombre, apellido in clustering.riesgo.lista %}
+                <li class="list-group-item">{{ nombre }} {{ apellido }}</li>
+            {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

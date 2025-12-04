@@ -16,13 +16,26 @@ from .utils import agregar_icono_tipo_pago
 from json import dumps
 from datetime import date, timedelta
 from num2words import num2words
+
+# Imports para PDF (ReportLab)
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
-from reportlab.platypus import Table, TableStyle
+from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer
 from reportlab.graphics.shapes import Drawing, Rect, String
-from .ai_service import predecir_ingresos_prophet, analizar_matricula_prophet, analizar_riesgo_morosidad
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from django.db.models import Sum, Avg, Count
+
+# Importación de Servicios de IA
+from .ai_service import (
+    predecir_ingresos_prophet, 
+    analizar_matricula_prophet, 
+    segmentar_clientes_kmeans, 
+    predecir_desercion_logistica, 
+    optimizar_cupos, 
+    analizar_riesgo_morosidad
+)
 
 # Create your views here.
 
@@ -48,28 +61,35 @@ def signin(request):
 # 1. DASHBOARD ORIGINAL (Solo muestra el Home con logos)
 @login_required(login_url='signin')
 def dashboard(request):
-    # Aquí simplemente renderizamos tu página de inicio original
+    # Renderiza la página de inicio con el logo
     return render(request, "home.html")
 
-# 2. NUEVA VISTA PARA IA (Cálculos de Prophet)
-# ... imports ...
-
-
+# 2. VISTA PARA IA (Panel de Inteligencia Artificial)
 @login_required(login_url='signin')
 def ia_dashboard(request):
     total_alumnos = Alumno.objects.filter(activo=True).count()
     
-    # 1. Predicción Financiera
+    # 1. Ingresos (Prophet)
     monto_predicho, mes_predicho, precision = predecir_ingresos_prophet()
     
-    # 2. Predicción de Matrícula (Picos)
+    # 2. Estacionalidad
     pico_matricula, bajo_matricula = analizar_matricula_prophet()
     
-    # 3. NUEVA: Riesgo de Morosidad
-    riesgo_mes, riesgo_detalle = analizar_riesgo_morosidad() # <--- NUEVO
+    # 3. Clustering de Clientes
+    clustering_data = segmentar_clientes_kmeans()
+    
+    # 4. Deserción (Churn)
+    lista_riesgo_desercion = predecir_desercion_logistica()
+    
+    # 5. Cupos
+    lista_cupos = optimizar_cupos()
+    
+    # 6. Riesgo Morosidad
+    riesgo_mes, riesgo_detalle = analizar_riesgo_morosidad()
 
+    # Estado general
     if monto_predicho > 0:
-        estado_ia = "Activo (Prophet/Scikit)"
+        estado_ia = "Activo (Multi-Modelo)"
         color_estado = "success"
     else:
         estado_ia = "Datos Insuficientes"
@@ -84,7 +104,9 @@ def ia_dashboard(request):
         'color_estado': color_estado,
         'pico_matricula': pico_matricula,
         'bajo_matricula': bajo_matricula,
-        # Datos Nuevos
+        'clustering': clustering_data,
+        'riesgo_desercion': lista_riesgo_desercion,
+        'cupos': lista_cupos,
         'riesgo_mes': riesgo_mes,
         'riesgo_detalle': riesgo_detalle,
     }
@@ -1135,8 +1157,6 @@ def filtrar_alumnos(request):
             ).values('id', 'nombres', 'apellidos')
         )
     )
-    # esta es otra forma de depurar la dejo por aquí de respaldo
-    # breakpoint()
     return JsonResponse({'alumnos': alumnos_encontrados}, status=200)
 
 @login_required(login_url='signin')
@@ -1153,43 +1173,36 @@ def descargar_factura(request, pago_id):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename={nombre_del_archivo}.pdf'
 
-    # inicializando documento con formato letter (American format) también podemos usar A4 (internacional)
+    # inicializando documento
     pdf = canvas.Canvas(response, pagesize=letter)
     pdf.setFont('Helvetica-Bold', 12)
-    # agregando titulo que aparece en la pestaña del navegador
     pdf.setTitle('Hoja de matricula' if tipo_pago_efectuado == 'matricula' else 'Factura')
-
-    # if tipo_pago_efectuado == 'matricula':
-    #     pass
     
-    # el pago efectuado pudo ser mensualidad o una venta
     grupo = Grupo.objects.select_related('horario').get(id=pago.alumno.grupo_id)
     tipo_turno = TipoTurno.objects.get(id=grupo.horario.tipo_turno_id)
 
-      # header
-      # titulo y sub titulo
+    # header
     pdf.drawString(219, 760, 'Howard Bilingual School - H.B.S')
     pdf.drawString(234, 730, 'RECIBO OFICIAL DE CAJA')
 
-      # numero de whatsapp parte superior derecha
+    # numero de whatsapp
     lienzo = Drawing(400, 200)
     lienzo.add(Rect(365, 120, 130, 55, fillColor=colors.lightgrey, strokeColor=colors.lightgrey))
     lienzo.add(String(400, 153, 'Whatsapp', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
     lienzo.add(String(400, 132, '8593-7255', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
 
-      # datos de la factura
-      # no. recibo
+    # datos de la factura
     no_recibo = pago.id
     pdf.drawString(192, 690, 'No. RECIBO')
     lienzo.add(Rect(220, 88, 30, 14, fillColor=colors.lightgrey, strokeColor=colors.lightgrey))
     lienzo.add(String(237, 90, str(no_recibo), fontName='Helvetica-Bold', fontSize=12, fillColor=colors.black))
 
-      # fecha
+    # fecha
     pdf.drawString(386, 690, 'FECHA:')
     pdf.line(440, 689, 560, 689)
     lienzo.add(String(395, 90, date.today().strftime('%B %d, %Y'), fontName='Helvetica', fontSize=12, fillColor=colors.black))
 
-      # recibimos de
+    # recibimos de
     pdf.drawString(50, 650, 'RECIBIMOS DE:')
     pdf.line(192, 649, 450, 649)
     lienzo.add(String(147, 50, f'{pago.alumno.nombres} {pago.alumno.apellidos}', fontName='Helvetica', fontSize=12, fillColor=colors.black))
@@ -1240,6 +1253,103 @@ def descargar_factura(request, pago_id):
     lienzo.drawOn(pdf, 50, 600)
 
     pdf.save()
+    return response
+
+# 3. REPORTE IA PDF PROFESIONAL
+@login_required(login_url='signin')
+def reporte_ia_pdf(request):
+    """
+    Genera Reporte Ejecutivo con diseño profesional y LISTAS DE ALUMNOS.
+    """
+    # 1. Obtener Datos
+    monto_ia, mes_ia, conf_ia = predecir_ingresos_prophet()
+    pico_ia, bajo_ia = analizar_matricula_prophet()
+    riesgo_mes_ia, riesgo_det_ia = analizar_riesgo_morosidad()
+    clustering = segmentar_clientes_kmeans()
+    
+    # Datos Reales para justificación
+    promedio_real = Pago.objects.aggregate(Avg('monto'))['monto__avg'] or 0
+
+    # 2. Configurar PDF
+    response = HttpResponse(content_type='application/pdf')
+    filename = f"Reporte_Inteligente_{date.today()}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Estilos
+    estilo_titulo = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=20, textColor=colors.darkblue, alignment=1, spaceAfter=20)
+    estilo_seccion = ParagraphStyle('Sec', parent=styles['Heading2'], fontSize=14, textColor=colors.darkblue, spaceBefore=15)
+    estilo_normal = styles['Normal']
+
+    # --- CONTENIDO ---
+    elements.append(Paragraph("Howard Bilingual School", estilo_titulo))
+    elements.append(Paragraph(f"Reporte de Inteligencia de Negocios - {date.today().strftime('%d/%m/%Y')}", styles['Heading3']))
+    elements.append(Spacer(1, 10))
+
+    # A. FINANZAS
+    elements.append(Paragraph("1. Proyección Financiera (Próximo Mes)", estilo_seccion))
+    data_finanzas = [
+        ['Concepto', 'Predicción IA', 'Dato Histórico (Contexto)'],
+        [f'Ingreso {mes_ia}', f'C$ {monto_ia:,.2f}', f'Promedio real: C$ {promedio_real:,.2f}'],
+        ['Confianza', f'{conf_ia}%', 'Basado en histórico 2024-2025']
+    ]
+    t1 = Table(data_finanzas, colWidths=[150, 120, 200])
+    t1.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.navy),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    elements.append(t1)
+
+    # B. MAPA DE CALOR (CLIENTES)
+    elements.append(Paragraph("2. Semáforo de Comportamiento de Pago", estilo_seccion))
+    if clustering:
+        data_cluster = [
+            ['Perfil', 'Cantidad', 'Estrategia Sugerida'],
+            ['💎 Premium (Puntuales)', str(clustering['premium']['cantidad']), 'Fidelizar / Beca Honorífica'],
+            ['✅ Estándar (Normal)', str(clustering['estandar']['cantidad']), 'Seguimiento regular'],
+            ['🚨 Riesgo (Morosos)', str(clustering['riesgo']['cantidad']), 'Gestión de Cobro Inmediata']
+        ]
+        t2 = Table(data_cluster, colWidths=[150, 80, 240])
+        t2.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.darkgreen),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('TEXTCOLOR', (0, 3), (-1, 3), colors.red), # Rojo para riesgo
+        ]))
+        elements.append(t2)
+
+    # C. DETALLE NOMINAL (LISTAS)
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("3. Detalle de Alumnos en Riesgo (Acción Requerida)", estilo_seccion))
+    
+    if clustering and clustering['riesgo']['cantidad'] > 0:
+        # Convertir tuplas a lista de listas para la tabla
+        lista_riesgo = [['Nombre del Estudiante', 'Apellido']]
+        # Limitamos a los primeros 15 para que quepan en la hoja (o pon todos si quieres)
+        for nombre, apellido in clustering['riesgo']['lista'][:20]: 
+            lista_riesgo.append([nombre, apellido])
+        
+        t_riesgo = Table(lista_riesgo, colWidths=[200, 200])
+        t_riesgo.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.firebrick),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+        ]))
+        elements.append(t_riesgo)
+        if clustering['riesgo']['cantidad'] > 20:
+            elements.append(Paragraph(f"... y {clustering['riesgo']['cantidad'] - 20} más.", styles['Italic']))
+    else:
+        elements.append(Paragraph("No se detectaron alumnos en el perfil de riesgo.", styles['Normal']))
+
+    # PIE
+    elements.append(Spacer(1, 30))
+    elements.append(Paragraph("Reporte generado automáticamente por Howard Web System.", styles['Italic']))
+
+    doc.build(elements)
     return response
 
 # reportes endpoints
@@ -1428,14 +1538,16 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'profile/register.html', {'form': form})
 
-#splash screen
+# --- LAS FUNCIONES QUE TE FALTABAN AL FINAL ---
+
+# splash screen
 def splash_screen(request):
     if request.session.get('splash_seen', False):
         return redirect('dashboard')  
     request.session['splash_seen'] = True
     return render(request, 'splash.html')
 
-#revision de pago
+# revision de pago
 def alumno_detalle(request, alumno_id):
     alumno = get_object_or_404(Alumno, id=alumno_id)
     tipo_mensualidad = TipoPago.objects.get(nombre="Mensualidad")
@@ -1456,79 +1568,3 @@ def alumno_detalle(request, alumno_id):
         'dias_restantes': dias_restantes
     }
     return render(request, 'alumno_detalle.html', context)
-
-@login_required(login_url='signin')
-def reporte_ia_pdf(request):
-    """
-    Genera un PDF ejecutivo con los hallazgos de la Inteligencia Artificial.
-    """
-    # Ejecutamos todos los modelos
-    monto, mes, conf = predecir_ingresos_prophet()
-    pico, bajo = analizar_matricula_prophet()
-    riesgo, detalle = analizar_riesgo_morosidad()
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="Reporte_Estrategico_IA_{date.today()}.pdf"'
-
-    p = canvas.Canvas(response, pagesize=letter)
-    width, height = letter
-
-    # --- ENCABEZADO ---
-    p.setFillColor(colors.darkblue)
-    p.setFont("Helvetica-Bold", 18)
-    p.drawString(50, height - 50, "Howard Bilingual School")
-    
-    p.setFillColor(colors.black)
-    p.setFont("Helvetica", 12)
-    p.drawString(50, height - 70, f"Informe de Inteligencia Artificial - {date.today().strftime('%d/%m/%Y')}")
-    p.line(50, height - 80, width - 50, height - 80)
-
-    # --- SECCIÓN 1: PROYECCIÓN FINANCIERA ---
-    y = height - 120
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, y, "1. Proyección Financiera (Corto Plazo)")
-    
-    y -= 25
-    p.setFont("Helvetica", 12)
-    p.drawString(70, y, f"Mes Analizado: {mes}")
-    y -= 20
-    p.drawString(70, y, f"Ingreso Proyectado: C$ {monto:,.2f}")
-    y -= 20
-    p.setFillColor(colors.green)
-    p.drawString(70, y, f"Nivel de Confianza del Modelo: {conf}%")
-    p.setFillColor(colors.black)
-
-    # --- SECCIÓN 2: ESTACIONALIDAD (MATRÍCULAS) ---
-    y -= 50
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, y, "2. Análisis de Estacionalidad (Matrículas)")
-    
-    y -= 25
-    p.setFont("Helvetica", 12)
-    p.drawString(70, y, "Basado en patrones históricos de inscripción:")
-    y -= 20
-    p.drawString(90, y, f"• Temporada Alta (Pico): {pico}")
-    y -= 20
-    p.drawString(90, y, f"• Temporada Baja (Valle): {bajo}")
-
-    # --- SECCIÓN 3: GESTIÓN DE RIESGOS (MOROSIDAD) ---
-    y -= 50
-    p.setFont("Helvetica-Bold", 14)
-    p.drawString(50, y, "3. Detección de Riesgos (Morosidad)")
-    
-    y -= 25
-    p.setFont("Helvetica", 12)
-    p.setFillColor(colors.red)
-    p.drawString(70, y, f"Mes Crítico Detectado: {riesgo}")
-    p.setFillColor(colors.black)
-    y -= 20
-    p.drawString(70, y, f"Recomendación IA: {detalle}")
-
-    # --- PIE DE PÁGINA ---
-    p.setFont("Helvetica-Oblique", 10)
-    p.drawString(50, 50, "Documento generado automáticamente por el Módulo IA (Prophet/Scikit-Learn).")
-    p.drawString(50, 35, "Uso exclusivo para la dirección administrativa.")
-
-    p.showPage()
-    p.save()
-    return response
