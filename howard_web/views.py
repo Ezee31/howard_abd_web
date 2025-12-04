@@ -9,9 +9,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse, JsonResponse
 from .forms import UserUpdateForm, UserRegisterForm
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
-from .forms import UserUpdateForm, ProfilePictureForm, CustomPasswordChangeForm
+from .forms import ProfilePictureForm, CustomPasswordChangeForm
 from django.contrib import messages
 from .utils import agregar_icono_tipo_pago
 from json import dumps
@@ -22,9 +21,11 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.platypus import Table, TableStyle
-from reportlab.graphics.shapes import *
+from reportlab.graphics.shapes import Drawing, Rect, String
+from .ai_service import predecir_ingresos_prophet, analizar_matricula_prophet, analizar_riesgo_morosidad
 
 # Create your views here.
+
 # login endpoint
 def signin(request):
     if request.method == "POST":
@@ -44,10 +45,50 @@ def signin(request):
     new_login_form = LoginForm()
     return render(request, "login/index.html", {'form': new_login_form})
 
-# dashboard endpoint
+# 1. DASHBOARD ORIGINAL (Solo muestra el Home con logos)
 @login_required(login_url='signin')
 def dashboard(request):
+    # Aquí simplemente renderizamos tu página de inicio original
     return render(request, "home.html")
+
+# 2. NUEVA VISTA PARA IA (Cálculos de Prophet)
+# ... imports ...
+
+
+@login_required(login_url='signin')
+def ia_dashboard(request):
+    total_alumnos = Alumno.objects.filter(activo=True).count()
+    
+    # 1. Predicción Financiera
+    monto_predicho, mes_predicho, precision = predecir_ingresos_prophet()
+    
+    # 2. Predicción de Matrícula (Picos)
+    pico_matricula, bajo_matricula = analizar_matricula_prophet()
+    
+    # 3. NUEVA: Riesgo de Morosidad
+    riesgo_mes, riesgo_detalle = analizar_riesgo_morosidad() # <--- NUEVO
+
+    if monto_predicho > 0:
+        estado_ia = "Activo (Prophet/Scikit)"
+        color_estado = "success"
+    else:
+        estado_ia = "Datos Insuficientes"
+        color_estado = "warning"
+
+    context = {
+        'total_alumnos': total_alumnos,
+        'prediccion_ingresos': monto_predicho,
+        'mes_prediccion': mes_predicho,
+        'precision_modelo': precision,
+        'estado_ia': estado_ia,
+        'color_estado': color_estado,
+        'pico_matricula': pico_matricula,
+        'bajo_matricula': bajo_matricula,
+        # Datos Nuevos
+        'riesgo_mes': riesgo_mes,
+        'riesgo_detalle': riesgo_detalle,
+    }
+    return render(request, "ia_dashboard.html", context)
 
 # tipo turno endpoints
 @login_required(login_url='signin')
@@ -55,7 +96,7 @@ def tipo_turno(request):
     tipos_turnos = TipoTurno.objects.all()
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
-        page = request.GET.get('page', 1)  # captura la pagina en la que se encuentra
+        page = request.GET.get('page', 1)
         
         if search_query:
             tipos_turnos = TipoTurno.objects.filter(
@@ -67,7 +108,7 @@ def tipo_turno(request):
         else:
             tipos_turnos = TipoTurno.objects.all()
         
-        paginator = Paginator(tipos_turnos, 10)  # Mostrar 10 tipos de turnos por página
+        paginator = Paginator(tipos_turnos, 10)
         tipos_turnos_page = paginator.get_page(page)
 
         new_tipo_turno_form = TipoTurnoForm()
@@ -83,7 +124,6 @@ def tipo_turno(request):
                 formato = form.cleaned_data["formato"]
             )
             new_tipo_turno.save()
-            # Registrar la actualización
             LogEntry.objects.log_action(
                 user_id=request.user.pk,
                 content_type_id=ContentType.objects.get_for_model(TipoTurno).pk,
@@ -123,7 +163,6 @@ def tipo_turno_add(request):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'errors': form.errors}, status=400)
-            
 
 @login_required(login_url='signin')
 def tipo_turno_edit(request, id):
@@ -157,7 +196,6 @@ def tipo_turno_edit(request, id):
         else: 
             return JsonResponse({'errors': form.errors}, status=400)
 
-
 @login_required(login_url='signin')
 def tipo_turno_delete(request, id):
     tipo_turno = TipoTurno.objects.get(id=id)
@@ -172,8 +210,6 @@ def tipo_turno_delete(request, id):
     tipo_turno.delete()
     return redirect("tipo_turno")
 
-
-
 # horario endpoint
 @login_required(login_url='signin')
 def horario(request, id=None):
@@ -181,7 +217,7 @@ def horario(request, id=None):
     
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
-        page = request.GET.get('page', 1)  # captura la pagina en la que se encuentra
+        page = request.GET.get('page', 1)
         
         if search_query:
             horarios = Horario.objects.filter(
@@ -191,7 +227,7 @@ def horario(request, id=None):
         else:
             horarios = Horario.objects.all()
         
-        paginator = Paginator(horarios, 10)  # Mostrar 10 horarios por página
+        paginator = Paginator(horarios, 10)
         horarios_page = paginator.get_page(page)
         
         if id:
@@ -216,7 +252,6 @@ def horario(request, id=None):
                 horario.nombre = nombre
                 horario.tipo_turno = tipo_turno
                 horario.save()
-                # Registrar la actualización
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Horario).pk,
@@ -231,7 +266,6 @@ def horario(request, id=None):
                     tipo_turno=tipo_turno
                 )
                 new_horario.save()
-                # Registrar la creación
                 LogEntry.objects.log_action(
                     user_id=request.user.pk,
                     content_type_id=ContentType.objects.get_for_model(Horario).pk,
@@ -241,7 +275,6 @@ def horario(request, id=None):
                     change_message=f'Added {new_horario}'
                 )
             return redirect("horario")
-        
         else:
             if id:
                 return render(request, "crud/horario.html", {'form': horario_form, 'horario': horario})
@@ -317,7 +350,6 @@ def horario_delete(request, id):
     )
     horario.delete()
     return redirect("horario")
-
 
 # profesor endpoints
 @login_required(login_url='signin')
@@ -436,7 +468,6 @@ def profesor_delete(request, id):
     )
     profesor.delete()
     return redirect('profesor')
-    
 
 # tipopago endpoints
 @login_required(login_url='signin')
@@ -543,7 +574,6 @@ def tipo_pago_delete(request, id):
     tipo_pago.delete()
     return redirect('tipo_pago')
 
-
 # grupo endpoint 
 @login_required(login_url='signin')
 def grupo(request, id=None):
@@ -565,7 +595,7 @@ def grupo(request, id=None):
         else:
             grupos = Grupo.objects.all()
         
-        paginator = Paginator(grupos, 10)  # Show 10 groups per page
+        paginator = Paginator(grupos, 10) 
         grupos_page = paginator.get_page(page)
         
         if id:
@@ -731,7 +761,7 @@ def alumno(request, id=None):
     
     if request.method == 'GET':
         search_query = request.GET.get('search', '')
-        page = request.GET.get('page', 1)  # captura la página en la que se encuentra
+        page = request.GET.get('page', 1) 
 
         if search_query:
             alumnos = Alumno.objects.filter(
@@ -744,7 +774,7 @@ def alumno(request, id=None):
             alumnos = Alumno.objects.all()
 
         # paginado
-        paginator = Paginator(alumnos, 10)  # Mostrar 10 alumnos por página
+        paginator = Paginator(alumnos, 10) 
         alumnos_page = paginator.get_page(page)
 
         if id:
@@ -1427,4 +1457,78 @@ def alumno_detalle(request, alumno_id):
     }
     return render(request, 'alumno_detalle.html', context)
 
+@login_required(login_url='signin')
+def reporte_ia_pdf(request):
+    """
+    Genera un PDF ejecutivo con los hallazgos de la Inteligencia Artificial.
+    """
+    # Ejecutamos todos los modelos
+    monto, mes, conf = predecir_ingresos_prophet()
+    pico, bajo = analizar_matricula_prophet()
+    riesgo, detalle = analizar_riesgo_morosidad()
 
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="Reporte_Estrategico_IA_{date.today()}.pdf"'
+
+    p = canvas.Canvas(response, pagesize=letter)
+    width, height = letter
+
+    # --- ENCABEZADO ---
+    p.setFillColor(colors.darkblue)
+    p.setFont("Helvetica-Bold", 18)
+    p.drawString(50, height - 50, "Howard Bilingual School")
+    
+    p.setFillColor(colors.black)
+    p.setFont("Helvetica", 12)
+    p.drawString(50, height - 70, f"Informe de Inteligencia Artificial - {date.today().strftime('%d/%m/%Y')}")
+    p.line(50, height - 80, width - 50, height - 80)
+
+    # --- SECCIÓN 1: PROYECCIÓN FINANCIERA ---
+    y = height - 120
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, y, "1. Proyección Financiera (Corto Plazo)")
+    
+    y -= 25
+    p.setFont("Helvetica", 12)
+    p.drawString(70, y, f"Mes Analizado: {mes}")
+    y -= 20
+    p.drawString(70, y, f"Ingreso Proyectado: C$ {monto:,.2f}")
+    y -= 20
+    p.setFillColor(colors.green)
+    p.drawString(70, y, f"Nivel de Confianza del Modelo: {conf}%")
+    p.setFillColor(colors.black)
+
+    # --- SECCIÓN 2: ESTACIONALIDAD (MATRÍCULAS) ---
+    y -= 50
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, y, "2. Análisis de Estacionalidad (Matrículas)")
+    
+    y -= 25
+    p.setFont("Helvetica", 12)
+    p.drawString(70, y, "Basado en patrones históricos de inscripción:")
+    y -= 20
+    p.drawString(90, y, f"• Temporada Alta (Pico): {pico}")
+    y -= 20
+    p.drawString(90, y, f"• Temporada Baja (Valle): {bajo}")
+
+    # --- SECCIÓN 3: GESTIÓN DE RIESGOS (MOROSIDAD) ---
+    y -= 50
+    p.setFont("Helvetica-Bold", 14)
+    p.drawString(50, y, "3. Detección de Riesgos (Morosidad)")
+    
+    y -= 25
+    p.setFont("Helvetica", 12)
+    p.setFillColor(colors.red)
+    p.drawString(70, y, f"Mes Crítico Detectado: {riesgo}")
+    p.setFillColor(colors.black)
+    y -= 20
+    p.drawString(70, y, f"Recomendación IA: {detalle}")
+
+    # --- PIE DE PÁGINA ---
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawString(50, 50, "Documento generado automáticamente por el Módulo IA (Prophet/Scikit-Learn).")
+    p.drawString(50, 35, "Uso exclusivo para la dirección administrativa.")
+
+    p.showPage()
+    p.save()
+    return response

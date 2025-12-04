@@ -1,29 +1,35 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Menú lateral{% endblock %}</title>
 
-    <!-- bootstrap local -->
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap-grid.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap-utilities.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap-reboot.min.css' %}" rel="stylesheet">
 
-    <!-- fontawesome local -->
     <link href="{% static 'css/fontawesome.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/brands.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/solid.min.css' %}" rel="stylesheet">
 
-    <!-- sweetalert2 -->
     <link rel="stylesheet" href="{% static 'css/sweetalert2.min.css' %}">
 
     <link rel="stylesheet" href="{% static "dashboard.css" %}">
     <link rel="stylesheet" href="{% static "crud-styles.css" %}">
     <link rel="stylesheet" href="{% static "home.css" %}">
+    
+    <style>
+        .border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+        .border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+        .border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+        .border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+        .text-gray-300 { color: #dddfeb !important; }
+        .text-gray-800 { color: #5a5c69 !important; }
+    </style>
     {% block styles %}{% endblock %}
 </head>
 <body id="body">
@@ -55,11 +61,17 @@
             <h4>Howard Bilingual School</h4>
         </div>
         <div class="options__menu">
-            {% csrf_token %}
-            <a id="option-raiz" href="/dashboard/">
+            <a id="option-raiz" href="{% url 'dashboard' %}">
                 <div class="option">
                     <i class="fas fa-home" title="Inicio"></i>
                     <h4>Inicio</h4>
+                </div>
+            </a>
+            
+            <a id="option-ia" href="{% url 'ia_dashboard' %}">
+                <div class="option">
+                    <i class="fas fa-brain" title="IA Prophet"></i>
+                    <h4>Proyección IA</h4>
                 </div>
             </a>
             <a id="option-grupo" href="{% url 'grupo' %}">
@@ -118,17 +130,14 @@
         {% endblock %}
     </main>
 
-    <!-- scripts de bootstrap -->
     <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script> 
 
-    <!-- scripts de fontawesome -->
     <script src="{% static 'js/fontawesome.min.js' %}"></script>
     <script src="{% static 'js/solid.min.js' %}"></script>
     <script src="{% static 'js/brands.min.js' %}"></script>
 
-    <!-- sweetalert2 -->
     <script src="{% static "js/sweetalert2.all.min.js" %}"></script>
 
     <script src="{% static "js/dashboard.js" %}"></script>

@@ -1,0 +1,152 @@
+{% extends 'dashboard/index.html' %}
+
+{% block title %}IA Proyecciones - Howard BS{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-brain text-info"></i> Panel de Inteligencia Artificial
+        </h1>
+        <a href="{% url 'reporte_ia_pdf' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-download fa-sm text-white-50"></i> Generar Reporte Ejecutivo IA
+        </a>
+    </div>
+
+    <div class="row">
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Proyección Ingresos ({{ mes_prediccion }})
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                C$ {{ prediccion_ingresos }}
+                            </div>
+                            <div class="mt-2">
+                                <span class="badge bg-{{ color_estado }}">{{ estado_ia }}</span>
+                            </div>
+                            <small class="text-muted">Confianza del modelo: {{ precision_modelo }}%</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-coins fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Próxima Temporada Alta
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ pico_matricula }}
+                            </div>
+                            <p class="text-xs text-muted mt-2 mb-0">
+                                <i class="fas fa-arrow-up text-success"></i> Se recomienda reforzar personal administrativo.
+                            </p>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-plus fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Temporada Baja Esperada
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ bajo_matricula }}
+                            </div>
+                            <p class="text-xs text-muted mt-2 mb-0">
+                                <i class="fas fa-arrow-down text-warning"></i> Oportunidad para lanzar promociones.
+                            </p>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-minus fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Alerta de Riesgo (Morosidad)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ riesgo_mes }}
+                            </div>
+                            <p class="text-xs text-muted mt-2 mb-0">
+                                <i class="fas fa-exclamation-triangle text-danger"></i> {{ riesgo_detalle }}
+                            </p>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-times fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Detalle Técnico del Modelo Predictivo</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="small font-weight-bold">Metodología (Prophet / Scikit-Learn)</h5>
+                            <p>El sistema utiliza algoritmos de regresión y series temporales para el análisis de datos académicos. Sus componentes principales son:</p>
+                            <ul>
+                                <li><strong>Tendencia Financiera:</strong> Proyección lineal de ingresos basada en historial.</li>
+                                <li><strong>Estacionalidad:</strong> Detección de patrones repetitivos anuales (picos de matrícula).</li>
+                                <li><strong>Detección de Anomalías:</strong> Identificación de patrones de pago tardío (riesgo de morosidad).</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="small font-weight-bold">Fuentes de Datos (SQL Server)</h5>
+                            <p>La IA se alimenta en tiempo real de la base de datos institucional:</p>
+                            <ul>
+                                <li>Tabla <code>Pago</code>: Historial completo de transacciones (2024-2025).</li>
+                                <li>Filtro <code>TipoPago</code>: Segmentación automática entre 'Matrícula' y 'Mensualidad'.</li>
+                                <li>Variables: Fechas de transacción y montos efectivos.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <hr>
+                    <p class="mb-0 text-center text-muted small">
+                        <i>"La IA permite anticipar fluctuaciones financieras, optimizar la planificación de recursos y detectar riesgos."</i> 
+                        - Documento ISO 3 Grupo #8
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
