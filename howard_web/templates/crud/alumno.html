@@ -1,182 +1,363 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
+{% load static %}
+
+{% block title %}Directorio de Estudiantes | Howard BS{% endblock %}
+
+{% block styles %}
+<style>
+    /* === ESTILOS ESPECÍFICOS PARA ALUMNOS === */
+    
+    /* Avatares con Gradiente */
+    .avatar-initials {
+        width: 45px; height: 45px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.1rem;
+        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+        text-transform: uppercase; border: 2px solid white;
+    }
+
+    /* Tarjeta de Tabla Flotante */
+    .table-card {
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: none;
+        overflow: hidden;
+        background: white;
+    }
+
+    /* Tabla Moderna */
+    .table-modern thead th {
+        background-color: #f8f9fc;
+        color: #8898aa;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 1.2rem 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .table-modern tbody td {
+        padding: 1rem 1rem;
+        vertical-align: middle;
+        color: #525f7f;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f6f9fc;
+    }
+
+    .table-modern tbody tr:hover {
+        background-color: #fcfcfd;
+        transform: scale(1.005);
+        transition: all 0.2s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        z-index: 10;
+        position: relative;
+    }
+
+    /* Badges (Etiquetas) */
+    .badge-status {
+        padding: 0.5em 1em;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .status-active { background-color: rgba(45, 206, 137, 0.15); color: #2dce89; }
+    .status-inactive { background-color: rgba(245, 54, 92, 0.15); color: #f5365c; }
+
+    /* Botones de Acción */
+    .btn-action {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        border: none;
+        background: #f8f9fa;
+        color: #adb5bd;
+        margin: 0 2px;
+    }
+    .btn-action:hover { background-color: #5e72e4; color: white; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(94, 114, 228, 0.3); }
+    .btn-action.delete:hover { background-color: #f5365c; color: white; box-shadow: 0 4px 6px rgba(245, 54, 92, 0.3); }
+
+    /* Stats Cards */
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: transform 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 5px;
+    }
+    .stat-blue::before { background: #5e72e4; }
+    .stat-green::before { background: #2dce89; }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    /* Modales */
+    .modal-content {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2 class="my-4 text-primary">Gestión de Alumnos</h2>
+<div class="container-fluid p-4">
 
-    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#alumnoModal" onclick="openModal('add')">
-        Añadir Alumno
-    </button>
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 fw-bold text-dark mb-1">Estudiantes</h1>
+            <p class="text-muted mb-0">Gestión de matrícula y expedientes académicos.</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary shadow px-4 py-2 rounded-pill" onclick="abrir_modal_creacion('{% url 'alumno_add' %}')">
+                <i class="fas fa-user-plus fa-sm text-white-50 me-2"></i> Nuevo Estudiante
+            </button>
+        </div>
+    </div>
 
-    <!--modal para alumno-->
-    <div id="alumnoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="alumnoModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="alumnoModalLabel">Añadir Alumno</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="stat-card stat-blue">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1 fw-bold" style="font-size: 0.7rem;">Total Registrados</h6>
+                    <h2 class="mb-0 fw-bold text-dark">{{ alumnos.paginator.count }}</h2>
                 </div>
-                <div class="modal-body">
-                    <form id="alumnoForm" method="post">
-                        {% csrf_token %}
-                        <div id="form-fields">
-                            {{ form.as_p }}
-                        </div>
-                    </form>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-users"></i>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="stat-card stat-green">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1 fw-bold" style="font-size: 0.7rem;">Alumnos Activos</h6>
+                    <h2 class="mb-0 fw-bold text-success">{{ alumnos.paginator.count }}</h2> 
+                    </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-user-check"></i>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Filtrar la cantidad seleccionada -->
-    <div class="filterEntries">
-        <div class="entries">
-            Enseñar <select name="page_size" id="table_size" class="form-control">
-                <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
-                <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
-                <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
-                <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
-            </select> entradas
-        </div>
-        <div class="filter">
-            <form id="search-form" method="get" action="/alumno">
-                <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, apellido, email o nombre de grupo" value="{{ request.GET.search }}" class="form-control">
+
+    <div class="card table-card">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center py-3 px-4">
+            <h6 class="m-0 font-weight-bold text-primary">Listado Oficial</h6>
+            
+            <form method="GET" action="{% url 'alumno' %}" class="d-flex align-items-center">
+                <div class="input-group shadow-sm" style="border-radius: 30px; overflow: hidden; width: 300px;">
+                    <button class="btn btn-light bg-white border-0 text-muted ps-3" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <input type="text" name="search" class="form-control border-0 bg-white shadow-none" 
+                           placeholder="Buscar por nombre..." 
+                           value="{{ request.GET.search|default:'' }}">
+                </div>
             </form>
         </div>
-    </div>
 
-    <div id="alumno-table">
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr class="heading">
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>Telefono</th>
-                    <th>Email</th>
-                    <th>Activo</th>
-                    <th>Grupo</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="alumno-table-body">
-                {% for alumno in alumnos %}
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
                     <tr>
-                        <td>{{ alumno.nombres }}</td>
-                        <td>{{ alumno.apellidos }}</td>
-                        <td>{{ alumno.telefono }}</td>
-                        <td>{{ alumno.email }}</td>
-                        <td>{{ alumno.activo }}</td>
-                        <td>{{ alumno.grupo }}</td>
+                        <th class="ps-4">Perfil</th>
+                        <th>Contacto</th>
+                        <th>Grupo</th>
+                        <th>Estado</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alumno in alumnos %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-initials me-3">
+                                    {{ alumno.nombres|slice:":1" }}{{ alumno.apellidos|slice:":1" }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ alumno.nombres }} {{ alumno.apellidos }}</div>
+                                    <div class="text-muted small">ID: {{ alumno.id }}</div>
+                                </div>
+                            </div>
+                        </td>
                         <td>
-                            <a href="{% url 'alumno_detalle' alumno.id %}" class="btn btn-info btn-sm">Solvencia</a>
-                            <button type="button" class="btn btn-sm btn-custom-modify" data-bs-toggle="modal" data-bs-target="#alumnoModal" onclick="openModal('edit', {{ alumno.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <a href="/alumno_delete/{{alumno.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
+                            <div class="d-flex flex-column">
+                                <span class="text-dark mb-1"><i class="fas fa-envelope me-2 text-black-50"></i>{{ alumno.email }}</span>
+                                <span class="text-muted small"><i class="fas fa-phone me-2 text-black-50"></i>{{ alumno.telefono }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ alumno.grupo.nombre }}</span>
+                            <div class="small text-muted mt-1">{{ alumno.grupo.nivel }}</div>
+                        </td>
+                        <td>
+                            {% if alumno.activo %}
+                                <span class="badge-status status-active"><i class="fas fa-check-circle"></i> Activo</span>
+                            {% else %}
+                                <span class="badge-status status-inactive"><i class="fas fa-times-circle"></i> Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'alumno_detalle' alumno.id %}" class="btn-action" title="Detalle" data-bs-toggle="tooltip">
+                                <i class="fas fa-eye text-primary"></i>
+                            </a>
+                            <button onclick="abrir_modal_edicion('{% url 'alumno_edit' alumno.id %}')" class="btn-action" title="Editar" data-bs-toggle="tooltip">
+                                <i class="fas fa-pen text-info"></i>
+                            </button>
+                            <button onclick="confirmarEliminacion(event, '{% url 'alumno_delete' alumno.id %}')" class="btn-action delete" title="Eliminar" data-bs-toggle="tooltip">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <footer>
-        <span>Mostrar del 1 al {{ alumnos.paginator.per_page }} de {{ alumnos.paginator.count }}</span>
-        <div class="pagination">
-            {% if alumnos.has_previous %}
-                <a href="?page={{ alumnos.previous_page_number }}" class="btn btn-custom">Prev</a>
-            {% endif %}
-
-            {% for num in alumnos.paginator.page_range %}
-                {% if alumnos.number == num %}
-                    <span class="btn btn-custom active">{{ num }}</span>
-                {% elif num > alumnos.number|add:'-3' and num < alumnos.number|add:'3' %}
-                    <a href="?page={{ num }}" class="btn btn-custom">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-
-            {% if alumnos.has_next %}
-                <a href="?page={{ alumnos.next_page_number }}" class="btn btn-custom">Next</a>
-            {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted opacity-50">
+                                <i class="fas fa-user-graduate fa-3x mb-3"></i>
+                                <h6>No se encontraron estudiantes</h6>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </footer>
+
+        <div class="card-footer bg-white py-3 border-0 d-flex justify-content-center">
+            <nav>
+                <ul class="pagination pagination-sm mb-0 shadow-sm" style="border-radius: 30px; overflow: hidden;">
+                    {% if alumnos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link border-0 bg-light text-dark" href="?page={{ alumnos.previous_page_number }}&search={{ request.GET.search }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active">
+                        <span class="page-link border-0 bg-primary">{{ alumnos.number }}</span>
+                    </li>
+
+                    {% if alumnos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link border-0 bg-light text-dark" href="?page={{ alumnos.next_page_number }}&search={{ request.GET.search }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
 </div>
 
+<div class="modal fade" id="modal-contenedor" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg" id="modal-contenido">
+            </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
 <script>
-    function openModal(action, id=null) {
-        let url = '';
-        if (action === 'add') {
-            url = "{% url 'alumno_add' %}";
-            document.getElementById('alumnoModalLabel').innerText = 'Añadir Alumno';
-        } else if (action === 'edit') {
-            url = `{% url 'alumno_edit' 0 %}`.replace('0', id);
-            document.getElementById('alumnoModalLabel').innerText = 'Editar Alumno';
-        }
-        fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('form-fields').innerHTML = html;
-                document.getElementById('alumnoForm').action = url; 
-            });
+    // Inicializar Tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+    // Función para cargar modales
+    function abrir_modal_creacion(url) {
+        $('#modal-contenedor').modal('show');
+        $('#modal-contenido').load(url, function() { inicializar_formulario(); });
     }
 
-    function submitForm() {
-        const form = document.getElementById('alumnoForm');
-        const data = new FormData(form);
-        fetch(form.action, {
-            method: 'POST',
-            body: data,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                const errors = data.errors;
-                for (const [field, messages] of Object.entries(errors)) {
-                    const fieldElement = document.querySelector(`[name="${field}"]`);
-                    fieldElement.classList.add('is-invalid');
-                    const errorContainer = document.createElement('div');
-                    errorContainer.className = 'invalid-feedback';
-                    errorContainer.innerHTML = messages.join('<br>');
-                    fieldElement.parentNode.appendChild(errorContainer);
+    function abrir_modal_edicion(url) {
+        $('#modal-contenedor').modal('show');
+        $('#modal-contenido').load(url, function() { inicializar_formulario(); });
+    }
+
+    function inicializar_formulario() {
+        // Estilizar inputs automáticamente al cargar
+        $('#modal-contenedor input, #modal-contenedor select').addClass('form-control shadow-none');
+        $('#modal-contenedor input[type="checkbox"]').removeClass('form-control').addClass('form-check-input');
+        
+        // Manejo de envío AJAX
+        var form = $('#modal-contenedor').find('form');
+        form.on('submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: form.attr('action') || window.location.href,
+                type: 'POST',
+                data: form.serialize(),
+                success: function(data) {
+                    if (data.success) {
+                        $('#modal-contenedor').modal('hide');
+                        Swal.fire({
+                            icon: 'success', title: '¡Guardado!', text: 'El estudiante ha sido registrado.',
+                            timer: 1500, showConfirmButton: false,
+                            background: '#fff', iconColor: '#2dce89'
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire({
+                            icon: 'error', title: 'Error', text: 'Por favor, revise los campos.',
+                            confirmButtonColor: '#f5365c'
+                        });
+                    }
                 }
-            }
+            });
         });
     }
 
-    document.getElementById('search').addEventListener('input', function() {
-        updateTable(this.value);
-    });
-
-    document.getElementById('search-form').addEventListener('submit', function(event) {
+    // Alerta de Eliminación
+    function confirmarEliminacion(event, url) {
         event.preventDefault();
-        updateTable(document.getElementById('search').value);
-    });
-
-    document.getElementById('table_size').addEventListener('change', function() {
-        const pageSize = this.value;
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('page_size', pageSize);
-        window.location.search = urlParams.toString();
-    });
-
-    function updateTable(searchValue) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `/alumno?search=${searchValue}`, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const newTableBody = doc.getElementById('alumno-table-body').innerHTML;
-                document.getElementById('alumno-table-body').innerHTML = newTableBody;
+        Swal.fire({
+            title: '¿Eliminar estudiante?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f5365c',
+            cancelButtonColor: '#adb5bd',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            background: '#fff',
+            borderRadius: '15px',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
             }
-        };
-        xhr.send();
+        })
     }
 </script>
 {% endblock %}

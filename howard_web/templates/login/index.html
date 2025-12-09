@@ -1,23 +1,26 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inicio de sesion</title>
-    <link rel="stylesheet" href="{% static 'login.css' %}">
-    <!--Icono-->
-    <link rel="icon" href="{% static "imagen-re.png" %}">
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-</head>
-<body>
+    <title>Inicio de Sesión - Howard BS</title>
+    
+    <link rel="icon" href="{% static 'imagen-re.png' %}">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
-        *{
+        /* TUS ESTILOS ORIGINALES (Integrados y Limpios) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: "Open Sans", sans-serif;
         }
-        body{
+
+        body {
             width: 100%;
             height: 100vh;
             display: flex;
@@ -25,200 +28,296 @@
             align-items: center;
             background-color: #F0F4F3;
         }
-        .container{
-            width: 100%;
-            height: 100%;
+
+        .container {
+            width: 800px;
+            height: 500px;
             display: flex;
             position: relative;
             background-color: white;
-            border-radius: 0;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 0 10px rgb(0, 0,0,0.3);
-            max-width: 100%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
-        .container-form{
+
+        .container-form {
             width: 100%;
-            overflow: hidden;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: all 0.6s ease-in-out;
         }
-        .container-form form{
+
+        /* FORMULARIOS */
+        .sign-in {
+            width: 50%;
+            z-index: 2;
+        }
+        
+        .sign-up {
+            width: 50%;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        form {
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: transform 0.5s ease-in;
+            padding: 0 50px;
+            background-color: white;
         }
-        .container-form h2{
+
+        h2 {
             font-size: 30px;
+            margin-bottom: 10px;
+            color: #21578C;
+            font-weight: 700;
+        }
+
+        span {
+            font-size: 13px;
             margin-bottom: 20px;
+            color: #666;
         }
-        .social-networks{
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        .social-networks ion-icon{
-            border: 1px solid #C9CCCB;
-            border-radius: 6px;
-            padding: 8px;
-            cursor: pointer;
-        }
-        .container-form span{
-            font-size: 12px;
+
+        img {
+            width: 120px;
             margin-bottom: 15px;
         }
 
-        img{
-            width: 180px;
-        }
-        .container-input{
-            width: 300px;
-            height: 40px;
-            margin-bottom: 10px;
+        .container-input {
+            width: 100%;
+            height: 45px;
+            margin-bottom: 15px;
             display: flex;
-            justify-content: center;
             align-items: center;
-            gap: 8px;
             padding: 0 15px;
             background-color: #EEEEEE;
+            border-radius: 8px;
         }
-        .container-input input{
+
+        .container-input ion-icon {
+            color: #666;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .container-input input {
             border: none;
             outline: none;
             width: 100%;
             height: 100%;
-            background-color: inherit;
+            background-color: transparent;
+            font-size: 14px;
         }
-        .container-form a{
-            color: black;
-            font-size:  14px;
-            margin-bottom: 20px;
-            margin-top: 5px;
-        }
-        .button{
-            width: 170px;
+
+        .button {
+            width: 150px;
             height: 45px;
-            font-size: 15px;
+            font-size: 14px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;  
-            background-color: #21578C;  
+            margin-top: 20px;
+            background-color: #21578C;
             color: white;
-        }
-        /*Animation form*/
-
-        .sign-up{
-            transform: translateX(-100%);
-        }
-        .container.toggle .sign-in{
-            transform: translateX(100%);
-        }
-        .container.toggle .sign-up{
-            transform: translateX(0);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.3s;
         }
 
-        /*Welcome*/
-        .container-welcome{
+        .button:hover {
+            background-color: #1a4570;
+        }
+
+        /* ANIMACIÓN OVERLAY (La parte azul que se mueve) */
+        .container-overlay {
             position: absolute;
+            top: 0;
+            left: 50%;
             width: 50%;
             height: 100%;
-            display: flex;
-            align-items: center;
-            transform: translateX(100%);
-            background-color: #21578C;
-            transition: transform 0.5s ease-in-out, border-radius 0.5s ease-in-out;
             overflow: hidden;
-            border-radius: 50% 0 0 50%;
+            transition: transform 0.6s ease-in-out;
+            z-index: 100;
         }
-        .container.toggle .container-welcome{
+
+        .overlay {
+            background: #21578C;
+            background: linear-gradient(to right, #21578C, #2C73B8);
+            color: white;
+            position: relative;
+            left: -100%;
+            height: 100%;
+            width: 200%;
             transform: translateX(0);
-            border-radius: 0 50% 50% 0;
-            background-color: #21578C;
+            transition: transform 0.6s ease-in-out;
         }
-        .container-welcome .welcome{
+
+        .overlay-panel {
             position: absolute;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 20px;
-            padding: 0 50px;
-            color: white;
-            transition: transform 0.5s ease-in-out;
-        }
-        .welcome-sign-in{
-            transform: translateX(100%);
-        }
-        .container-welcome h3{
-            font-size: 40px;
-        }
-        .container-welcome p{
-            font-size: 14px;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
             text-align: center;
-        }
-        .container-welcome .button{
-            border: 2px solid white;
-            background-color: transparent;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
         }
 
-        .container.toggle .welcome-sign-in{
+        .overlay-left {
+            transform: translateX(-20%);
+        }
+
+        .overlay-right {
+            right: 0;
             transform: translateX(0);
         }
-        .container.toggle .welcome-sign-up{
+
+        .overlay-panel h3 {
+            font-size: 25px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .overlay-panel p {
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .ghost {
+            background-color: transparent;
+            border: 1px solid white;
+        }
+
+        /* CLASES ACTIVAS (Cuando se mueve el slider) */
+        .container.right-panel-active .sign-in {
+            transform: translateX(100%);
+        }
+
+        .container.right-panel-active .sign-up {
+            transform: translateX(100%);
+            opacity: 1;
+            z-index: 5;
+            animation: show 0.6s;
+        }
+
+        .container.right-panel-active .container-overlay {
             transform: translateX(-100%);
         }
+
+        .container.right-panel-active .overlay {
+            transform: translateX(50%);
+        }
+
+        .container.right-panel-active .overlay-left {
+            transform: translateX(0);
+        }
+
+        .container.right-panel-active .overlay-right {
+            transform: translateX(20%);
+        }
+
+        @keyframes show {
+            0%, 49.99% { opacity: 0; z-index: 1; }
+            50%, 100% { opacity: 1; z-index: 5; }
+        }
     </style>
-    <!--Contenedor principal-->
-    <div class="container">
-        <!--Contenedor de inicio de sesion-->
-        <div class="container-form">
-            <form class="sign-in"  method="post">
-                {% csrf_token %}
-                <img src="{% static "imagen-re.png" %}">
-                <h2>Iniciar Sesión</h2>
-                <span>Use su cuenta y contraseña asignada.</span>
-                <div class="container-input">
-                    <ion-icon name="mail-outline"></ion-icon>
-                    {{ form.username }}
-                </div>
-                <div class="container-input">
-                    <ion-icon name="lock-closed-outline"></ion-icon>
-                    {{ form.password }}
-                </div>
-                <button type="submit" class="button">INICIAR SESIÓN</button>
+</head>
+<body>
+
+    <div class="container" id="container">
+        
+        <div class="container-form sign-up">
+            <form action="#">
+                <img src="{% static 'imagen-re.png' %}" alt="Logo">
+                <h2>Crear Cuenta</h2>
+                <span>Solo el administrador puede crear usuarios.</span>
+                <p class="text-muted" style="font-size:12px; margin-top:10px;">Contacte a soporte para credenciales.</p>
+                <button class="button ghost" style="background:#ccc; color:#333;" id="backToSignIn">Volver</button>
             </form>
         </div>
 
-        <div class="container-form">
-            <!--Contenedor para registrarse-->
-            <form class="sign-up">
-                <img src="{% static 'imagen-re.png' %}" class="rounded mx-auto d-block" alt="Logo">
-                <h2>Registrarse</h2>
-                <span>Ingrese un nombre de usuario y contraseña para registrarse.</span>
+        <div class="container-form sign-in">
+            <form method="post">
+                {% csrf_token %}
+                <img src="{% static 'imagen-re.png' %}" alt="Logo">
+                <h2>Iniciar Sesión</h2>
+                <span>Use su cuenta institucional</span>
+
+                {% if form.errors %}
+                    <div style="color:red; font-size:12px; margin-bottom:10px;">Usuario o contraseña incorrectos</div>
+                {% endif %}
+
                 <div class="container-input">
                     <ion-icon name="person-outline"></ion-icon>
-                    <input type="text" placeholder="Nombre">
+                    <input type="text" name="username" placeholder="Usuario" required>
                 </div>
-
+                
                 <div class="container-input">
                     <ion-icon name="lock-closed-outline"></ion-icon>
-                    <input type="password" placeholder="Contraseña">
+                    <input type="password" name="password" placeholder="Contraseña" required>
                 </div>
-                <button class="button" >REGISTRARSE</button>
+                
+                <button type="submit" class="button">INGRESAR</button>
             </form>
         </div>
 
-        <div class="container-welcome">
-            <!--Contenedor de la bienvenida (la informacion que es dinamica)-->
-            <div class="welcome-sign-up welcome">
-                <h3>¡Hola!</h3>
-                <p>Ingrese sus datos personales para usar todas las funciones del sitio.</p>
+        <div class="container-overlay">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h3>¡Bienvenido de nuevo!</h3>
+                    <p>Para mantenerse conectado, por favor inicie sesión con su información personal.</p>
+                    <button class="button ghost" id="signIn">Iniciar Sesión</button>
+                </div>
+                
+                <div class="overlay-panel overlay-right">
+                    <h3>¡Hola, Admin!</h3>
+                    <p>Sistema de Gestión con Inteligencia Artificial.</p>
+                    <p style="font-size:12px; opacity:0.8;">Howard Bilingual School</p>
+                    </div>
             </div>
         </div>
-
     </div>
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <script>
+        const signUpButton = document.getElementById('signUp');
+        const signInButton = document.getElementById('signIn');
+        const backButton = document.getElementById('backToSignIn');
+        const container = document.getElementById('container');
+
+        if(signUpButton){
+            signUpButton.addEventListener('click', () => {
+                container.classList.add("right-panel-active");
+            });
+        }
+
+        if(signInButton){
+            signInButton.addEventListener('click', () => {
+                container.classList.remove("right-panel-active");
+            });
+        }
+        
+        if(backButton){
+            backButton.addEventListener('click', (e) => {
+                e.preventDefault(); // Evita que recargue la página
+                container.classList.remove("right-panel-active");
+            });
+        }
+    </script>
+
 </body>
 </html>

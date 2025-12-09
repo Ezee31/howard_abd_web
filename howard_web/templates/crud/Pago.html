@@ -1,119 +1,295 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
+{% load static %}
 
-{% block content %}
-<div class="container">
-    <h2 class="my-4 text-primary">Gestión de Pagos</h2>
+{% block title %}Historial de Transacciones | Howard BS{% endblock %}
 
-    <button type="button" class="btn btn-primary mb-3" onclick="iniciarProcesoDePagos()">
-        Añadir Pago
-    </button>
-
-    <div class="filterEntries">
-        <div class="entries">
-            Enseñar <select name="page_size" id="table_size" class="form-control">
-                <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
-                <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
-                <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
-                <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
-            </select> entradas
-        </div>
-        <div class="filter">
-            <form id="search-form" method="get" action="/pago">
-                <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un monto, alumno, o tipo de pago" value="{{ request.GET.search }}" class="form-control">
-            </form>
-        </div>
-    </div>
-
-    <div id="pago-table">
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr class="heading">
-                    <th>Fecha</th>
-                    <th>Monto</th>
-                    <th>Alumno</th>
-                    <th>Tipo de Pago</th>
-                    <th>Solvencia del Mes</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="pago-table-body">
-                {% for pago in pagos %}
-                    <tr>
-                        <td>{{ pago.fecha }}</td>
-                        <td>{{ pago.monto }}</td>
-                        <td>{{ pago.alumno }}</td>
-                        <td>{{ pago.tipo_pago }}</td>
-                        <td>{{ pago.solvencia_mes }}</td>
-                        <td>
-                            <a href="/pagos/factura/{{pago.id}}" class="btn btn-sm btn-secondary">
-                              <i class="fa-solid fa-download" style="margin-right: 0!important;"></i>
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <footer>
-        <span>Mostrar del 1 al {{ pagos.paginator.per_page }} de {{ pagos.paginator.count }}</span>
-        <div class="pagination">
-            {% if pagos.has_previous %}
-                <a href="?page={{ pagos.previous_page_number }}" class="btn btn-custom">Prev</a>
-            {% endif %}
-
-            {% for num in pagos.paginator.page_range %}
-                {% if pagos.number == num %}
-                    <span class="btn btn-custom active">{{ num }}</span>
-                {% elif num > pagos.number|add:'-3' and num < pagos.number|add:'3' %}
-                    <a href="?page={{ num }}" class="btn btn-custom">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-
-            {% if pagos.has_next %}
-                <a href="?page={{ pagos.next_page_number }}" class="btn btn-custom">Next</a>
-            {% endif %}
-        </div>
-    </footer>
-</div>
-
-<script>
-    document.getElementById('search').addEventListener('input', function() {
-        updateTable(this.value);
-    });
-
-    document.getElementById('search-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        updateTable(document.getElementById('search').value);
-    });
-
-    document.getElementById('table_size').addEventListener('change', function() {
-        const pageSize = this.value;
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('page_size', pageSize);
-        window.location.search = urlParams.toString();
-    });
-
-    function updateTable(searchValue) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `/pago?search=${searchValue}`, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const newTableBody = doc.getElementById('pago-table-body').innerHTML;
-                document.getElementById('pago-table-body').innerHTML = newTableBody;
-            }
-        };
-        xhr.send();
+{% block styles %}
+<style>
+    /* === ESTILOS HISTORIAL FINANCIERO === */
+    
+    /* 1. Contenedor Principal */
+    .table-card {
+        border: none;
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.03);
+        overflow: hidden;
     }
 
-    const iniciarProcesoDePagos = () => {
-      localStorage.removeItem('tipo_pago');
-      localStorage.removeItem('alumno')
-      window.location.href = '/pagos';
-    };
-</script>
+    /* 2. Tabla Estilizada */
+    .table-modern thead th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+        padding: 1.2rem 1rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .table-modern tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+        color: #334155;
+    }
+    .table-modern tbody tr:hover { background-color: #f8fafc; }
 
+    /* 3. Badges de Concepto */
+    .badge-pay { padding: 0.5em 0.9em; border-radius: 6px; font-weight: 600; font-size: 0.7rem; letter-spacing: 0.5px; }
+    .badge-monthly { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; } /* Azul */
+    .badge-matricula { background-color: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; } /* Rosa */
+    .badge-other { background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; } /* Gris */
+
+    /* 4. Botones de Acción */
+    .btn-icon {
+        width: 34px; height: 34px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 8px; border: none; transition: all 0.2s;
+        background: transparent;
+    }
+    .btn-icon:hover { transform: translateY(-2px); }
+    
+    .btn-print { color: #64748b; background: #f1f5f9; }
+    .btn-print:hover { color: #0f172a; background: #e2e8f0; }
+    
+    .btn-edit { color: #3b82f6; background: #eff6ff; }
+    .btn-edit:hover { background: #dbeafe; }
+    
+    .btn-delete { color: #ef4444; background: #fef2f2; }
+    .btn-delete:hover { background: #fee2e2; }
+
+    /* 5. Buscador */
+    .search-input {
+        border-radius: 50px; border: 1px solid #e2e8f0; padding-left: 1.2rem;
+        background-color: #f8fafc; height: 45px;
+    }
+    .search-input:focus {
+        background-color: white; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">Historial de Transacciones</h1>
+            <p class="text-muted mb-0">Registro contable de ingresos y facturación.</p>
+        </div>
+        <button class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#paymentModal" onclick="resetModal()">
+            <i class="fas fa-plus me-2"></i> Registrar Pago Manual
+        </button>
+    </div>
+
+    <div class="card table-card">
+        
+        <div class="p-4 border-bottom bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <form method="get" action="{% url 'pago' %}" class="d-flex gap-2 flex-grow-1" style="max-width: 500px;">
+                <div class="position-relative w-100">
+                    <i class="fas fa-search text-muted position-absolute top-50 start-0 translate-middle-y ms-3"></i>
+                    <input type="search" name="search" class="form-control search-input ps-5" 
+                           placeholder="Buscar por alumno, recibo o monto..." value="{{ request.GET.search }}">
+                </div>
+                <button type="submit" class="btn btn-dark rounded-pill px-4">Filtrar</button>
+            </form>
+            
+            {% if request.GET.search %}
+                <a href="{% url 'pago' %}" class="text-muted small text-decoration-none">
+                    <i class="fas fa-times me-1"></i> Limpiar filtros
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
+                    <tr>
+                        <th width="10%">Recibo #</th>
+                        <th width="15%">Fecha</th>
+                        <th width="25%">Alumno</th>
+                        <th width="15%">Concepto</th>
+                        <th width="20%">Detalle / Mes</th>
+                        <th width="15%" class="text-end">Monto</th>
+                        <th width="10%" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in pagos %}
+                    <tr>
+                        <td>
+                            <span class="text-muted fw-bold small">#{{ pago.id }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark">{{ pago.fecha|date:"d M, Y" }}</span>
+                                <span class="small text-muted">{{ pago.fecha|date:"l" }}</span> 
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center me-3 fw-bold shadow-sm" 
+                                     style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                    {{ pago.alumno.nombres.0 }}{{ pago.alumno.apellidos.0 }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ pago.alumno.nombres }} {{ pago.alumno.apellidos }}</div>
+                                    <div class="small text-muted" style="font-size: 0.75rem;">{{ pago.alumno.grupo }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if "Mensualidad" in pago.tipo_pago.nombre %}
+                                <span class="badge-pay badge-monthly"><i class="far fa-calendar-alt me-1"></i> Mensualidad</span>
+                            {% elif "Matricula" in pago.tipo_pago.nombre %}
+                                <span class="badge-pay badge-matricula"><i class="fas fa-id-card me-1"></i> Matrícula</span>
+                            {% else %}
+                                <span class="badge-pay badge-other">{{ pago.tipo_pago.nombre }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">
+                            {% if pago.solvencia_mes %}
+                                {{ pago.solvencia_mes }}
+                            {% else %}
+                                <span class="opacity-50">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <span class="fw-bold text-success" style="font-size: 1rem;">C$ {{ pago.monto }}</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <a href="{% url 'descargar_factura' pago.id %}" target="_blank" class="btn-icon btn-print" title="Re-imprimir Recibo">
+                                    <i class="fas fa-print"></i>
+                                </a>
+                                <button class="btn-icon btn-edit" onclick="cargarEdicion('{{ pago.id }}')" title="Editar">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <a href="{% url 'pago_delete' pago.id %}" class="btn-icon btn-delete" 
+                                   onclick="return confirm('¿Está seguro de anular este recibo? Esta acción afectará el cierre de caja.')" title="Anular">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <i class="fas fa-receipt fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted mb-0">No se encontraron transacciones.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+            <small class="text-muted">Página {{ pagos.number }} de {{ pagos.paginator.num_pages }}</small>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if pagos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link border-0 bg-light text-dark rounded-start" href="?page={{ pagos.previous_page_number }}&search={{ request.GET.search }}">Anterior</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item active"><span class="page-link border-0 bg-primary">{{ pagos.number }}</span></li>
+                    
+                    {% if pagos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link border-0 bg-light text-dark rounded-end" href="?page={{ pagos.next_page_number }}&search={{ request.GET.search }}">Siguiente</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalTitle">Nueva Transacción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="pagoForm" method="post" action="{% url 'pago_add' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Fecha</label>
+                        {{ form.fecha }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Alumno</label>
+                        {{ form.alumno }}
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Concepto</label>
+                            {{ form.tipo_pago }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">Monto (C$)</label>
+                            {{ form.monto }}
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted">Mes / Observación</label>
+                        {{ form.solvencia_mes }}
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill py-2 fw-bold shadow-sm">
+                            <i class="fas fa-save me-2"></i> Guardar Registro
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 1. Estilizar Inputs de Django
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('#pagoForm input, #pagoForm select, #pagoForm textarea');
+        inputs.forEach(input => {
+            input.classList.add('form-control', 'bg-light', 'border-0', 'shadow-sm');
+            input.style.borderRadius = '10px';
+            input.style.padding = '10px 15px';
+        });
+    });
+
+    // 2. Función para cargar modo EDICIÓN
+    function cargarEdicion(id) {
+        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-pen me-2 text-primary"></i>Editar Transacción #' + id;
+        document.getElementById('pagoForm').action = `/pago_edit/${id}/`;
+        
+        // Redirige para cargar la vista de edición que llena el formulario
+        // Como no tenemos una API JSON completa para esto, usamos la recarga de página al ID
+        window.location.href = `/pago?id=${id}`; 
+    }
+
+    // 3. Función para resetear modal a modo CREACIÓN
+    function resetModal() {
+        document.getElementById('modalTitle').innerHTML = 'Nueva Transacción';
+        document.getElementById('pagoForm').action = "{% url 'pago_add' %}";
+        document.getElementById('pagoForm').reset();
+    }
+    
+    // Auto-abrir modal si hay ID en la URL (modo edición)
+    {% if request.GET.id %}
+        var myModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        myModal.show();
+    {% endif %}
+</script>
 {% endblock %}

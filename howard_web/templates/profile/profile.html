@@ -1,63 +1,174 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
 {% load static %}
-{% block title %}Ver Perfil{% endblock %}
+
+{% block title %}Mi Perfil | Howard BS{% endblock %}
+
+{% block styles %}
+<style>
+    /* === PERFIL PREMIUM === */
+    .profile-hero {
+        height: 280px;
+        background: linear-gradient(45deg, #1e3a8a, #3b82f6, #06b6d4);
+        background-size: 200% 200%;
+        animation: gradientBG 15s ease infinite;
+        border-radius: 0 0 50px 50px;
+        position: relative;
+        margin-bottom: 100px;
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
+
+    @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .avatar-wrapper {
+        position: absolute;
+        bottom: -75px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 50%;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    .profile-img-lg {
+        width: 150px; height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #fff;
+    }
+
+    .info-card-premium {
+        background: white;
+        border: none;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        transition: transform 0.3s;
+        overflow: hidden;
+        height: 100%;
+    }
+    .info-card-premium:hover { transform: translateY(-5px); }
+
+    .card-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #94a3b8;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }
+
+    .card-value {
+        font-size: 1.1rem;
+        color: #1e293b;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+    }
+
+    .icon-box {
+        width: 45px; height: 45px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        margin-right: 15px;
+    }
+    .icon-blue { background: #eff6ff; color: #3b82f6; }
+    .icon-purple { background: #f3e8ff; color: #7e22ce; }
+    .icon-green { background: #ecfdf5; color: #10b981; }
+    .icon-orange { background: #fff7ed; color: #f97316; }
+
+    .role-badge {
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 30px;
+        position: absolute;
+        top: 20px; right: 20px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center">Perfil del Usuario</h2>
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    Información del Perfil
+<div class="profile-hero">
+    <div class="role-badge">
+        {% if user.is_superuser %}
+            <i class="fas fa-crown me-2 text-warning"></i> Super Administrador
+        {% else %}
+            <i class="fas fa-user-tie me-2"></i> Staff Administrativo
+        {% endif %}
+    </div>
+    <div class="avatar-wrapper">
+        {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="Profile" class="profile-img-lg">
+        {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=0D8ABC&color=fff&size=200" alt="Profile" class="profile-img-lg">
+        {% endif %}
+    </div>
+</div>
+
+<div class="container pb-5">
+    
+    <div class="text-center mb-5 animate__animated animate__fadeInUp">
+        <h2 class="fw-bolder display-6 text-dark mb-1">{{ user.first_name }} {{ user.last_name }}</h2>
+        <p class="text-muted fs-5 mb-3">@{{ user.username }}</p>
+        <a href="{% url 'account_settings' %}" class="btn btn-dark rounded-pill px-4 py-2 shadow-lg fw-bold">
+            <i class="fas fa-cog me-2"></i> Configurar Cuenta
+        </a>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="info-card-premium p-4 animate__animated animate__fadeInLeft">
+                <h5 class="fw-bold mb-4 text-dark"><i class="far fa-address-card me-2 text-primary"></i>Datos de Contacto</h5>
+                
+                <div class="d-flex align-items-center mb-4">
+                    <div class="icon-box icon-blue"><i class="fas fa-envelope"></i></div>
+                    <div>
+                        <div class="card-label">Correo Electrónico</div>
+                        <div class="card-value">{{ user.email }}</div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form>
-                        <div class="mb-3">
-                            <label class="form-label">Nombre de Usuario</label>
-                            <input type="text" class="form-control" value="{{ user.username }}" disabled>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" value="{{ user.email }}" disabled>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nombre</label>
-                            <input type="text" class="form-control" value="{{ user.first_name }}" disabled>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Apellido</label>
-                            <input type="text" class="form-control" value="{{ user.last_name }}" disabled>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Foto de Perfil</label>
-                            {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="Foto de Perfil" class="img-thumbnail">
-                            {% else %}
-                                <img src="{% static 'profile-image.jpg' %}" alt="Foto de Perfil" class="img-thumbnail">
-                            {% endif %}
-                            <div class="mb-3 d-flex justify-content-center mt-3">
-                        <a href="{% url 'account_settings' %}" class="btn btn-primary">Configuracion de la Cuenta</a>
-                    </form>
+
+                <div class="d-flex align-items-center">
+                    <div class="icon-box icon-purple"><i class="fas fa-user-tag"></i></div>
+                    <div>
+                        <div class="card-label">Nombre de Usuario</div>
+                        <div class="card-value">@{{ user.username }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-5">
+            <div class="info-card-premium p-4 animate__animated animate__fadeInRight">
+                <h5 class="fw-bold mb-4 text-dark"><i class="fas fa-shield-alt me-2 text-primary"></i>Detalles del Sistema</h5>
+                
+                <div class="d-flex align-items-center mb-4">
+                    <div class="icon-box icon-green"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="card-label">Último Acceso</div>
+                        <div class="card-value">{{ user.last_login|date:"d M, Y" }} <small class="text-muted ms-2">{{ user.last_login|date:"h:i A" }}</small></div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <div class="icon-box icon-orange"><i class="fas fa-calendar-alt"></i></div>
+                    <div>
+                        <div class="card-label">Miembro Desde</div>
+                        <div class="card-value">{{ user.date_joined|date:"F Y" }}</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    // Mostrar alertas de éxito o error
-    {% if messages %}
-        {% for message in messages %}
-            Swal.fire({
-                icon: '{{ message.tags }}' === 'error' ? 'error' : 'success',
-                title: '{{ message }}',
-                showConfirmButton: false,
-                timer: 3000
-            });
-        {% endfor %}
-    {% endif %}
-</script>
 {% endblock %}

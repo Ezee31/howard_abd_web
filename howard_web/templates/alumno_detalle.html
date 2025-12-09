@@ -1,35 +1,245 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
 {% load static %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white">
-            <h2>{{ alumno.nombres }} {{ alumno.apellidos }}</h2>
-        </div>
-        <div class="card-body">
-            <p><strong>Email:</strong> {{ alumno.email }}</p>
+{% block title %}Expediente: {{ alumno.nombres }} | Howard BS{% endblock %}
 
-            <h3 class="mt-4 text-primary">Estado de Pagos</h3>
-            {% if ultimo_pago_mensualidad %}
-                <p><strong>Último Pago de Mensualidad:</strong> {{ ultimo_pago_mensualidad.fecha }} - ${{ ultimo_pago_mensualidad.monto }}</p>
-                <p><strong>Próximo Pago:</strong> {{ proximo_pago }}</p>
-                <p class="text-danger"><strong>Días Restantes para el Próximo Pago:</strong> {{ dias_restantes }}</p>
-            {% else %}
-                <p class="text-danger">Este alumno no ha realizado ningún pago de mensualidad aún.</p>
-            {% endif %}
+{% block styles %}
+<style>
+    /* === ESTILOS EXPEDIENTE === */
+    
+    /* 1. Tarjeta de Perfil */
+    .profile-card {
+        border: none; border-radius: 20px; overflow: hidden;
+        background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        height: 100%;
+    }
+    .profile-header-bg {
+        height: 120px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); /* Azul */
+        position: relative;
+    }
+    .profile-avatar {
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        background-color: white;
+        border: 4px solid white;
+        position: absolute;
+        bottom: -50px; left: 50%;
+        transform: translateX(-50%);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.5rem; font-weight: 800; color: #3b82f6;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    /* 2. Tarjeta Financiera */
+    .finance-card {
+        border: none; border-radius: 20px; background: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        position: relative; overflow: hidden;
+        height: 100%;
+    }
+    .finance-header {
+        background-color: #f8fafc; padding: 1.5rem; border-bottom: 1px solid #f1f5f9;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    
+    /* Cajas de Estadísticas */
+    .stat-box {
+        background-color: #f8fafc; border-radius: 16px; padding: 1.5rem;
+        border: 1px solid #e2e8f0; transition: all 0.3s;
+    }
+    .stat-box:hover { border-color: #3b82f6; background-color: #eff6ff; }
+    
+    .label-kpi { font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; }
+    .value-kpi { font-size: 1.2rem; font-weight: 700; color: #1e293b; margin-top: 5px; }
+    
+    /* Semáforo de Días */
+    .status-ok { color: #10b981; } /* Verde */
+    .status-warning { color: #f59e0b; } /* Naranja */
+    .status-danger { color: #ef4444; } /* Rojo */
+
+    /* Botón Volver */
+    .btn-back {
+        background: white; border: 1px solid #e2e8f0; color: #64748b;
+        border-radius: 12px; padding: 8px 16px; font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-back:hover { background: #f1f5f9; color: #1e293b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'alumno' %}" class="btn-back text-decoration-none shadow-sm">
+            <i class="fas fa-arrow-left me-2"></i> Volver a Lista
+        </a>
+        <h5 class="text-muted m-0 fw-bold d-none d-md-block">Expediente del Estudiante</h5>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-4">
+            <div class="profile-card">
+                <div class="profile-header-bg">
+                    <div class="profile-avatar">
+                        {{ alumno.nombres.0 }}{{ alumno.apellidos.0 }}
+                    </div>
+                </div>
+                <div class="pt-5 pb-4 px-4 text-center mt-3">
+                    <h4 class="fw-bold text-dark mb-1">{{ alumno.nombres }} {{ alumno.apellidos }}</h4>
+                    <p class="text-muted small mb-3"><i class="far fa-envelope me-1"></i> {{ alumno.email }}</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill">
+                            {{ alumno.grupo }}
+                        </span>
+                        {% if alumno.activo %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill">
+                                Activo
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill">
+                                Inactivo
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <hr class="opacity-10 my-4">
+
+                    <div class="text-start px-2">
+                        <small class="text-uppercase text-muted fw-bold mb-3 d-block">Información de Contacto</small>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-light p-2 me-3"><i class="fas fa-phone text-secondary"></i></div>
+                            <div>
+                                <span class="d-block small text-muted">Teléfono</span>
+                                <span class="fw-bold text-dark">{{ alumno.telefono|default:"No registrado" }}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-light p-2 me-3"><i class="fas fa-id-badge text-secondary"></i></div>
+                            <div>
+                                <span class="d-block small text-muted">ID Sistema</span>
+                                <span class="fw-bold text-dark">#{{ alumno.id }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <div class="col-lg-8">
+            <div class="finance-card h-100">
+                <div class="finance-header">
+                    <h6 class="m-0 fw-bold text-dark">
+                        <i class="fas fa-wallet text-success me-2"></i>Estado de Pagos
+                    </h6>
+                    <span class="badge bg-light text-dark border">Ciclo Actual</span>
+                </div>
+                
+                <div class="card-body p-4">
+                    
+                    {% if ultimo_pago_mensualidad %}
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <div class="stat-box">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <div class="label-kpi">Último Pago</div>
+                                            <div class="value-kpi text-success">C$ {{ ultimo_pago_mensualidad.monto }}</div>
+                                            <small class="text-muted">{{ ultimo_pago_mensualidad.fecha|date:"d M, Y" }}</small>
+                                        </div>
+                                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stat-box" id="box-proximo">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <div class="label-kpi">Próximo Vencimiento</div>
+                                            <div class="value-kpi text-dark">{{ proximo_pago|date:"d M, Y" }}</div>
+                                            {% if dias_restantes < 0 %}
+                                                <small class="text-danger fw-bold"><i class="fas fa-exclamation-circle"></i> Vencido hace {{ dias_restantes|stringformat:"d"|slice:"1:" }} días</small>
+                                            {% elif dias_restantes <= 5 %}
+                                                <small class="text-warning fw-bold"><i class="fas fa-clock"></i> Quedan {{ dias_restantes }} días</small>
+                                            {% else %}
+                                                <small class="text-success fw-bold"><i class="fas fa-calendar-alt"></i> Quedan {{ dias_restantes }} días</small>
+                                            {% endif %}
+                                        </div>
+                                        <i class="fas fa-hourglass-half fa-2x text-secondary opacity-25"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-light rounded-4 border">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="small fw-bold text-muted">Ciclo Mensual</span>
+                                <span class="small fw-bold text-dark">{{ dias_restantes }} días restantes</span>
+                            </div>
+                            
+                            <div class="progress" style="height: 10px; border-radius: 5px; background: #e2e8f0;">
+                                <div id="payment-progress" class="progress-bar rounded-pill" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-2 small text-muted fst-italic">
+                                <span>Pago Realizado</span>
+                                <span>Vencimiento</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-end">
+                             <a href="{% url 'pagos' %}" class="btn btn-outline-primary rounded-pill btn-sm fw-bold">
+                                <i class="fas fa-history me-1"></i> Ir al Historial Completo
+                            </a>
+                        </div>
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-light d-inline-flex p-4 mb-3">
+                                <i class="fas fa-file-invoice-dollar fa-3x text-muted opacity-50"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Sin registros de mensualidad</h5>
+                            <p class="text-muted small">Este alumno no tiene pagos de mensualidad registrados aún.</p>
+                            <a href="{% url 'pagos' %}" class="btn btn-primary rounded-pill shadow-sm mt-2">
+                                <i class="fas fa-plus me-2"></i> Registrar Primer Pago
+                            </a>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<style>
-    .card {
-        border: none;
-        border-radius: 10px;
-    }
-    .card-header {
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
-    }
-</style>
+<script>
+    // Script simple para animar la barra de progreso según los días restantes
+    document.addEventListener("DOMContentLoaded", function() {
+        const diasRestantes = parseInt("{{ dias_restantes|default:30 }}");
+        const progressBar = document.getElementById('payment-progress');
+        
+        if (progressBar) {
+            // Calculamos porcentaje consumido del mes (30 días)
+            // Si quedan 30 días, porcentaje es 0%. Si quedan 0, es 100%.
+            let percentage = 100 - ((diasRestantes / 30) * 100);
+            
+            // Límites
+            if (percentage < 0) percentage = 0; // Si faltan más de 30 días (ej. adelantado)
+            if (percentage > 100) percentage = 100; // Si está vencido
+            
+            // Color según urgencia
+            let colorClass = "bg-success";
+            if (diasRestantes <= 10) colorClass = "bg-warning";
+            if (diasRestantes <= 3) colorClass = "bg-danger";
+            
+            progressBar.classList.add(colorClass);
+            progressBar.style.width = percentage + "%";
+        }
+    });
+</script>
 {% endblock %}

@@ -1,122 +1,183 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
 {% load static %}
-{% block title %}Configuración de la Cuenta{% endblock %}
+
+{% block title %}Ajustes | Howard BS{% endblock %}
+
+{% block styles %}
+<style>
+    /* === AJUSTES DE CUENTA === */
+    .settings-container {
+        background: white; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+        overflow: hidden; min-height: 600px;
+    }
+    
+    /* Sidebar */
+    .settings-sidebar {
+        background: #f8fafc; border-right: 1px solid #e2e8f0; padding: 2rem;
+    }
+    .nav-pills-custom .nav-link {
+        color: #64748b; font-weight: 600; padding: 1rem 1.5rem;
+        border-radius: 12px; margin-bottom: 0.5rem;
+        transition: all 0.2s; display: flex; align-items: center;
+    }
+    .nav-pills-custom .nav-link i { width: 25px; font-size: 1.1rem; }
+    .nav-pills-custom .nav-link:hover { background-color: #e2e8f0; color: #1e293b; }
+    .nav-pills-custom .nav-link.active {
+        background-color: #ffffff; color: #2563eb;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eff6ff;
+    }
+
+    /* Content */
+    .settings-content { padding: 3rem; }
+    
+    .form-group-modern label {
+        font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+        color: #94a3b8; margin-bottom: 0.5rem; letter-spacing: 0.5px;
+    }
+    .form-control-modern {
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+        padding: 0.8rem 1rem; color: #334155; font-weight: 500;
+        transition: all 0.3s;
+    }
+    .form-control-modern:focus {
+        background: white; border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+    
+    .avatar-upload-box {
+        display: flex; align-items: center; gap: 20px;
+        padding: 1.5rem; border: 2px dashed #e2e8f0; border-radius: 16px;
+        background: #fcfcfc;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center">Configuración de la Cuenta</h2>
+<div class="container-fluid p-4">
+    
     <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <h2 class="fw-bold text-dark mb-4">Configuración de Cuenta</h2>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center">
+                        <i class="fas fa-info-circle me-3 fa-lg"></i>
+                        <div>{{ message }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
 
-
-        <!-- Formulario de Actualización de Usuario -->
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    Actualizar Información
+            <div class="settings-container d-flex flex-column flex-md-row">
+                
+                <div class="settings-sidebar col-md-3">
+                    <div class="nav flex-column nav-pills nav-pills-custom" id="v-pills-tab" role="tablist">
+                        <button class="nav-link active" id="v-pills-home-tab" data-bs-toggle="pill" data-bs-target="#v-pills-home" type="button" role="tab">
+                            <i class="far fa-user"></i> Datos Personales
+                        </button>
+                        <button class="nav-link" id="v-pills-profile-tab" data-bs-toggle="pill" data-bs-target="#v-pills-profile" type="button" role="tab">
+                            <i class="fas fa-shield-alt"></i> Seguridad
+                        </button>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="POST" id="update-form">
-                        {% csrf_token %}
-                        {{ u_form.username.errors }}
-                        <div class="mb-3">
-                            <label for="{{ u_form.username.id_for_label }}" class="form-label">Nombre de Usuario</label>
-                            {{ u_form.username }}
+
+                <div class="settings-content col-md-9 bg-white">
+                    <div class="tab-content" id="v-pills-tabContent">
+                        
+                        <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel">
+                            <h4 class="fw-bold text-dark mb-4">Perfil Público</h4>
+                            
+                            <div class="avatar-upload-box mb-5">
+                                {% if user.profile_picture %}
+                                    <img src="{{ user.profile_picture.url }}" class="rounded-circle shadow" width="80" height="80" style="object-fit: cover;">
+                                {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ user.first_name }}+{{ user.last_name }}&background=random" class="rounded-circle shadow" width="80" height="80">
+                                {% endif %}
+                                
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">Tu Avatar</h6>
+                                    <p class="text-muted small mb-2">Sube una foto profesional. JPG o PNG.</p>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'update_profile_picture' %}" class="btn btn-primary btn-sm rounded-pill fw-bold">Subir Nueva</a>
+                                        {% if user.profile_picture %}
+                                        <form method="post" action="{% url 'delete_profile_picture' %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill">Borrar</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="row g-4">
+                                    <div class="col-md-6 form-group-modern">
+                                        <label>Nombre de Usuario</label>
+                                        {{ u_form.username }}
+                                    </div>
+                                    <div class="col-md-6 form-group-modern">
+                                        <label>Email Corporativo</label>
+                                        {{ u_form.email }}
+                                    </div>
+                                    <div class="col-md-6 form-group-modern">
+                                        <label>Nombres</label>
+                                        {{ u_form.first_name }}
+                                    </div>
+                                    <div class="col-md-6 form-group-modern">
+                                        <label>Apellidos</label>
+                                        {{ u_form.last_name }}
+                                    </div>
+                                </div>
+                                <div class="mt-5 text-end">
+                                    <button type="submit" class="btn btn-dark rounded-pill px-4 py-2 shadow fw-bold">
+                                        Guardar Cambios
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        {{ u_form.email.errors }}
-                        <div class="mb-3">
-                            <label for="{{ u_form.email.id_for_label }}" class="form-label">Email</label>
-                            {{ u_form.email }}
+
+                        <div class="tab-pane fade" id="v-pills-profile" role="tabpanel">
+                            <h4 class="fw-bold text-dark mb-2">Contraseña y Seguridad</h4>
+                            <p class="text-muted mb-4">Mantén tu cuenta segura cambiando tu contraseña regularmente.</p>
+                            
+                            <form method="post" action="{% url 'change_password' %}" class="p-4 bg-light rounded-4 border">
+                                {% csrf_token %}
+                                <div class="v-stack gap-4" style="max-width: 500px;">
+                                    {% for field in password_change_form %}
+                                        <div class="form-group-modern">
+                                            <label>{{ field.label }}</label>
+                                            {{ field }}
+                                            {% if field.help_text %}
+                                                <small class="text-muted d-block mt-1"><i class="fas fa-info-circle me-1"></i>{{ field.help_text }}</small>
+                                            {% endif %}
+                                            {% for error in field.errors %}
+                                                <small class="text-danger fw-bold d-block mt-1">{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-4">
+                                    <button type="submit" class="btn btn-warning rounded-pill px-4 py-2 shadow-sm text-dark fw-bold">
+                                        <i class="fas fa-key me-2"></i> Actualizar Contraseña
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        {{ u_form.first_name.errors }}
-                        <div class="mb-3">
-                            <label for="{{ u_form.first_name.id_for_label }}" class="form-label">Nombre</label>
-                            {{ u_form.first_name }}
-                        </div>
-                        {{ u_form.last_name.errors }}
-                        <div class="mb-3">
-                            <label for="{{ u_form.last_name.id_for_label }}" class="form-label">Apellido</label>
-                            {{ u_form.last_name }}
-                        </div>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                    </form>
+
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Formulario de Cambio de Contraseña -->
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    Cambiar Contraseña
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{% url 'change_password' %}" id="password-change-form">
-                        {% csrf_token %}
-                        {{ password_change_form.old_password.errors }}
-                        <div class="mb-3">
-                            <label for="{{ password_change_form.old_password.id_for_label }}" class="form-label">Contraseña Actual</label>
-                            {{ password_change_form.old_password }}
-                        </div>
-                        {{ password_change_form.new_password1.errors }}
-                        <div class="mb-3">
-                            <label for="{{ password_change_form.new_password1.id_for_label }}" class="form-label">Nueva Contraseña</label>
-                            {{ password_change_form.new_password1 }}
-                            <small class="form-text text-muted">La contraseña debe tener al menos 8 caracteres, no debe ser comúnmente usada y debe contener al menos un número y una letra.</small>
-                        </div>
-                        {{ password_change_form.new_password2.errors }}
-                        <div class="mb-3">
-                            <label for="{{ password_change_form.new_password2.id_for_label }}" class="form-label">Confirmar Nueva Contraseña</label>
-                            {{ password_change_form.new_password2 }}
-                        </div>
-                        <button type="submit" class="btn btn-primary">Cambiar Contraseña</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Botón para eliminar foto de perfil y agregar nueva foto -->
-        <div class="col-md-12">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    Foto de Perfil
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{% url 'delete_profile_picture' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger mb-3">Eliminar Foto de Perfil</button>
-                    </form>
-                    <form method="POST" enctype="multipart/form-data" action="{% url 'update_profile_picture' %}" id="profile-picture-form">
-                        {% csrf_token %}
-                        {{ p_form.profile_picture.errors }}
-                        <div class="mb-3">
-                            <label for="{{ p_form.profile_picture.id_for_label }}" class="form-label">Agregar Nueva Foto de Perfil</label>
-                            <input type="file" name="profile_picture" class="form-control-file" id="{{ p_form.profile_picture.id_for_label }}">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Subir Foto</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-           <!-- Botón de regreso a Ver Perfil -->
-           <div class="col-md-12 text-center mb-4">
-            <a href="{% url 'profile' %}" class="btn btn-secondary">Regresar a Ver Perfil</a>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
- <script>
-     // Mostrar alertas de éxito o error
-     {% if messages %}
-         {% for message in messages %}
-             Swal.fire({
-                 icon: '{{ message.tags }}' === 'error' ? 'error' : 'success',
-                 title: '{{ message }}',
-                 showConfirmButton: false,
-                 timer: 3000
-             });
-         {% endfor %}
-     {% endif %}
- </script>
+<script>
+    // Inyectar clases modernas a los inputs de Django
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"])');
+        inputs.forEach(input => input.classList.add('form-control-modern'));
+    });
+</script>
 {% endblock %}

@@ -1,187 +1,279 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
+{% load static %}
+
+{% block title %}Gestión de Grupos | Howard BS{% endblock %}
+
+{% block styles %}
+<style>
+    /* === ESTILOS EXCLUSIVOS GRUPOS === */
+    
+    /* Icono de Grupo */
+    .icon-group {
+        width: 45px; height: 45px;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 10px rgba(0, 242, 254, 0.3);
+    }
+
+    /* Tabla y Tarjetas (Heredan base pero con toques Cyan) */
+    .table-card {
+        border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: none; overflow: hidden; background: white;
+    }
+
+    .table-modern thead th {
+        background-color: #e0f7fa; color: #0097a7; /* Fondo Cyan suave */
+        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+        padding: 1.2rem 1rem; border-bottom: 1px solid #b2ebf2;
+    }
+
+    .table-modern tbody td {
+        padding: 1rem 1rem; vertical-align: middle;
+        color: #525f7f; font-size: 0.9rem; border-bottom: 1px solid #f6f9fc;
+    }
+
+    .table-modern tbody tr:hover {
+        background-color: #fcfcfd; transform: scale(1.005);
+        transition: all 0.2s ease;
+        position: relative; z-index: 10;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+
+    /* Barra de Progreso Custom */
+    .progress-thin { height: 6px; border-radius: 10px; background-color: #e9ecef; overflow: hidden; }
+    .progress-bar-cyan { background-color: #00bcd4; }
+
+    /* Botones Acción */
+    .btn-action {
+        width: 32px; height: 32px; border-radius: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: all 0.2s; border: none; background: #f8f9fa; color: #adb5bd; margin: 0 2px;
+    }
+    .btn-action:hover { background-color: #00bcd4; color: white; transform: translateY(-2px); }
+    .btn-action.delete:hover { background-color: #f5365c; color: white; }
+
+    /* Stats Cards */
+    .stat-card {
+        background: white; border-radius: 16px; padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05); display: flex; align-items: center;
+        justify-content: space-between; transition: transform 0.3s;
+        position: relative; overflow: hidden;
+    }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
+    .stat-cyan::before { background: #00bcd4; }
+
+    .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    
+    /* Modales */
+    .modal-content { border: none; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4 text-primary">Gestión de Grupos</h2>
+<div class="container-fluid p-4">
 
-    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#grupoModal" onclick="openModal('add')">
-        Añadir Grupo
-    </button>
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 fw-bold text-dark mb-1">Grupos y Secciones</h1>
+            <p class="text-muted mb-0">Administración de aulas y capacidad académica.</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary shadow px-4 py-2 rounded-pill" onclick="abrir_modal_creacion('{% url 'grupo_add' %}')" style="background-color: #00bcd4; border-color: #00bcd4;">
+                <i class="fas fa-layer-group me-2"></i> Nuevo Grupo
+            </button>
+        </div>
+    </div>
 
-    <!--modal para alumno-->
-    <div id="grupoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="grupoModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="grupoModalLabel">Añadir Grupo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="stat-card stat-cyan">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1 fw-bold" style="font-size: 0.7rem;">Grupos Activos</h6>
+                    <h2 class="mb-0 fw-bold text-dark">{{ grupos.paginator.count }}</h2>
                 </div>
-                <div class="modal-body">
-                    <form id="grupoForm" method="post">
-                        {% csrf_token %}
-                        <div id="form-fields">
-                            {{ form.as_p }}
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="submit" class="btn btn-primary" onclick="submitForm(event)">Guardar</button>
+                <div class="stat-icon bg-opacity-10" style="background-color: rgba(0, 188, 212, 0.1); color: #00bcd4;">
+                    <i class="fas fa-cubes"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filtrar la cantidad seleccionada -->
-    <div class="filterEntries">
-        <div class="entries">
-            Enseñar <select name="page_size" id="table_size" class="form-control">
-                <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
-                <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
-                <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
-                <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
-            </select> entradas
-        </div>
-        <!-- Filtrar por busqueda -->
-        <div class="filter">
-            <form id="search-form" method="get" action="/grupo">
-                <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un nombre, nivel, profesor o horario" value="{{ request.GET.search }}" class="form-control">
+    <div class="card table-card">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center py-3 px-4">
+            <h6 class="m-0 font-weight-bold" style="color: #0097a7;">Oferta Académica</h6>
+            
+            <form method="GET" action="{% url 'grupo' %}" class="d-flex align-items-center">
+                <div class="input-group shadow-sm" style="border-radius: 30px; overflow: hidden; width: 300px;">
+                    <button class="btn btn-light bg-white border-0 text-muted ps-3" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <input type="text" name="search" class="form-control border-0 bg-white shadow-none" 
+                           placeholder="Buscar grupo..." 
+                           value="{{ request.GET.search|default:'' }}">
+                </div>
             </form>
         </div>
-    </div>
 
-    <!-- Tabla -->
-    <div id="grupo-table">
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr class="heading">
-                    <th>Nombre</th>
-                    <th>Nivel</th>
-                    <th>Cupo Máximo</th>
-                    <th>Horario</th>
-                    <th>Profesor</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="grupo-table-body">
-                {% for grupo in grupos %}
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
                     <tr>
-                        <td>{{ grupo.nombre }}</td>
-                        <td>{{ grupo.nivel }}</td>
-                        <td>{{ grupo.cupo_maximo }}</td>
-                        <td>{{ grupo.horario }}</td>
-                        <td>{{ grupo.profesor }}</td>
+                        <th class="ps-4">Identificación</th>
+                        <th>Nivel / Grado</th>
+                        <th>Horario & Docente</th>
+                        <th>Capacidad</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in grupos %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="icon-group me-3">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ g.nombre }}</div>
+                                    <div class="text-muted small">ID: GRP-{{ g.id }}</div>
+                                </div>
+                            </div>
+                        </td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-custom-modify" data-bs-toggle="modal" data-bs-target="#grupoModal" onclick="openModal('edit', {{ grupo.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <a href="/grupo_delete/{{grupo.id}}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
+                            <span class="badge bg-light text-dark border">
+                                <i class="fas fa-bookmark me-1 text-info"></i> {{ g.nivel }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="text-dark small mb-1 fw-bold"><i class="far fa-clock me-1 text-muted"></i> {{ g.horario.nombre }}</span>
+                                <span class="text-muted small"><i class="fas fa-chalkboard-teacher me-1"></i> {{ g.profesor.nombres }} {{ g.profesor.apellidos }}</span>
+                            </div>
+                        </td>
+                        <td style="width: 20%;">
+                            <div class="d-flex justify-content-between align-items-end mb-1">
+                                <span class="small fw-bold text-muted">Cupo Máximo</span>
+                                <span class="small fw-bold text-dark">{{ g.cupo_maximo }}</span>
+                            </div>
+                            <div class="progress progress-thin">
+                                <div class="progress-bar progress-bar-cyan" role="progressbar" style="width: 100%;"></div>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button onclick="abrir_modal_edicion('{% url 'grupo_edit' g.id %}')" class="btn-action" title="Editar">
+                                <i class="fas fa-pen" style="color: #00bcd4;"></i>
+                            </button>
+                            <button onclick="confirmarEliminacion(event, '{% url 'grupo_delete' g.id %}')" class="btn-action delete" title="Eliminar">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </td>
                     </tr>
-                {% endfor %} 
-            </tbody>
-        </table>
-    </div>
-    <!-- Botones para ver más registros -->
-    <footer>
-        <span>Mostrar del 1 al {{grupos.paginator.per_page}} de {{grupos.paginator.count}}</span>
-        <div class="pagination">
-            {% if grupos.has_previous %}
-                <a href="?page={{ grupos.previous_page_number }}" class="btn btn-custom">Prev</a>
-            {% endif %}
-            {% for num in grupos.paginator.page_range %}
-                {% if grupos.number == num %}
-                    <span class="btn btn-custom active">{{ num }}</span>
-                {% elif num > grupos.number|add:'-5' and num < grupos.number|add:'5' %}
-                    <a href="?page={{ num }}" class="btn btn-custom">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-            {% if grupos.has_next %}
-                <a href="?page={{ grupos.next_page_number }}" class="btn btn-custom">Next</a>
-            {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted opacity-50">
+                                <i class="fas fa-layer-group fa-3x mb-3"></i>
+                                <h6>No hay grupos registrados</h6>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </footer>
+
+        <div class="card-footer bg-white py-3 border-0 d-flex justify-content-center">
+            <nav>
+                <ul class="pagination pagination-sm mb-0 shadow-sm" style="border-radius: 30px; overflow: hidden;">
+                    {% if grupos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link border-0 bg-light text-dark" href="?page={{ grupos.previous_page_number }}&search={{ request.GET.search }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link border-0" style="background-color: #00bcd4;">{{ grupos.number }}</span>
+                    </li>
+                    {% if grupos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link border-0 bg-light text-dark" href="?page={{ grupos.next_page_number }}&search={{ request.GET.search }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
 </div>
 
+<div class="modal fade" id="modal-contenedor" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" id="modal-contenido">
+            </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
 <script>
-    function openModal(action, id=null) {
-        let url = '';
-        if (action === 'add') {
-            url = "{% url 'grupo_add' %}";
-            document.getElementById('grupoModalLabel').innerText = 'Añadir Grupo';
-        } else if (action === 'edit') {
-            url = `{% url 'grupo_edit' 0 %}`.replace('0', id);
-            document.getElementById('grupoModalLabel').innerText = 'Editar Grupo';
-        }
-        fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('form-fields').innerHTML = html;
-                document.getElementById('grupoForm').setAttribute('action', url);
-            });
+    function abrir_modal_creacion(url) {
+        $('#modal-contenedor').modal('show');
+        $('#modal-contenido').load(url, function() { inicializar_formulario(); });
     }
 
-    function submitForm(event) {
-        event.preventDefault(); // Prevenir el comportamiento predeterminado del formulario
-        const form = document.getElementById('grupoForm');
-        const data = new FormData(form);
-        fetch(form.action, {
-            method: 'POST',
-            body: data,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                const errors = data.errors;
-                for (const [field, messages] of Object.entries(errors)) {
-                    const fieldElement = document.querySelector(`[name="${field}"]`);
-                    fieldElement.classList.add('is-invalid');
-                    const errorContainer = document.createElement('div');
-                    errorContainer.className = 'invalid-feedback';
-                    errorContainer.innerHTML = messages.join('<br>');
-                    fieldElement.parentNode.appendChild(errorContainer);
+    function abrir_modal_edicion(url) {
+        $('#modal-contenedor').modal('show');
+        $('#modal-contenido').load(url, function() { inicializar_formulario(); });
+    }
+
+    function inicializar_formulario() {
+        $('#modal-contenedor input, #modal-contenedor select').addClass('form-control shadow-none');
+        
+        var form = $('#modal-contenedor').find('form');
+        form.on('submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: form.attr('action') || window.location.href,
+                type: 'POST',
+                data: form.serialize(),
+                success: function(data) {
+                    if (data.success) {
+                        $('#modal-contenedor').modal('hide');
+                        Swal.fire({
+                            icon: 'success', title: '¡Guardado!', 
+                            timer: 1500, showConfirmButton: false,
+                            iconColor: '#00bcd4'
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', 'Verifique los datos.', 'error');
+                    }
                 }
-            }
+            });
         });
     }
 
-    // Escuchar el evento de entrada en el campo de búsqueda
-    document.getElementById('search').addEventListener('input', function() {
-        updateTable(this.value);
-    });
-
-    // Escuchar el evento de envío del formulario
-    document.getElementById('search-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Evitar el envío del formulario de manera tradicional
-        updateTable(document.getElementById('search').value);
-    });
-
-    // Cambiar el número de entradas mostradas
-    document.getElementById('table_size').addEventListener('change', function() {
-        const pageSize = this.value;
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('page_size', pageSize);
-        window.location.search = urlParams.toString();
-    });
-
-    // Función para actualizar la tabla de grupos
-    function updateTable(searchValue) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `/grupo?search=${searchValue}`, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const newTableBody = doc.getElementById('grupo-table-body').innerHTML;
-                document.getElementById('grupo-table-body').innerHTML = newTableBody;
+    function confirmarEliminacion(event, url) {
+        event.preventDefault();
+        Swal.fire({
+            title: '¿Eliminar grupo?',
+            text: "Esta acción es irreversible.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f5365c',
+            cancelButtonColor: '#adb5bd',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
             }
-        };
-        xhr.send();
+        })
     }
 </script>
-
 {% endblock %}

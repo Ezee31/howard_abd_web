@@ -1,45 +1,103 @@
-<form id="alumnoForm" method="post" action="{% if form.instance.pk %}{% url 'alumno_edit' form.instance.pk %}{% else %}{% url 'alumno_add' %}{% endif %}">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="nombres">Nombres:</label>
-        {{ form.nombres }}
-        {% if form.nombres.errors %}
-            <div class="alert alert-danger">{{ form.nombres.errors }}</div>
+<div class="modal-header border-0 pb-0" style="background: #f8f9fc; border-radius: 20px 20px 0 0; padding: 1.5rem 2rem;">
+    <h5 class="modal-title fw-bold text-primary d-flex align-items-center">
+        <i class="fas {% if form.instance.pk %}fa-user-edit{% else %}fa-user-plus{% endif %} me-3"></i>
+        {% if form.instance.pk %}
+            Editar Expediente
+            <span class="badge bg-light text-muted border ms-2 small" style="font-weight: 500; font-size: 0.7rem;">ID: {{ form.instance.pk }}</span>
+        {% else %}
+            Nuevo Ingreso
         {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="apellidos">Apellidos:</label>
-        {{ form.apellidos }}
-        {% if form.apellidos.errors %}
-            <div class="alert alert-danger">{{ form.apellidos.errors }}</div>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="telefono">Telefono:</label>
-        {{ form.telefono }}
-        {% if form.telefono.errors %}
-            <div class="alert alert-danger">{{ form.telefono.errors }}</div>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="email">Email:</label>
-        {{ form.email }}
-        {% if form.email.errors %}
-            <div class="alert alert-danger">{{ form.email.errors }}</div>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="activo">Activo:</label>
-        {{ form.activo }}
-        {% if form.activo.errors %}
-            <div class="alert alert-danger">{{ form.activo.errors }}</div>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="grupo">Grupo:</label>
-        {{ form.grupo }}
-        {% if form.grupo.errors %}
-            <div class="alert alert-danger">{{ form.grupo.errors }}</div>
-        {% endif %}
-    </div>
-</form>
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body pt-4 px-4" style="background: white;">
+    <form method="post" action="{% if form.instance.pk %}{% url 'alumno_edit' form.instance.pk %}{% else %}{% url 'alumno_add' %}{% endif %}" autocomplete="off">
+        {% csrf_token %}
+        
+        <div class="row g-3">
+            
+            <div class="col-12 mb-1">
+                <small class="text-uppercase text-primary fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">
+                    <i class="fas fa-id-card me-1"></i> Información Personal
+                </small>
+                <hr class="mt-1 mb-2 opacity-25">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label small text-muted fw-bold">Nombres</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3"><i class="far fa-user"></i></span>
+                    {{ form.nombres }}
+                </div>
+                {% if form.nombres.errors %}
+                    <div class="text-danger small mt-1">{{ form.nombres.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label small text-muted fw-bold">Apellidos</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3"><i class="far fa-user"></i></span>
+                    {{ form.apellidos }}
+                </div>
+            </div>
+            
+            <div class="col-12 mt-4 mb-1">
+                <small class="text-uppercase text-primary fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">
+                    <i class="fas fa-address-book me-1"></i> Contacto
+                </small>
+                <hr class="mt-1 mb-2 opacity-25">
+            </div>
+
+            <div class="col-md-7">
+                <label class="form-label small text-muted fw-bold">Correo Electrónico</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3"><i class="far fa-envelope"></i></span>
+                    {{ form.email }}
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <label class="form-label small text-muted fw-bold">Teléfono / WhatsApp</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-white border-end-0 text-muted ps-3"><i class="fas fa-phone-alt"></i></span>
+                    {{ form.telefono }}
+                </div>
+            </div>
+
+            <div class="col-12 mt-4 mb-1">
+                <small class="text-uppercase text-primary fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">
+                    <i class="fas fa-graduation-cap me-1"></i> Datos Académicos
+                </small>
+                <hr class="mt-1 mb-2 opacity-25">
+            </div>
+
+            <div class="col-md-8">
+                <label class="form-label small text-muted fw-bold">Asignar Grupo</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-white border-end-0 text-muted ps-3"><i class="fas fa-users"></i></span>
+                    {{ form.grupo }}
+                </div>
+            </div>
+
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check form-switch p-2 ps-5 border rounded w-100 bg-light d-flex align-items-center shadow-sm" style="height: 38px; border-radius: 10px !important;">
+                    {{ form.activo }}
+                    <label class="form-check-label fw-bold text-dark ms-2 cursor-pointer" for="{{ form.activo.id_for_label }}" style="font-size: 0.9rem;">
+                        Activo
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer border-0 px-0 pb-0 mt-5 mb-2 d-flex justify-content-between" style="background: white; border-radius: 0 0 20px 20px;">
+            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold text-muted border" data-bs-dismiss="modal">
+                Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow fw-bold">
+                <i class="fas fa-save me-2"></i> {% if form.instance.pk %}Guardar Cambios{% else %}Registrar Alumno{% endif %}
+            </button>
+        </div>
+    </form>
+</div>

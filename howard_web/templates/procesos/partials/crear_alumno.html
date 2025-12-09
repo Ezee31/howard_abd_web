@@ -1,25 +1,103 @@
-<form id="alumno-form" method="post">
-  <h6>Crear un nuevo alumno</h6>
-  {% csrf_token %}
-  <div id="form-fields">
-      {{ form.as_p }}
-  </div>
-  <button type="button" class="btn btn-secondary" onclick="guardarAlumno()">Guardar</button>
-</form>
-
-<div id="alumno-creado">
-  <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
-    <symbol id="check-circle-fill" viewBox="0 0 16 16">
-      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-    </symbol>
-  </svg>
-
-  <div class="alert alert-success d-flex align-items-center" role="alert" style="height: 75px;">
-    <svg class="bi flex-shrink-0 me-2" role="img" aria-label="exito" style="margin-top: 0 !important;">
-      <use xlink:href="#check-circle-fill"/>
-    </svg>
-    <div>
-      Alumno creado exitosamente!
+<div class="card border-0 shadow-sm p-4 mb-3 bg-white" style="border-radius: 16px; position: relative; z-index: 20;">
+    
+    <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+        <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+            <i class="fas fa-user-plus"></i>
+        </div>
+        <div>
+            <h6 class="m-0 fw-bold text-dark">Registro Rápido</h6>
+            <p class="text-muted small mb-0">Agrega un estudiante nuevo al instante.</p>
+        </div>
     </div>
-  </div>
+
+    <form id="form-crear-rapido" method="post" autocomplete="off">
+        {% csrf_token %}
+        
+        <div class="row g-3">
+            
+            <div class="col-md-6">
+                <label class="form-label small text-muted fw-bold">Nombres</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-0 text-muted ps-3"><i class="far fa-user"></i></span>
+                    {{ form.nombres }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label small text-muted fw-bold">Apellidos</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-0 text-muted ps-3"><i class="far fa-user"></i></span>
+                    {{ form.apellidos }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label small text-muted fw-bold">Email</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-0 text-muted ps-3"><i class="far fa-envelope"></i></span>
+                    {{ form.email }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label small text-muted fw-bold">Teléfono</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-0 text-muted ps-3"><i class="fas fa-phone-alt"></i></span>
+                    {{ form.telefono }}
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <label class="form-label small text-muted fw-bold">Grupo Asignado</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-0 text-muted ps-3"><i class="fas fa-users"></i></span>
+                    {{ form.grupo }}
+                </div>
+            </div>
+            
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check form-switch p-2 ps-5 border rounded w-100 bg-light d-flex align-items-center shadow-sm" style="height: 38px; border-radius: 10px !important;">
+                    {{ form.activo }}
+                    <label class="form-check-label fw-bold text-dark ms-2 cursor-pointer small" for="{{ form.activo.id_for_label }}">Activo</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-end">
+            <button type="button" class="btn btn-success rounded-pill px-5 shadow-sm fw-bold" onclick="guardarAlumnoRapido()">
+                <i class="fas fa-check me-2"></i> Guardar y Usar
+            </button>
+        </div>
+    </form>
+
+    <div id="feedback-exito" class="mt-3 animate__animated animate__fadeIn d-none">
+        <div class="alert alert-success border-0 shadow-sm d-flex align-items-center p-3" style="border-radius: 12px; background-color: #d1e7dd;">
+            <i class="fas fa-check-circle fa-lg text-success me-3"></i>
+            <div>
+                <h6 class="fw-bold mb-0 text-success">¡Alumno Creado!</h6>
+                <small class="text-dark opacity-75">Seleccionado automáticamente.</small>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<script>
+    (function() {
+        // Seleccionamos SOLO los inputs de este formulario específico
+        const inputs = document.querySelectorAll('#form-crear-rapido input, #form-crear-rapido select');
+        
+        inputs.forEach(input => {
+            // Aplicar estilo 'form-control' limpio
+            input.classList.add('form-control', 'border-0', 'bg-light', 'shadow-none');
+            // Forzar que sea clickable
+            input.style.pointerEvents = 'auto'; 
+            
+            // Corrección específica para el checkbox
+            if(input.type === 'checkbox') {
+                input.classList.remove('form-control', 'bg-light');
+                input.classList.add('form-check-input');
+            }
+        });
+    })();
+</script>

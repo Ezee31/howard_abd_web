@@ -1,31 +1,78 @@
-<form id="profesorForm" method="post" action="{% if form.instance.pk %}{% url 'profesor_edit' form.instance.pk %}{% else %}{% url 'profesor_add' %}{% endif %}">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="nombres">Nombres:</label>
-        {{ form.nombres }}
-        {% if form.nombres.errors %}
-            <div class="alert alert-danger">{{ form.nombres.errors }}</div>
+<div class="modal-header border-0 pb-0" style="background: #f3f0ff; border-radius: 20px 20px 0 0; padding: 1.5rem 2rem;">
+    <h5 class="modal-title fw-bold d-flex align-items-center" style="color: #6f42c1;">
+        <i class="fas {% if form.instance.pk %}fa-user-edit{% else %}fa-chalkboard-teacher{% endif %} me-3"></i>
+        {% if form.instance.pk %}
+            Editar Perfil Docente
+            <span class="badge bg-white text-muted border ms-2 small shadow-sm" style="font-weight: 500; font-size: 0.7rem;">ID: {{ form.instance.pk }}</span>
+        {% else %}
+            Contratación Docente
         {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="apellidos">Apellidos:</label>
-        {{ form.apellidos }}
-        {% if form.apellidos.errors %}
-            <div class="alert alert-danger">{{ form.apellidos.errors }}</div>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="estudios">Estudios:</label>
-        {{ form.estudios }}
-        {% if form.estudios.errors %}
-            <div class="alert alert-danger">{{ form.estudios.errors }}</div>
-        {% endif %}
-    </div>
-    <div class="form-group">
-        <label for="experiencia">Experiencia:</label>
-        {{ form.experiencia }}
-        {% if form.experiencia.errors %}
-            <div class="alert alert-danger">{{ form.experiencia.errors }}</div>
-        {% endif %}
-    </div>
-</form>
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+
+<div class="modal-body pt-4 px-4">
+    <form method="post" action="{% if form.instance.pk %}{% url 'profesor_edit' form.instance.pk %}{% else %}{% url 'profesor_add' %}{% endif %}" autocomplete="off">
+        {% csrf_token %}
+        
+        <div class="row g-3">
+            
+            <div class="col-12 mb-1">
+                <small class="text-uppercase fw-bold" style="color: #6f42c1; font-size: 0.7rem; letter-spacing: 1px;">
+                    <i class="fas fa-id-card me-1"></i> Datos Personales
+                </small>
+                <hr class="mt-1 mb-2 opacity-25">
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label small text-muted fw-bold">Nombres</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3"><i class="fas fa-user-tie"></i></span>
+                    {{ form.nombres }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label small text-muted fw-bold">Apellidos</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3"><i class="far fa-user"></i></span>
+                    {{ form.apellidos }}
+                </div>
+            </div>
+            
+            <div class="col-12 mt-4 mb-1">
+                <small class="text-uppercase fw-bold" style="color: #6f42c1; font-size: 0.7rem; letter-spacing: 1px;">
+                    <i class="fas fa-briefcase me-1"></i> Perfil Profesional
+                </small>
+                <hr class="mt-1 mb-2 opacity-25">
+            </div>
+
+            <div class="col-md-8">
+                <label class="form-label small text-muted fw-bold">Estudios / Título Académico</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3"><i class="fas fa-graduation-cap"></i></span>
+                    {{ form.estudios }}
+                </div>
+                <div class="form-text small text-muted fst-italic ms-1">Ej. Licenciatura en Inglés, Máster en Pedagogía.</div>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label small text-muted fw-bold">Experiencia (Años)</label>
+                <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                    <span class="input-group-text bg-light border-end-0 text-muted ps-3"><i class="fas fa-history"></i></span>
+                    {{ form.experiencia }}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer border-0 px-0 pb-0 mt-5 mb-2 d-flex justify-content-between">
+            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold text-muted border" data-bs-dismiss="modal">
+                Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow fw-bold" style="background-color: #6f42c1; border-color: #6f42c1;">
+                <i class="fas fa-save me-2"></i> Guardar Registro
+            </button>
+        </div>
+    </form>
+</div>

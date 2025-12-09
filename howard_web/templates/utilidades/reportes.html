@@ -1,179 +1,314 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
+{% load static %}
+
+{% block title %}Tablero de Control | Howard BS{% endblock %}
+
+{% block styles %}
+<style>
+    /* === ESTILOS KPI CARDS === */
+    .stat-card {
+        background: white; border-radius: 20px; padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: relative; overflow: hidden;
+        transition: transform 0.3s; border: none;
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+    
+    .stat-icon {
+        position: absolute; right: -10px; top: -10px;
+        font-size: 5rem; opacity: 0.1; transform: rotate(15deg);
+    }
+    
+    /* Gradientes Modernos */
+    .bg-gradient-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+    .bg-gradient-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+    .bg-gradient-orange { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .bg-gradient-green { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+
+    /* Paneles */
+    .card-panel {
+        background: white; border-radius: 20px; border: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.03); overflow: hidden;
+    }
+    
+    /* Pestañas (Tabs) */
+    .nav-tabs .nav-link { border: none; color: #6c757d; font-weight: 600; padding: 1rem 1.5rem; transition: all 0.2s; }
+    .nav-tabs .nav-link.active { color: #3b82f6; border-bottom: 3px solid #3b82f6; background: transparent; }
+    .nav-tabs .nav-link:hover { color: #3b82f6; }
+
+    /* Tablas */
+    .table-modern thead th {
+        background-color: #f8f9fa; color: #8898aa; font-size: 0.75rem; text-transform: uppercase;
+        letter-spacing: 1px; padding: 1rem; border-bottom: 2px solid #e9ecef;
+    }
+    .table-modern tbody td {
+        padding: 1rem; vertical-align: middle; color: #525f7f; border-bottom: 1px solid #f6f9fc; font-size: 0.9rem;
+    }
+    .table-modern tbody tr:hover { background-color: #fcfcfd; }
+
+    .search-input { border-radius: 20px; background: #f1f5f9; border: none; padding: 0.5rem 1rem; }
+    .search-input:focus { background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4 text-primary">Reportes</h2>
+<div class="container-fluid p-4">
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card card-custom mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Total Alumnos</h5>
-                    <p class="card-text">{{ total_alumnos }}</p>
-                </div>
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-1">Tablero de Control</h1>
+            <p class="text-muted mb-0">Vista general de métricas financieras y académicas.</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                <i class="far fa-clock me-2"></i> Actualizado hoy
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card bg-gradient-blue">
+                <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                <h6 class="text-uppercase text-white opacity-75 fw-bold small">Total Alumnos</h6>
+                <h2 class="text-white fw-bold mb-0">{{ total_alumnos }}</h2>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card card-custom mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Total Profesores</h5>
-                    <p class="card-text">{{ total_profesores }}</p>
-                </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card bg-gradient-purple">
+                <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                <h6 class="text-uppercase text-white opacity-75 fw-bold small">Profesores</h6>
+                <h2 class="text-white fw-bold mb-0">{{ total_profesores }}</h2>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card card-custom mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Total Grupos</h5>
-                    <p class="card-text">{{ total_grupos }}</p>
-                </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card bg-gradient-orange">
+                <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+                <h6 class="text-uppercase text-white opacity-75 fw-bold small">Grupos</h6>
+                <h2 class="text-white fw-bold mb-0">{{ total_grupos }}</h2>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card card-custom mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Total Pagos</h5>
-                    <p class="card-text">{{ total_pagos }}</p>
-                </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card bg-gradient-green">
+                <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                <h6 class="text-uppercase text-white opacity-75 fw-bold small">Total Pagos</h6>
+                <h2 class="text-white fw-bold mb-0">{{ total_pagos }}</h2>
             </div>
         </div>
     </div>
-    
-    <div class="my-4">
-        <canvas id="pagosChart"></canvas>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            <div class="card-panel h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold text-dark m-0"><i class="fas fa-chart-bar text-primary me-2"></i>Tendencia de Ingresos (2024)</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 350px; width: 100%;">
+                        <canvas id="pagosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card-panel h-100">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold text-dark m-0"><i class="fas fa-chart-pie text-info me-2"></i>Recursos Académicos</h6>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <div style="height: 250px; width: 100%;">
+                        <canvas id="ecosistemaChart"></canvas>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 text-center pb-4">
+                    <small class="text-muted">Proporción de Alumnos vs. Personal Docente</small>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <h3 class="my-4 text-primary">Pagos por Mes</h3>
-    <div class="table-responsive mb-4">
-        <!-- Filtrar por búsqueda -->
-        <div class="filter">
-            <form id="search-form" method="get" action="/reportes">
-                <label for="search_pagos">Buscar Pagos</label>
-                <input type="search" name="search_pagos" id="search_pagos" placeholder="Ingrese año o mes" value="{{ request.GET.search_pagos }}" class="form-control">
-            </form>
+    <div class="card-panel mt-4">
+        <div class="card-header bg-white border-bottom border-light pb-0 pt-3">
+            <ul class="nav nav-tabs card-header-tabs" id="reportTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="pagos-tab" data-bs-toggle="tab" href="#pagos" role="tab">
+                        <i class="fas fa-money-check me-2"></i>Detalle de Ingresos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="logs-tab" data-bs-toggle="tab" href="#logs" role="tab">
+                        <i class="fas fa-history me-2"></i>Auditoría del Sistema
+                    </a>
+                </li>
+            </ul>
         </div>
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Año</th>
-                    <th>Mes</th>
-                    <th>Total Pagos</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for pago in pagos_fecha %}
-                <tr>
-                    <td>{{ pago.fecha__year }}</td>
-                    <td>
-                        {% if pago.fecha__month == 1 %}Enero{% elif pago.fecha__month == 2 %}Febrero
-                        {% elif pago.fecha__month == 3 %}Marzo{% elif pago.fecha__month == 4 %}Abril
-                        {% elif pago.fecha__month == 5 %}Mayo{% elif pago.fecha__month == 6 %}Junio
-                        {% elif pago.fecha__month == 7 %}Julio{% elif pago.fecha__month == 8 %}Agosto
-                        {% elif pago.fecha__month == 9 %}Septiembre{% elif pago.fecha__month == 10 %}Octubre
-                        {% elif pago.fecha__month == 11 %}Noviembre{% elif pago.fecha__month == 12 %}Diciembre
-                        {% endif %}
-                    </td>
-                    <td>{{ pago.total }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+        <div class="card-body p-0">
+            <div class="tab-content" id="reportTabsContent">
+                
+                <div class="tab-pane fade show active" id="pagos" role="tabpanel">
+                    <div class="p-3 border-bottom bg-light">
+                        <form method="get" action="/reportes" class="d-flex gap-2">
+                            <input type="search" name="search_pagos" class="form-control form-control-sm search-input" 
+                                   placeholder="Buscar por año o mes..." value="{{ request.GET.search_pagos }}">
+                            <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Filtrar</button>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-modern mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Año</th>
+                                    <th>Mes</th>
+                                    <th>Total Recaudado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pago in pagos_fecha %}
+                                <tr>
+                                    <td class="fw-bold">{{ pago.fecha__year }}</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            {% if pago.fecha__month == 1 %}Enero{% elif pago.fecha__month == 2 %}Febrero
+                                            {% elif pago.fecha__month == 3 %}Marzo{% elif pago.fecha__month == 4 %}Abril
+                                            {% elif pago.fecha__month == 5 %}Mayo{% elif pago.fecha__month == 6 %}Junio
+                                            {% elif pago.fecha__month == 7 %}Julio{% elif pago.fecha__month == 8 %}Agosto
+                                            {% elif pago.fecha__month == 9 %}Septiembre{% elif pago.fecha__month == 10 %}Octubre
+                                            {% elif pago.fecha__month == 11 %}Noviembre{% elif pago.fecha__month == 12 %}Diciembre
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="text-success fw-bold">C$ {{ pago.total }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="text-center text-muted py-4">No hay datos registrados</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="logs" role="tabpanel">
+                    <div class="p-3 border-bottom bg-light">
+                        <form method="get" action="/reportes" class="d-flex gap-2">
+                            <input type="search" name="search" class="form-control form-control-sm search-input" 
+                                   placeholder="Buscar usuario o acción..." value="{{ request.GET.search }}">
+                            <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Filtrar</button>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-modern mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Acción</th>
+                                    <th>Modelo</th>
+                                    <th>Detalle</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td class="text-muted small">{{ log.action_time|date:"d/m/Y H:i" }}</td>
+                                    <td class="fw-bold text-dark">{{ log.user }}</td>
+                                    <td>
+                                        {% if log.action_flag == 1 %}<span class="badge bg-success bg-opacity-25 text-success">Crear</span>
+                                        {% elif log.action_flag == 2 %}<span class="badge bg-primary bg-opacity-25 text-primary">Editar</span>
+                                        {% elif log.action_flag == 3 %}<span class="badge bg-danger bg-opacity-25 text-danger">Borrar</span>
+                                        {% else %}<span class="badge bg-secondary">Otro</span>{% endif %}
+                                    </td>
+                                    <td><span class="text-primary small fw-bold">{{ log.content_type }}</span></td>
+                                    <td class="small text-truncate" style="max-width: 300px;">{{ log.object_repr }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-white py-3">
+                        <nav>
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                {% if logs.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{ logs.previous_page_number }}">Anterior</a></li>
+                                {% endif %}
+                                <li class="page-item active"><span class="page-link">{{ logs.number }}</span></li>
+                                {% if logs.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ logs.next_page_number }}">Siguiente</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
-    <h3 class="my-4 text-primary">Registro de Cambios</h3>
-    <div class="table-responsive">
-        <div class="filter">
-            <form id="search-form" method="get" action="/reportes">
-                <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un usuario, modelo o descripción" value="{{ request.GET.search }}" class="form-control">
-            </form>
-        </div>
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Fecha</th>
-                    <th>Usuario</th>
-                    <th>Acción</th>
-                    <th>Modelo</th>
-                    <th>Descripción</th>
-                </tr>
-            </thead>
-            <tbody id="logs-table-body">
-                {% for log in logs %}
-                    <tr>
-                        <td>{{ log.action_time }}</td>
-                        <td>{{ log.user }}</td>
-                        <td>
-                            {% if log.action_flag == ADDITION %}
-                                Creación
-                            {% elif log.action_flag == CHANGE %}
-                                Modificación
-                            {% elif log.action_flag == DELETION %}
-                                Eliminación
-                            {% endif %}
-                        </td>
-                        <td>{{ log.content_type }}</td>
-                        <td>{{ log.object_repr }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <!-- Botones para ver más registros -->
-    <footer>
-        <span>Mostrar del 1 al {{ logs.paginator.per_page }} o {{ logs.paginator.count }}</span>
-        <div class="pagination">
-            {% if logs.has_previous %}
-                <a href="?page={{ logs.previous_page_number }}&search={{ request.GET.search }}&page_size={{ request.GET.page_size }}" class="btn btn-custom">Prev</a>
-            {% endif %}
-
-            {% for num in logs.paginator.page_range %}
-                {% if logs.number == num %}
-                    <span class="btn btn-custom active">{{ num }}</span>
-                {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
-                    <a href="?page={{ num }}&search={{ request.GET.search }}&page_size={{ request.GET.page_size }}" class="btn btn-custom">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-
-            {% if logs.has_next %}
-                <a href="?page={{ logs.next_page_number }}&search={{ request.GET.search }}&page_size={{ request.GET.page_size }}" class="btn btn-custom">Next</a>
-            {% endif %}
-        </div>
-    </footer>
 </div>
 
-
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
 <script>
+    // --- GRÁFICO 1: INGRESOS (BARRAS) ---
+    var ctxPagos = document.getElementById('pagosChart').getContext('2d');
     
-    var ctx = document.getElementById('pagosChart').getContext('2d');
-    var meses = JSON.parse('{{ meses|escapejs }}');
-    var totales = JSON.parse('{{ totales|escapejs }}');
-    var pagosChart = new Chart(ctx, {
-        type: 'bar', // Tipo de gráfico
+    // Datos seguros desde Django
+    var rawMeses = '{{ meses|escapejs }}';
+    var rawTotales = '{{ totales|escapejs }}';
+    
+    if(rawMeses && rawTotales) {
+        new Chart(ctxPagos, {
+            type: 'bar',
+            data: {
+                labels: JSON.parse(rawMeses),
+                datasets: [{
+                    label: 'Recaudación (C$)',
+                    data: JSON.parse(rawTotales),
+                    backgroundColor: '#10b981',
+                    borderRadius: 6,
+                    barThickness: 25
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // --- GRÁFICO 2: ECOSISTEMA (DONA) - NUEVO ---
+    // Usamos los totales que ya tienes para crear un gráfico de distribución
+    var ctxEco = document.getElementById('ecosistemaChart').getContext('2d');
+    
+    var totalAlumnos = parseInt('{{ total_alumnos|default:"0" }}');
+    var totalProfes = parseInt('{{ total_profesores|default:"0" }}');
+    var totalGrupos = parseInt('{{ total_grupos|default:"0" }}');
+
+    new Chart(ctxEco, {
+        type: 'doughnut',
         data: {
-            labels: meses,
+            labels: ['Alumnos', 'Profesores', 'Grupos'],
             datasets: [{
-                label: 'Total de Pagos por Mes',
-                data: totales,
-                backgroundColor: 'rgba(3, 7, 10, 0.6)',
-                borderColor: 'rgba(3, 7, 10, 1)',
-                borderWidth: 1
+                data: [totalAlumnos, totalProfes, totalGrupos],
+                backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b'],
+                borderWidth: 0,
+                hoverOffset: 4
             }]
         },
         options: {
             responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }
+            },
+            cutout: '75%' // Hace la dona más delgada y elegante
         }
     });
 </script>
-{% endblock %}
-
-
+{% endblock %}s

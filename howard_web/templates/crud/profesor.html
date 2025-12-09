@@ -1,179 +1,262 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
+{% load static %}
+
+{% block title %}Plana Docente | Howard BS{% endblock %}
+
+{% block styles %}
+<style>
+    /* Estilos exclusivos para Profesores */
+    .avatar-profesor {
+        width: 45px; height: 45px;
+        /* Gradiente Morado para diferenciar de alumnos */
+        background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        color: white; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.1rem;
+        box-shadow: 0 4px 10px rgba(161, 140, 209, 0.3);
+        text-transform: uppercase; border: 2px solid white;
+    }
+
+    .table-card {
+        border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: none; overflow: hidden; background: white;
+    }
+
+    .table-modern thead th {
+        background-color: #f8f9fc; color: #8898aa;
+        font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px;
+        padding: 1.2rem 1rem; border-bottom: 1px solid #e9ecef;
+    }
+
+    .table-modern tbody td {
+        padding: 1rem 1rem; vertical-align: middle;
+        color: #525f7f; font-size: 0.9rem; border-bottom: 1px solid #f6f9fc;
+    }
+
+    .table-modern tbody tr:hover {
+        background-color: #fcfcfd; transform: scale(1.005);
+        transition: all 0.2s ease;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05); z-index: 10; position: relative;
+    }
+
+    /* Botones Acción */
+    .btn-action {
+        width: 32px; height: 32px; border-radius: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
+        transition: all 0.2s; border: none; background: #f8f9fa; color: #adb5bd; margin: 0 2px;
+    }
+    .btn-action:hover { background-color: #6f42c1; color: white; transform: translateY(-2px); } /* Morado */
+    .btn-action.delete:hover { background-color: #f5365c; color: white; }
+
+    /* Stats Cards */
+    .stat-card {
+        background: white; border-radius: 16px; padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05); display: flex; align-items: center;
+        justify-content: space-between; transition: transform 0.3s;
+        position: relative; overflow: hidden;
+    }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
+    .stat-purple::before { background: #6f42c1; }
+
+    .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+
+    /* Modales */
+    .modal-content { border: none; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4 text-primary">Gestión de Profesores</h2>
+<div class="container-fluid p-4">
 
-    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#profesorModal" onclick="openModal('add')">
-        Añadir Profesor
-    </button>
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="h3 fw-bold text-dark mb-1">Plana Docente</h1>
+            <p class="text-muted mb-0">Gestión de profesores y asignación académica.</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary shadow px-4 py-2 rounded-pill" onclick="abrir_modal_creacion('{% url 'profesor_add' %}')" style="background: #6f42c1; border-color: #6f42c1;">
+                <i class="fas fa-chalkboard-teacher me-2"></i> Contratar Docente
+            </button>
+        </div>
+    </div>
 
-    <div id="profesorModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="profesorModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="profesorModalLabel">Añadir Profesor</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="stat-card stat-purple">
+                <div>
+                    <h6 class="text-muted text-uppercase mb-1 fw-bold" style="font-size: 0.7rem;">Docentes Activos</h6>
+                    <h2 class="mb-0 fw-bold text-dark">{{ profesores.paginator.count }}</h2>
                 </div>
-                <div class="modal-body">
-                    <form id="profesorForm" method="post">
-                        {% csrf_token %}
-                        <div id="form-fields">
-                            {{ form.as_p }}
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" onclick="submitForm()">Guardar</button>
+                <div class="stat-icon bg-opacity-10 text-primary" style="background-color: rgba(111, 66, 193, 0.1); color: #6f42c1 !important;">
+                    <i class="fas fa-id-badge"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="filterEntries">
-        <div class="entries">
-            Enseñar <select name="page_size" id="table_size" class="form-control">
-                <option value="10" {% if request.GET.page_size == "10" %}selected{% endif %}>10</option>
-                <option value="20" {% if request.GET.page_size == "20" %}selected{% endif %}>20</option>
-                <option value="50" {% if request.GET.page_size == "50" %}selected{% endif %}>50</option>
-                <option value="100" {% if request.GET.page_size == "100" %}selected{% endif %}>100</option>
-            </select> entradas
-        </div>
-        <div class="filter">
-            <form id="search-form" method="get" action="/profesor">
-                <label for="search">Buscar</label>
-                <input type="search" name="search" id="search" placeholder="Ingrese un nombre o apellido" value="{{ request.GET.search }}" class="form-control">
+    <div class="card table-card">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center py-3 px-4">
+            <h6 class="m-0 font-weight-bold" style="color: #6f42c1;">Equipo Académico</h6>
+            
+            <form method="GET" action="{% url 'profesor' %}" class="d-flex align-items-center">
+                <div class="input-group shadow-sm" style="border-radius: 30px; overflow: hidden; width: 300px;">
+                    <button class="btn btn-light bg-white border-0 text-muted ps-3" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <input type="text" name="search" class="form-control border-0 bg-white shadow-none" 
+                           placeholder="Buscar profesor..." 
+                           value="{{ request.GET.search|default:'' }}">
+                </div>
             </form>
         </div>
-    </div>
 
-    <div id="profesor-table">
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr class="heading">
-                    <th>Nombres</th>
-                    <th>Apellidos</th>
-                    <th>Estudios</th>
-                    <th>Experiencia</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="profesor-table-body">
-                {% for profesor in profesores %}
+        <div class="table-responsive">
+            <table class="table table-modern mb-0">
+                <thead>
                     <tr>
-                        <td>{{ profesor.nombres }}</td>
-                        <td>{{ profesor.apellidos }}</td>
-                        <td>{{ profesor.estudios }}</td>
-                        <td>{{ profesor.experiencia }}</td>
+                        <th class="ps-4">Docente</th>
+                        <th>Estudios / Título</th>
+                        <th>Experiencia</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in profesores %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-profesor me-3">
+                                    {{ p.nombres|slice:":1" }}{{ p.apellidos|slice:":1" }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ p.nombres }} {{ p.apellidos }}</div>
+                                    <div class="text-muted small">ID: DOC-{{ p.id }}</div>
+                                </div>
+                            </div>
+                        </td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-custom-modify" data-bs-toggle="modal" data-bs-target="#profesorModal" onclick="openModal('edit', {{ profesor.id }})"><i class="fa-regular fa-pen-to-square"></i></button>
-                            <a href="/profesor_delete/{{ profesor.id }}" class="btn btn-sm btn-danger"><i class="fa-regular fa-trash-can"></i></a>
+                            <span class="badge bg-light text-dark border">
+                                <i class="fas fa-graduation-cap me-1 text-muted"></i> {{ p.estudios }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="progress flex-grow-1 me-2" style="height: 5px; width: 80px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {% widthratio p.experiencia 20 100 %}%; background-color: #6f42c1;"></div>
+                                </div>
+                                <span class="small fw-bold text-muted">{{ p.experiencia }} Años</span>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button onclick="abrir_modal_edicion('{% url 'profesor_edit' p.id %}')" class="btn-action" title="Editar">
+                                <i class="fas fa-pen" style="color: #6f42c1;"></i>
+                            </button>
+                            <button onclick="confirmarEliminacion(event, '{% url 'profesor_delete' p.id %}')" class="btn-action delete" title="Eliminar">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <footer>
-        <span>Mostrar del 1 al {{ profesores.paginator.per_page }} de {{ profesores.paginator.count }}</span>
-        <div class="pagination">
-            {% if profesores.has_previous %}
-                <a href="?page={{ profesores.previous_page_number }}" class="btn btn-custom">Prev</a>
-            {% endif %}
-
-            {% for num in profesores.paginator.page_range %}
-                {% if profesores.number == num %}
-                    <span class="btn btn-custom active">{{ num }}</span>
-                {% elif num > profesores.number|add:'-3' and num < profesores.number|add:'3' %}
-                    <a href="?page={{ num }}" class="btn btn-custom">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-
-            {% if profesores.has_next %}
-                <a href="?page={{ profesores.next_page_number }}" class="btn btn-custom">Next</a>
-            {% endif %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <h6 class="text-muted opacity-50">No hay docentes registrados</h6>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </footer>
+
+        <div class="card-footer bg-white py-3 border-0 d-flex justify-content-center">
+            <nav>
+                <ul class="pagination pagination-sm mb-0 shadow-sm" style="border-radius: 30px; overflow: hidden;">
+                    {% if profesores.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link border-0 bg-light text-dark" href="?page={{ profesores.previous_page_number }}&search={{ request.GET.search }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item active">
+                        <span class="page-link border-0" style="background-color: #6f42c1;">{{ profesores.number }}</span>
+                    </li>
+                    {% if profesores.has_next %}
+                    <li class="page-item">
+                        <a class="page-link border-0 bg-light text-dark" href="?page={{ profesores.next_page_number }}&search={{ request.GET.search }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
 </div>
 
+<div class="modal fade" id="modal-contenedor" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" id="modal-contenido">
+            </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
 <script>
-    function openModal(action, id=null) {
-        let url = '';
-        if (action === 'add') {
-            url = "{% url 'profesor_add' %}";
-            document.getElementById('profesorModalLabel').innerText = 'Añadir Profesor';
-        } else if (action === 'edit') {
-            url = `{% url 'profesor_edit' 0 %}`.replace('0', id);
-            document.getElementById('profesorModalLabel').innerText = 'Editar Profesor';
-        }
-        fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('form-fields').innerHTML = html;
-                document.getElementById('profesorForm').setAttribute('action', url);
-            });
+    // Reutilizando la misma lógica robusta de Alumnos
+    function abrir_modal_creacion(url) {
+        $('#modal-contenedor').modal('show');
+        $('#modal-contenido').load(url, function() { inicializar_formulario(); });
     }
 
-    function submitForm() {
-        const form = document.getElementById('profesorForm');
-        const data = new FormData(form);
-        fetch(form.action, {
-            method: 'POST',
-            body: data,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.reload();
-            } else {
-                const errors = data.errors;
-                for (const [field, messages] of Object.entries(errors)) {
-                    const fieldElement = document.querySelector(`[name="${field}"]`);
-                    fieldElement.classList.add('is-invalid');
-                    const errorContainer = document.createElement('div');
-                    errorContainer.className = 'invalid-feedback';
-                    errorContainer.innerHTML = messages.join('<br>');
-                    fieldElement.parentNode.appendChild(errorContainer);
+    function abrir_modal_edicion(url) {
+        $('#modal-contenedor').modal('show');
+        $('#modal-contenido').load(url, function() { inicializar_formulario(); });
+    }
+
+    function inicializar_formulario() {
+        $('#modal-contenedor input').addClass('form-control shadow-none');
+        
+        var form = $('#modal-contenedor').find('form');
+        form.on('submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: form.attr('action') || window.location.href,
+                type: 'POST',
+                data: form.serialize(),
+                success: function(data) {
+                    if (data.success) {
+                        $('#modal-contenedor').modal('hide');
+                        Swal.fire({
+                            icon: 'success', title: '¡Guardado!', 
+                            timer: 1500, showConfirmButton: false
+                        }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', 'Verifique los datos.', 'error');
+                    }
                 }
-            }
+            });
         });
     }
 
-    document.getElementById('search').addEventListener('input', function() {
-        updateTable(this.value);
-    });
-
-    document.getElementById('search-form').addEventListener('submit', function(event) {
+    function confirmarEliminacion(event, url) {
         event.preventDefault();
-        updateTable(document.getElementById('search').value);
-    });
-
-    document.getElementById('table_size').addEventListener('change', function() {
-        const pageSize = this.value;
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('page_size', pageSize);
-        window.location.search = urlParams.toString();
-    });
-
-    function updateTable(searchValue) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', `/profesor?search=${searchValue}`, true);
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const newTableBody = doc.getElementById('profesor-table-body').innerHTML;
-                document.getElementById('profesor-table-body').innerHTML = newTableBody;
+        Swal.fire({
+            title: '¿Eliminar docente?',
+            text: "Esta acción es irreversible.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f5365c',
+            cancelButtonColor: '#adb5bd',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
             }
-        };
-        xhr.send();
+        })
     }
-
 </script>
-
 {% endblock %}

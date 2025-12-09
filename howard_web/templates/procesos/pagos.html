@@ -1,39 +1,471 @@
-{% extends "dashboard/index.html" %}
+{% extends 'dashboard/index.html' %}
 {% load static %}
 
+{% block title %}Terminal de Caja | Howard BS{% endblock %}
+
 {% block styles %}
-  <link rel="stylesheet" href="{% static "css/jquery-ui.min.css" %}">
-  <link rel="stylesheet" href="{% static "css/pagos.css" %}">
-  <link rel="stylesheet" href="{% static "css/factura.css" %}">
+<style>
+    /* === ESTILOS TPV (TERMINAL DE CAJA) === */
+
+    /* Tarjeta Principal */
+    .pos-card {
+        border: none; border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+        overflow: hidden; background: white; height: 100%;
+    }
+
+    /* Encabezado */
+    .pos-header {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        padding: 1.5rem 2rem; color: white;
+    }
+
+    /* 1. BUSCADOR INTELIGENTE */
+    .search-wrapper { position: relative; z-index: 100; }
+    
+    .search-input {
+        height: 60px; padding-left: 3.5rem; border-radius: 16px;
+        border: 2px solid #f3f4f6; background-color: #f9fafb; font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+    .search-input:focus {
+        background-color: white; border-color: #10b981;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+    .search-icon {
+        position: absolute; left: 1.2rem; top: 50%; transform: translateY(-50%);
+        font-size: 1.4rem; color: #d1d5db; pointer-events: none;
+    }
+
+    /* Resultados Dropdown */
+    .results-dropdown {
+        position: absolute; top: 75px; left: 0; right: 0;
+        background: white; border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        z-index: 1000; overflow: hidden; border: 1px solid #e5e7eb;
+        display: none; max-height: 300px; overflow-y: auto;
+    }
+    .result-item {
+        padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f3f4f6;
+        display: flex; align-items: center; transition: background 0.2s;
+    }
+    .result-item:hover { background-color: #ecfdf5; }
+    .result-avatar {
+        width: 40px; height: 40px; border-radius: 50%;
+        background: #d1fae5; color: #047857;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; margin-right: 15px; font-size: 0.9rem;
+    }
+
+    /* Tarjeta Alumno Seleccionado */
+    .selected-card {
+        background: white; border: 2px solid #10b981;
+        border-radius: 16px; padding: 1rem;
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
+    }
+
+    /* 2. TARJETAS DE PAGO */
+    .payment-option {
+        border: 2px solid #f3f4f6; border-radius: 16px;
+        padding: 1.2rem 0.5rem; text-align: center; cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white; height: 100%;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .payment-option:hover { transform: translateY(-5px); border-color: #6ee7b7; }
+    .payment-option.active {
+        border-color: #10b981; background-color: #ecfdf5;
+        color: #064e3b; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.15);
+    }
+    .payment-option i { font-size: 1.6rem; margin-bottom: 0.5rem; color: #10b981; }
+
+    /* 3. INPUT MONTO */
+    .amount-box {
+        background: #ecfdf5; border-radius: 20px; padding: 1.5rem;
+        text-align: center; border: 2px dashed #10b981;
+    }
+    .amount-input-style {
+        font-size: 2.5rem; font-weight: 800; color: #047857;
+        background: transparent; border: none; text-align: center; width: 100%;
+        outline: none; padding: 0;
+    }
+    .amount-input-style::placeholder { color: #a7f3d0; }
+
+    /* TICKET (Preview) */
+    .ticket-container {
+        background: #fff; border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        overflow: hidden; border: 1px solid #f3f4f6;
+    }
+    .ticket-header { background: #1f2937; color: white; padding: 1.5rem; text-align: center; }
+    .ticket-body { padding: 2rem; background-color: #f9fafb; }
+    .ticket-row { display: flex; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px dashed #d1d5db; padding-bottom: 0.5rem; font-size: 0.9rem; }
+    .ticket-total { font-size: 1.8rem; font-weight: 800; text-align: center; margin-top: 1.5rem; color: #10b981; }
+
+    /* WIDGET HISTORIAL RECIENTE */
+    .recent-history-item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px; border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s;
+    }
+    .recent-history-item:last-child { border-bottom: none; }
+    .recent-history-item:hover { background-color: #f9fafb; }
+    .recent-icon {
+        width: 35px; height: 35px; border-radius: 10px; background: #ecfdf5;
+        color: #10b981; display: flex; align-items: center; justify-content: center;
+        font-size: 0.9rem; margin-right: 12px;
+    }
+    
+    /* Modales */
+    .modal-content { border: none; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+</style>
 {% endblock %}
 
 {% block content %}
-<article id="wizard" class="container">
-  <h3>Tipo de pago</h3>
-  <section>
-    {% include 'procesos/partials/tipos_pagos.html' with tipos_pagos=tipos_pagos %}
-  </section>
+<div class="container-fluid p-4">
 
-  <h3>Alumno</h3>
-  <section>
-    {% include 'procesos/partials/buscar_alumno.html' %}
-    {% include 'procesos/partials/crear_alumno.html' with form=alumno_form %}
-  </section>
+    <div class="row g-4">
+        
+        <div class="col-lg-8">
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h4 class="fw-bold text-dark m-0">Terminal de Caja</h4>
+                    <span class="text-muted small">Nueva Transacción</span>
+                </div>
+                <div class="badge bg-white text-success border px-3 py-2 rounded-pill shadow-sm">
+                    <i class="far fa-calendar-alt me-2"></i> {{ pago_form.fecha.value|date:"d F, Y" }}
+                </div>
+            </div>
 
-  <h3>Pago</h3>
-  <section>
-    {% include 'procesos/partials/pago_form.html' with form=pago_form %}
-  </section>
+            <div class="card pos-card">
+                <div class="pos-header">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                            <i class="fas fa-receipt text-white"></i>
+                        </div>
+                        <div>
+                            <h5 class="m-0 fw-bold">Procesar Pago</h5>
+                            <small class="opacity-75">Complete los datos para emitir factura</small>
+                        </div>
+                    </div>
+                </div>
 
-  <h3>Factura</h3>
-  <section>
-    {% include 'procesos/partials/resultado.html' %}
-  </section>
-</article>
+                <div class="card-body p-4 p-md-5">
+                    
+                    <form id="form-cobro" method="post" autocomplete="off">
+                        {% csrf_token %}
+                        <input type="hidden" name="alumno" id="id_alumno_hidden" required>
+                        <input type="hidden" name="tipo_pago" id="id_tipo_pago_hidden" required>
+                        <div class="d-none">{{ pago_form.fecha }}</div>
+
+                        <div class="mb-5">
+                            <label class="small text-uppercase text-muted fw-bold mb-2 ps-1">1. Identificar Estudiante</label>
+                            
+                            <div class="search-wrapper" id="buscador-container">
+                                <input type="text" id="buscador-input" class="form-control search-input" placeholder="Buscar por nombre, apellido o ID..." autocomplete="off">
+                                <i class="fas fa-search search-icon"></i>
+                                <div id="lista-resultados" class="results-dropdown animate__animated animate__fadeIn"></div>
+                            </div>
+
+                            <div id="alumno-seleccionado-card" class="selected-card d-none animate__animated animate__fadeInUp">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 50px; height: 50px;">
+                                        <i class="fas fa-user-graduate fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 fw-bold text-dark" id="lbl-nombre-alumno">Nombre Estudiante</h5>
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-2">Alumno Verificado</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-light text-danger rounded-pill fw-bold border" onclick="resetearBusqueda()">
+                                    <i class="fas fa-times me-1"></i> Cambiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="small text-uppercase text-muted fw-bold mb-2 ps-1">2. Concepto de Pago</label>
+                            <div class="row g-3">
+                                {% for tp in tipos_pagos %}
+                                <div class="col-6 col-md-3">
+                                    <div class="payment-option" onclick="seleccionarConcepto(this, '{{ tp.id }}', '{{ tp.nombre }}')">
+                                        {% if "Matricula" in tp.nombre %}<i class="fas fa-id-card"></i>
+                                        {% elif "Mensualidad" in tp.nombre %}<i class="fas fa-calendar-check"></i>
+                                        {% elif "Libro" in tp.nombre %}<i class="fas fa-book"></i>
+                                        {% else %}<i class="fas fa-money-bill-wave"></i>{% endif %}
+                                        <div class="small fw-bold mt-2">{{ tp.nombre }}</div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="small text-uppercase text-muted fw-bold mb-2 ps-1">3. Monto y Mes</label>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="amount-box">
+                                        <label class="small text-uppercase text-success fw-bold mb-2 d-block">Total a Cobrar</label>
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <span class="h2 text-success me-1 mb-0">C$</span>
+                                            {{ pago_form.monto }} 
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted fw-bold">Observación / Mes</label>
+                                    {{ pago_form.solvencia_mes }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill shadow py-3 fw-bold" style="background-color: #10b981; border: none; font-size: 1.2rem;">
+                                <i class="fas fa-check-circle me-2"></i> Generar Recibo Oficial
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            
+            <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white overflow-hidden">
+                <button class="btn btn-light w-100 text-start p-3 fw-bold text-success d-flex justify-content-between align-items-center" onclick="abrirModalRegistroRapido()">
+                    <span><i class="fas fa-user-plus me-2"></i> ¿Estudiante Nuevo?</span>
+                    <i class="fas fa-chevron-right small text-muted"></i>
+                </button>
+            </div>
+
+            <div class="ticket-container mb-4">
+                <div class="ticket-header">
+                    <h6 class="m-0 text-uppercase fw-bold text-warning letter-spacing-1">Vista Previa</h6>
+                </div>
+                
+                <div class="ticket-body">
+                    <div id="ticket-placeholder" class="text-center py-5">
+                        <i class="fas fa-cash-register fa-3x text-muted opacity-25 mb-3"></i>
+                        <p class="text-muted small px-4">Complete los datos para generar el recibo.</p>
+                    </div>
+
+                    <div id="ticket-content" class="d-none animate__animated animate__flipInX">
+                        <div class="text-center mb-4">
+                            <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                                <i class="fas fa-check fa-lg"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark m-0">¡Pago Exitoso!</h5>
+                            <small class="text-muted">Transacción registrada</small>
+                        </div>
+
+                        <div class="ticket-row">
+                            <span class="text-muted">Fecha:</span>
+                            <span class="fw-bold text-dark" id="print-fecha">--/--/--</span>
+                        </div>
+                        <div class="ticket-row">
+                            <span class="text-muted">Estudiante:</span>
+                            <span class="fw-bold text-dark" id="print-alumno">Juan Pérez</span>
+                        </div>
+                        <div class="ticket-row">
+                            <span class="text-muted">Concepto:</span>
+                            <span class="fw-bold text-dark" id="print-concepto">Mensualidad</span>
+                        </div>
+                        <div class="ticket-total" id="print-monto">C$ 0.00</div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="#" id="btn-pdf" target="_blank" class="btn btn-dark rounded-pill shadow-sm fw-bold">
+                                <i class="fas fa-print me-2"></i> Imprimir Recibo PDF
+                            </a>
+                            <button onclick="reiniciarCaja()" class="btn btn-outline-secondary rounded-pill border-0 btn-sm">
+                                <i class="fas fa-sync-alt me-1"></i> Nueva Transacción
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark m-0">Movimientos Recientes</h6>
+                    <a href="{% url 'pago' %}" class="text-success small fw-bold text-decoration-none">Ver Todo</a>
+                </div>
+                <div class="card-body p-0 pt-3">
+                    <div id="lista-historial-sesion">
+                        <div class="text-center py-4 text-muted small opacity-50" id="historial-vacio">
+                            No hay cobros en esta sesión
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-registro-rapido" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" id="modal-contenido-rapido">
+            </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
-  <script src="{% static "js/jquery.steps.min.js" %}"></script>
-  <script src="{% static "js/jquery-ui.min.js" %}"></script>
-  <script src="{% static "js/pagos.js" %}"></script>
+<script>
+    // Variables Globales
+    let nombreConceptoGlobal = "General";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. Estilos Inputs
+        $('#id_monto').addClass('amount-input-style').attr('placeholder', '0.00');
+        $('#id_solvencia_mes').addClass('form-control form-control-lg bg-light border-0 mt-1').attr('placeholder', 'Ej: Mensualidad Marzo');
+
+        // 2. Buscador AJAX
+        const inputBuscar = document.getElementById('buscador-input');
+        const listaResultados = document.getElementById('lista-resultados');
+
+        inputBuscar.addEventListener('input', function() {
+            let query = this.value;
+            if(query.length < 2) { listaResultados.style.display = 'none'; return; }
+
+            fetch(`/filtrar_alumnos/?filtrar=${query}`)
+                .then(r => r.json())
+                .then(data => {
+                    listaResultados.innerHTML = '';
+                    let alumnos = data.alumnos;
+                    if (typeof alumnos === 'string') alumnos = JSON.parse(alumnos);
+
+                    if(alumnos && alumnos.length > 0) {
+                        alumnos.forEach(alum => {
+                            let item = document.createElement('div');
+                            item.className = 'result-item';
+                            item.innerHTML = `<div class="result-avatar">${alum.nombres.charAt(0)}${alum.apellidos.charAt(0)}</div>
+                                              <div><div class="fw-bold text-dark">${alum.nombres} ${alum.apellidos}</div><div class="small text-muted">ID: ${alum.id}</div></div>`;
+                            item.onclick = () => seleccionarAlumno(alum.id, `${alum.nombres} ${alum.apellidos}`);
+                            listaResultados.appendChild(item);
+                        });
+                        listaResultados.style.display = 'block';
+                    } else { listaResultados.style.display = 'none'; }
+                })
+                .catch(err => console.error(err));
+        });
+
+        document.addEventListener('click', e => { if (!inputBuscar.contains(e.target)) listaResultados.style.display = 'none'; });
+
+        // 3. PROCESAR COBRO
+        $('#form-cobro').on('submit', function(e) {
+            e.preventDefault();
+            if(!$('#id_alumno_hidden').val()) { Swal.fire('Error', 'Seleccione un estudiante', 'warning'); return; }
+            if(!$('#id_tipo_pago_hidden').val()) { Swal.fire('Error', 'Seleccione el concepto', 'warning'); return; }
+
+            $.ajax({
+                url: "{% url 'pago_add' %}", type: "POST", data: $(this).serialize(),
+                success: function(response) {
+                    if(response.success) {
+                        // Actualizar Ticket Preview
+                        $('#ticket-placeholder').addClass('d-none');
+                        $('#print-fecha').text(response.fecha);
+                        $('#print-alumno').text(response.alumno);
+                        $('#print-monto').text(response.importe);
+                        
+                        let nota = $('#id_solvencia_mes').val();
+                        let conceptoFinal = nota ? `${nombreConceptoGlobal} (${nota})` : nombreConceptoGlobal;
+                        $('#print-concepto').text(conceptoFinal);
+                        
+                        $('#btn-pdf').attr('href', `/descargar_factura/${response.pago_id}/`);
+                        $('#ticket-content').removeClass('d-none');
+                        
+                        // Agregar al Historial de Sesión (Visual)
+                        agregarAlHistorial(response.alumno, response.importe, response.pago_id);
+
+                        Swal.fire({icon: 'success', title: 'Pago Exitoso', timer: 1500, showConfirmButton: false});
+                        
+                        // Reset Form (pero no UI del ticket)
+                        $('#form-cobro')[0].reset();
+                        resetearBusqueda();
+                        $('.payment-option').removeClass('active');
+                    } else { Swal.fire('Error', 'Verifique los datos.', 'error'); }
+                }
+            });
+        });
+    });
+
+    // === FUNCIONES UI ===
+
+    function seleccionarAlumno(id, nombre) {
+        $('#id_alumno_hidden').val(id);
+        $('#lbl-nombre-alumno').text(nombre);
+        $('#buscador-container').addClass('d-none');
+        $('#alumno-seleccionado-card').removeClass('d-none');
+        $('#lista-resultados').style.display = 'none';
+    }
+
+    function resetearBusqueda() {
+        $('#id_alumno_hidden').val('');
+        $('#buscador-input').val('');
+        $('#alumno-seleccionado-card').addClass('d-none');
+        $('#buscador-container').removeClass('d-none');
+        $('#buscador-input').focus();
+    }
+
+    function seleccionarConcepto(element, id, nombreTexto) {
+        $('.payment-option').removeClass('active');
+        $(element).addClass('active');
+        $('#id_tipo_pago_hidden').val(id);
+        nombreConceptoGlobal = nombreTexto;
+    }
+
+    function reiniciarCaja() {
+        $('#ticket-content').addClass('d-none');
+        $('#ticket-placeholder').removeClass('d-none');
+        resetearBusqueda();
+    }
+
+    // Agregar ítem a la lista derecha
+    function agregarAlHistorial(nombre, monto, id) {
+        $('#historial-vacio').remove();
+        let html = `
+            <div class="recent-history-item animate__animated animate__fadeInLeft">
+                <div class="d-flex align-items-center">
+                    <div class="recent-icon"><i class="fas fa-check"></i></div>
+                    <div>
+                        <div class="fw-bold text-dark small">${nombre}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">Recibo #${id}</div>
+                    </div>
+                </div>
+                <span class="fw-bold text-success small">${monto}</span>
+            </div>
+        `;
+        $('#lista-historial-sesion').prepend(html);
+    }
+
+    // === REGISTRO RÁPIDO (MODAL) ===
+    function abrirModalRegistroRapido() {
+        $('#modal-registro-rapido').modal('show');
+        $('#modal-contenido-rapido').load("{% url 'alumno_add' %}", function() {
+            // Configurar el formulario cargado
+            var form = $('#modal-contenido-rapido').find('form');
+            form.on('submit', function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: "{% url 'alumno_add' %}", type: "POST", data: form.serialize(),
+                    success: function(data) {
+                        if(data.success) {
+                            $('#modal-registro-rapido').modal('hide');
+                            seleccionarAlumno(data.alumno.id, `${data.alumno.nombres} ${data.alumno.apellidos}`);
+                            Swal.fire({ icon: 'success', title: '¡Creado!', text: 'Alumno listo para pagar.', timer: 1500, showConfirmButton: false });
+                        } else {
+                            Swal.fire('Error', 'Datos incompletos', 'warning');
+                        }
+                    }
+                });
+            });
+        });
+    }
+</script>
 {% endblock %}
